@@ -89,19 +89,19 @@ const FARMS = {
   },
   pond: {
     name: "Duck Pond", emoji: "🦆", price: 40, house: "duck house",
-    water: "pond", trough: 2, capacity: 10, nests: 3, blurb: "Ducks, geese and swans",
+    water: "pond", trough: 3, capacity: 24, nests: 5, blurb: "Ducks, geese and swans",
     mascots: ["mallard", "pekin"], starter: ["pekin", "pekin"],
     welcome: "Welcome to the Duck Pond! Ducks love to swim 🦆",
   },
   meadow: {
     name: "Wildflower Meadow", emoji: "🌼", price: 100, house: "hutch",
-    water: "waterer", trough: 2.5, capacity: 12, nests: 4, blurb: "Quail, pheasants and turkeys",
+    water: "waterer", trough: 4, capacity: 30, nests: 6, blurb: "Quail, pheasants and turkeys",
     mascots: ["ringneck", "coturnix"], starter: ["coturnix", "coturnix", "coturnix"],
     welcome: "Welcome to the Wildflower Meadow! 🌼 Watch the tiny quail scurry",
   },
   lagoon: {
     name: "Flamingo Lagoon", emoji: "🦩", price: 250, house: "pavilion",
-    water: "lagoon", trough: 2, capacity: 8, nests: 3, blurb: "Flamingos and peacocks!",
+    water: "lagoon", trough: 3, capacity: 16, nests: 4, blurb: "Flamingos and peacocks!",
     mascots: ["flamingo", "peacock"], starter: ["flamingo", "flamingo"],
     welcome: "Welcome to the Flamingo Lagoon! 🦩 Tap a peacock to see its fan",
   },
@@ -168,262 +168,164 @@ const SPECIES = {
   },
 };
 
-// Every breed you can raise. "species" says which kind of bird it is
-// (and so which farm it lives on). "egg" is the egg it lays.
+// Every breed you can raise, written as its GENES. (What each gene does
+// is explained in section 25, "BOYS, GIRLS & GENES".) Any gene a breed
+// doesn't list is the ordinary "wild" kind.
+//   species: which kind of animal (and so which farm it lives on)
+//   kind:    which birds it can have babies with (if not the same as species)
+//   tier:    for chickens, which coop you need before the Market sells it
+//   [a, b]:  two different copies of a gene (these breeds don't "breed true"!)
 const BREEDS = {
   // ---------- Chickens (Backyard) ----------
-  rir: {
-    species: "chicken", name: "Rhode Island Red", price: 8,
-    body: "#A13D22", shade: "#6E2412", light: "#C9603A", wing: "#7A2C16",
-    tail: "#2E1B12", tail2: "#4A2716", neck: "#B24A26",
-    comb: "#E03A2F", beak: "#E8A33A", legs: "#E8B84A", chick: "#E9B86A",
-    egg: { name: "Brown", color: "#B98256", speckle: true }, pitch: 1,
-  },
-  buff: {
-    species: "chicken", name: "Buff Orpington", price: 10,
-    body: "#E7B454", shade: "#C98E2E", light: "#F7D98E", wing: "#D49B3A",
-    tail: "#D49B3A", tail2: "#C98E2E", tailK: 0.75, fluffy: 0.18,
-    comb: "#E03A2F", beak: "#EEC06A", legs: "#E9CFA0", chick: "#FBE08B",
-    egg: { name: "Tan", color: "#E2C497" }, pitch: 0.92,
-  },
-  barred: {
-    species: "chicken", name: "Barred Rock", price: 12, pattern: "barred",
-    body: "#E9E7E2", shade: "#9A978F", light: "#FFFFFF", wing: "#B9B6AE",
-    tail: "#3A3A3E", tail2: "#5A5A5E", neck: "#D6D3CB",
-    comb: "#E03A2F", beak: "#E7C04A", legs: "#E7C04A", chick: "#34343A", chickSpot: "#F4F1E6",
-    egg: { name: "Brown", color: "#C79A6B", speckle: true }, pitch: 1.02,
-  },
-  leghorn: {
-    species: "chicken", name: "White Leghorn", price: 12, combType: "big", layBoost: 1.15,
-    body: "#FBFAF6", shade: "#D8D4CB", light: "#FFFFFF", wing: "#E8E4DB",
-    tail: "#EDEAE3", tail2: "#E0DCD2", earlobe: "#F3EFE6",
-    comb: "#E8352C", beak: "#F2C94C", legs: "#F2C94C", chick: "#FFF1A8",
-    egg: { name: "White", color: "#F8F4EA" }, pitch: 1.08,
-  },
-  australorp: {
-    species: "chicken", name: "Black Australorp", price: 14,
-    body: "#2A2B31", shade: "#141418", light: "#4F6663", wing: "#1E2025",
-    tail: "#16171B", tail2: "#2F3D3E", neck: "#30343A",
-    comb: "#E03A2F", beak: "#3D3B3A", legs: "#43434A", chick: "#2C2C31", chickSpot: "#EDE8DA",
-    egg: { name: "Brown", color: "#BF8F60" }, pitch: 0.95,
-  },
-  wyandotte: {
-    species: "chicken", name: "Silver Laced Wyandotte", price: 16, pattern: "laced", combType: "rose",
-    body: "#F3F1EC", shade: "#A9A69E", light: "#FFFFFF", wing: "#DAD7D0",
-    tail: "#2A2A2F", tail2: "#44444A", neck: "#E6E3DC",
-    comb: "#E03A2F", beak: "#E3BC4E", legs: "#E6C24E", chick: "#BDB8AC", chickStripe: "#7C776D",
-    egg: { name: "Light brown", color: "#D4AE84" }, pitch: 1,
-  },
-  sussex: {
-    species: "chicken", name: "Speckled Sussex", price: 16, pattern: "dots",
-    body: "#8E3E1E", shade: "#5A2310", light: "#B6603A", wing: "#6E2E16",
-    tail: "#2A1A12", tail2: "#5A2F1A", neck: "#A24E28",
-    comb: "#E03A2F", beak: "#E8C38A", legs: "#F0D9B0", chick: "#C98E5A", chickStripe: "#7A4A28",
-    egg: { name: "Light brown", color: "#D8B58C" }, pitch: 1,
-  },
-  cochin: {
-    species: "chicken", name: "Blue Cochin", price: 18, fluffy: 0.3, featherFeet: true, tailK: 0.6,
-    body: "#6F7F95", shade: "#4B586B", light: "#A2B1C4", wing: "#5E6C80",
-    tail: "#4B586B", tail2: "#3F4A5B", neck: "#7B8BA0",
-    comb: "#E03A2F", beak: "#E8C87A", legs: "#E8C87A", chick: "#8E96A2",
-    egg: { name: "Brown", color: "#C79C70" }, pitch: 0.9,
-  },
-  easter: {
-    species: "chicken", name: "Easter Egger", price: 20, pattern: "speckle", combType: "pea",
-    body: "#9C7650", shade: "#6F5236", light: "#C9A27A", wing: "#7E5E3E",
-    tail: "#3A2C22", tail2: "#5A4330", muffs: "#DCC7A8",
-    comb: "#D8473A", beak: "#8F8676", legs: "#7F8C74", chick: "#D8B27A", chickStripe: "#8A6440",
-    egg: { name: "Blue", color: "#9FD3CE" }, pitch: 0.97,
-  },
-  polish: {
-    species: "chicken", name: "Polish", price: 22, crest: "#FFFFFF", combType: "tiny",
-    body: "#26272D", shade: "#121317", light: "#44474F", wing: "#1D1E23",
-    tail: "#15161A", tail2: "#2A2B31", neck: "#2A2B31",
-    comb: "#D8473A", beak: "#8E8A84", legs: "#6E6C74", chick: "#2C2C31", chickSpot: "#FFFFFF",
-    egg: { name: "White", color: "#F8F4EA" }, pitch: 1.1,
-  },
-  marans: {
-    species: "chicken", name: "Cuckoo Marans", price: 24, pattern: "cuckoo",
-    body: "#C9C6BF", shade: "#7B7872", light: "#ECEAE4", wing: "#A6A39C",
-    tail: "#55534F", tail2: "#77746E", neck: "#BDBAB3",
-    comb: "#E03A2F", beak: "#E3D2A6", legs: "#EDE0BC", chick: "#3A3A3F", chickSpot: "#E8E2D2",
-    egg: { name: "Chocolate", color: "#6B3E23", speckle: true }, pitch: 0.98,
-  },
-  olive: {
-    species: "chicken", name: "Olive Egger", price: 26, pattern: "speckle", combType: "pea",
-    body: "#6E5A44", shade: "#46382A", light: "#9C8266", wing: "#56463A",
-    tail: "#2A2420", tail2: "#43372C", muffs: "#BFA48A",
-    comb: "#D8473A", beak: "#7F7A70", legs: "#6F7C66", chick: "#8E7A5E", chickStripe: "#4E3E2C",
-    egg: { name: "Olive", color: "#8E9A5C" }, pitch: 0.97,
-  },
-  silkie: {
-    species: "chicken", name: "Silkie", price: 30, silkie: true,
-    body: "#FFFDF6", shade: "#E6DFCF", light: "#FFFFFF", wing: "#EFE9DB",
-    tail: "#FFFDF6", face: "#4B3F63",
-    comb: "#5B4E6E", beak: "#6E6A7A", legs: "#5E5870", chick: "#FFF6DC",
-    egg: { name: "Cream", color: "#F3E6CC" }, pitch: 1.15,
-  },
+  // Cozy Coop
+  rir:          { species: "chicken", name: "Rhode Island Red", short: "Rhode Island Red", price: 8, tier: 1, genes: { base: "R", tone: "Mh", brownEgg: 3, lay: 1.1 } },
+  newHampshire: { species: "chicken", name: "New Hampshire", price: 8, tier: 1, genes: { base: "R", tone: "n", brownEgg: 3, lay: 1.05 } },
+  buff:         { species: "chicken", name: "Buff Orpington", short: "Orpington", price: 10, tier: 1, genes: { base: "R", tone: "di", skinY: "W", fluff: 0.18, size: 1.1 } },
+  barred:       { species: "chicken", name: "Barred Rock", short: "Rock", price: 10, tier: 1, genes: { base: "E", bar: "B", brownEgg: 2.5 } },
+  whiteRock:    { species: "chicken", name: "White Rock", short: "Rock", price: 10, tier: 1, genes: { base: "R", recW: "c", silver: "S", brownEgg: 2.5 } },
+  leghorn:      { species: "chicken", name: "White Leghorn", short: "Leghorn", price: 12, tier: 1, genes: { base: "E", domW: "I", lobe: "Wl", brownEgg: 0, combSize: 1.4, lay: 1.25 } },
+  australorp:   { species: "chicken", name: "Black Australorp", short: "Australorp", price: 12, tier: 1, genes: { base: "E", skinY: "W", brownEgg: 2.5, lay: 1.2, fluff: 0.08 } },
+  wyandotte:    { species: "chicken", name: "Silver Laced Wyandotte", short: "Wyandotte", price: 14, tier: 1, genes: { base: "R", silver: "S", pat: "lace", rose: "Rc", fluff: 0.1 } },
+  sussex:       { species: "chicken", name: "Speckled Sussex", short: "Sussex", price: 14, tier: 1, genes: { base: "R", tone: "Mh", pat: "mot", skinY: "W" } },
+  easter:       { species: "chicken", name: "Easter Egger", price: 16, tier: 1, genes: { base: "p", blueEgg: "O", pea: "Pc", beard: "Mb", brownEgg: 0.5 } },
+  delaware:     { species: "chicken", name: "Delaware", price: 14, tier: 1, genes: { base: "R", silver: "S", pat: "col", bar: "B", brownEgg: 2.5 } },
+  dominique:    { species: "chicken", name: "Dominique", price: 14, tier: 1, genes: { base: "E", bar: "B", rose: "Rc", brownEgg: 2 } },
+  // Farmhouse Coop
+  brownLeghorn: { species: "chicken", name: "Brown Leghorn", short: "Leghorn", price: 14, tier: 2, genes: { base: "p", lobe: "Wl", brownEgg: 0, combSize: 1.4, lay: 1.2 } },
+  goldWyandotte:{ species: "chicken", name: "Gold Laced Wyandotte", short: "Wyandotte", price: 16, tier: 2, genes: { base: "R", tone: "n", pat: "lace", rose: "Rc", fluff: 0.1 } },
+  blueLacedRed: { species: "chicken", name: "Blue Laced Red Wyandotte", short: "Wyandotte", price: 20, tier: 2, genes: { base: "R", tone: "Mh", pat: "lace", blue: ["Bl", "bl"], rose: "Rc", fluff: 0.1 } },
+  lightSussex:  { species: "chicken", name: "Light Sussex", short: "Sussex", price: 16, tier: 2, genes: { base: "R", silver: "S", pat: "col", skinY: "W" } },
+  cochin:       { species: "chicken", name: "Blue Cochin", short: "Cochin", price: 18, tier: 2, genes: { base: "E", blue: ["Bl", "bl"], feet: "Pti", fluff: 0.3, size: 1.1 } },
+  buffCochin:   { species: "chicken", name: "Buff Cochin", short: "Cochin", price: 18, tier: 2, genes: { base: "R", tone: "di", feet: "Pti", fluff: 0.3, size: 1.1 } },
+  lightBrahma:  { species: "chicken", name: "Light Brahma", short: "Brahma", price: 20, tier: 2, genes: { base: "R", silver: "S", pat: "col", feet: "Pti", pea: "Pc", size: 1.25, fluff: 0.12 } },
+  jerseyGiant:  { species: "chicken", name: "Jersey Giant", price: 18, tier: 2, genes: { base: "E", size: 1.3, brownEgg: 2.5 } },
+  marans:       { species: "chicken", name: "Cuckoo Marans", short: "Marans", price: 20, tier: 2, genes: { base: "E", bar: "B", brownEgg: 4, skinY: "W" } },
+  bcMarans:     { species: "chicken", name: "Black Copper Marans", short: "Marans", price: 24, tier: 2, genes: { base: "ER", tone: "Mh", brownEgg: 4, feet: "Pti", skinY: "W" } },
+  welsummer:    { species: "chicken", name: "Welsummer", price: 20, tier: 2, genes: { base: "p", tone: "Mh", brownEgg: 3.5, speckEgg: "Sp" } },
+  barnevelder:  { species: "chicken", name: "Barnevelder", price: 22, tier: 2, genes: { base: "p", tone: "Mh", pat: "dlace", brownEgg: 3.5 } },
+  ameraucana:   { species: "chicken", name: "Blue Ameraucana", short: "Ameraucana", price: 24, tier: 2, genes: { base: "E", blue: ["Bl", "bl"], blueEgg: "O", pea: "Pc", beard: "Mb", brownEgg: 0 } },
+  creamLegbar:  { species: "chicken", name: "Cream Legbar", short: "Legbar", price: 26, tier: 2, genes: { base: "p", tone: "di", bar: "B", crest: ["Cr", "cr"], blueEgg: "O", lobe: "Wl", brownEgg: 0 } },
+  blueAndalusian:{ species: "chicken", name: "Blue Andalusian", short: "Andalusian", price: 20, tier: 2, genes: { base: "E", blue: ["Bl", "bl"], lobe: "Wl", brownEgg: 0, combSize: 1.3 } },
+  olive:        { species: "chicken", name: "Olive Egger", price: 26, tier: 2, genes: { base: "ER", tone: "Mh", blueEgg: "O", brownEgg: 3.5, pea: "Pc" } },
+  lavenderOrp:  { species: "chicken", name: "Lavender Orpington", short: "Orpington", price: 24, tier: 2, genes: { base: "E", lav: "lav", skinY: "W", fluff: 0.2, size: 1.1 } },
+  chocolateOrp: { species: "chicken", name: "Chocolate Orpington", short: "Orpington", price: 26, tier: 2, genes: { base: "E", choc: "ch", skinY: "W", fluff: 0.2, size: 1.1 } },
+  ancona:       { species: "chicken", name: "Ancona", price: 16, tier: 2, genes: { base: "E", pat: "mot", lobe: "Wl", brownEgg: 0, combSize: 1.25 } },
+  hamburg:      { species: "chicken", name: "Silver Spangled Hamburg", short: "Hamburg", price: 18, tier: 2, genes: { base: "R", silver: "S", pat: "spang", rose: "Rc", lobe: "Wl", brownEgg: 0, size: 0.9 } },
+  turken:       { species: "chicken", name: "Naked Neck", short: "Naked Neck", price: 18, tier: 2, genes: { base: "R", tone: "Mh", naked: "Na", brownEgg: 2.5 } },
+  // Chicken Palace
+  polish:       { species: "chicken", name: "Polish", price: 26, tier: 3, genes: { base: "E", crest: "Cr", wcrest: "Wc", vcomb: "D", lobe: "Wl", brownEgg: 0 } },
+  silkie:       { species: "chicken", name: "Silkie", price: 30, tier: 3, genes: { recW: "c", silkie: "h", skin: "Fm", crest: "Cr", feet: "Pti", toes: "Po", rose: "Rc", pea: "Pc", brownEgg: 0.5, size: 0.75 } },
+  frizzle:      { species: "chicken", name: "Frizzle", price: 28, tier: 3, genes: { base: "R", tone: "di", frizzle: ["F", "f"], skinY: "W", fluff: 0.1 } },
+  faverolles:   { species: "chicken", name: "Salmon Faverolles", short: "Faverolles", price: 26, tier: 3, genes: { base: "p", silver: "S", tone: "di", beard: "Mb", feet: "Pti", toes: "Po", skinY: "W", fluff: 0.15, brownEgg: 1 } },
+  houdan:       { species: "chicken", name: "Houdan", price: 28, tier: 3, genes: { base: "E", pat: "mot", crest: "Cr", vcomb: "D", toes: "Po", beard: "Mb", lobe: "Wl", skinY: "W", brownEgg: 0 } },
+  sultan:       { species: "chicken", name: "Sultan", price: 32, tier: 3, genes: { recW: "c", crest: "Cr", beard: "Mb", vcomb: "D", feet: "Pti", toes: "Po", lobe: "Wl", skinY: "W", brownEgg: 0, size: 0.85 } },
+  araucana:     { species: "chicken", name: "Araucana", price: 30, tier: 3, genes: { base: "E", blueEgg: "O", pea: "Pc", rump: "Rp", tufts: "Et", brownEgg: 0 } },
+  ayamCemani:   { species: "chicken", name: "Ayam Cemani", price: 40, tier: 3, genes: { base: "E", skin: "Fm", brownEgg: 1, size: 0.9 } },
+  sebright:     { species: "chicken", name: "Golden Sebright", short: "Sebright", price: 30, tier: 3, genes: { base: "R", tone: "n", pat: "lace", rose: "Rc", henny: "Hf", size: 0.5, brownEgg: 0.5 } },
+  serama:       { species: "chicken", name: "Serama", price: 34, tier: 3, genes: { base: "p", size: 0.4, brownEgg: 1.5 } },
+  phoenix:      { species: "chicken", name: "Silver Phoenix", short: "Phoenix", price: 32, tier: 3, genes: { base: "p", silver: "S", longTail: "gt", lobe: "Wl", brownEgg: 1, size: 0.85 } },
+  spitzhauben:  { species: "chicken", name: "Appenzeller Spitzhauben", short: "Spitzhauben", price: 28, tier: 3, genes: { base: "R", silver: "S", pat: "spang", crest: "Cr", vcomb: "D", lobe: "Wl", brownEgg: 0 } },
+  // hatched only
+  mix:          { species: "chicken", name: "Barnyard Mix", price: 0, cross: true },
 
-  // ---------- Special crosses (you can only get these by hatching!) ----------
-  // "cross" breeds aren't sold at the Market. "boy" is how the boys look
-  // different from the girls. With "sex-link" chickens you can tell the
-  // boys from the girls the day they hatch, just by their color!
-  blackStar: {
-    species: "chicken", name: "Black Star", price: 0, cross: true, layBoost: 1.2,
-    body: "#26272D", shade: "#121317", light: "#4A4F4A", wing: "#1E1F24",
-    tail: "#16171B", tail2: "#2F3D3E", neck: "#B5652B", hackle: "#C9772E",
-    comb: "#E03A2F", beak: "#6E5A40", legs: "#5E5A50", chick: "#2C2C31",
-    egg: { name: "Brown", color: "#B98256", speckle: true }, pitch: 0.98,
-    boy: { pattern: "barred", body: "#E9E7E2", shade: "#9A978F", light: "#FFFFFF", wing: "#B9B6AE", tail: "#3A3A3E", tail2: "#5A5A5E",
-      neck: "#D6D3CB", hackle: "#E8E2D2", beak: "#E7C04A", legs: "#E7C04A", chickSpot: "#F4F1E6" },
-  },
-  goldenComet: {
-    species: "chicken", name: "Golden Comet", price: 0, cross: true, layBoost: 1.25,
-    body: "#C77A3A", shade: "#8E4E22", light: "#E8A866", wing: "#A8602C",
-    tail: "#F2EEE4", tail2: "#E0D8C8", neck: "#D08A48",
-    comb: "#E03A2F", beak: "#E8B84A", legs: "#E8C06A", chick: "#E3A860",
-    egg: { name: "Brown", color: "#BE8A5A" }, pitch: 1.02,
-    boy: { body: "#F6F2E8", shade: "#D8D0BE", light: "#FFFFFF", wing: "#E8E0D0", neck: "#F2E6D0", hackle: "#E8B878",
-      tail: "#EDEAE3", tail2: "#D9A060", chick: "#FFF1B0" },
-  },
-  cinnamonQueen: {
-    species: "chicken", name: "Cinnamon Queen", price: 0, cross: true, layBoost: 1.2,
-    body: "#9C4A26", shade: "#662C14", light: "#C9723E", wing: "#7C3818",
-    tail: "#F0E8DA", tail2: "#8E4A24", neck: "#E2C8A8", hackle: "#F0E2CC",
-    comb: "#E03A2F", beak: "#E8B84A", legs: "#E8C06A", chick: "#D39050",
-    egg: { name: "Brown", color: "#B27A4E" }, pitch: 1,
-    boy: { pattern: "laced", body: "#F3F1EC", shade: "#A9A69E", light: "#FFFFFF", wing: "#DAD7D0", neck: "#E6E3DC",
-      hackle: "#F4F2EE", tail: "#2A2A2F", tail2: "#C9723E", chick: "#FFF0B8" },
-  },
-  austraWhite: {
-    species: "chicken", name: "Austra White", price: 0, cross: true, layBoost: 1.25, pattern: "flecks", combType: "big",
-    body: "#F6F4EE", shade: "#D2CEC4", light: "#FFFFFF", wing: "#E4E0D6",
-    tail: "#EDEAE3", tail2: "#2A2B31", neck: "#F6F4EE",
-    comb: "#E8352C", beak: "#F2C94C", legs: "#E8D8A0", chick: "#F4F0DA", chickSpot: "#8E8E96",
-    egg: { name: "Cream", color: "#F1E4CC" }, pitch: 1.05,
-  },
-  mix: {
-    // Every Barnyard Mix has its own genes, so these colors are just a backup
-    species: "chicken", name: "Barnyard Mix", price: 0, cross: true,
-    body: "#B07A4A", shade: "#7A4E2A", light: "#D8A878", wing: "#8E5E36",
-    tail: "#2E2218", tail2: "#4A3424", neck: "#C08A56",
-    comb: "#E03A2F", beak: "#E8B84A", legs: "#E8C06A", chick: "#E9C27A",
-    egg: { name: "Brown", color: "#C1905F" }, pitch: 1,
-  },
+  // ---------- Ducks & Muscovies (Duck Pond) ----------
+  pekin:        { species: "duck", name: "Pekin Duck", short: "Pekin", price: 14, genes: { white: "c", size: 1.1, lay: 1.1 } },
+  mallard:      { species: "duck", name: "Mallard", price: 16, genes: { base: "M", size: 0.85, blueEgg: "O" } },
+  rouen:        { species: "duck", name: "Rouen", price: 20, genes: { base: "M", size: 1.3, lay: 0.85 } },
+  runner:       { species: "duck", name: "Indian Runner", short: "Runner", price: 18, genes: { base: "md", brown: "d", bib: "mag", upright: 1, blueEgg: "O", lay: 1.2 } },
+  swedish:      { species: "duck", name: "Swedish Blue", short: "Swedish", price: 18, genes: { base: "E", blue: ["Bl", "bl"], bib: "bib" } },
+  call:         { species: "duck", name: "Call Duck", short: "Call Duck", price: 20, genes: { white: "c", size: 0.62 } },
+  cayuga:       { species: "duck", name: "Cayuga", price: 20, genes: { base: "E", darkEgg: "Cu" } },
+  khakiCampbell:{ species: "duck", name: "Khaki Campbell", short: "Campbell", price: 18, genes: { base: "md", brown: "d", lay: 1.35 } },
+  crestedDuck:  { species: "duck", name: "Crested Duck", short: "Crested", price: 22, genes: { white: "c", crest: ["Cr", "cr"] } },
+  magpieDuck:   { species: "duck", name: "Magpie Duck", short: "Magpie", price: 20, genes: { base: "E", bib: "mag" } },
+  welshHarlequin:{ species: "duck", name: "Welsh Harlequin", short: "Harlequin", price: 22, genes: { base: "M", brown: "d", harl: "hq", lay: 1.2 } },
+  appleyard:    { species: "duck", name: "Silver Appleyard", short: "Appleyard", price: 24, genes: { base: "M", harl: "hq", size: 1.15 } },
+  buffDuck:     { species: "duck", name: "Buff Orpington Duck", short: "Buff Duck", price: 20, genes: { base: "md", brown: "d", blue: ["Bl", "bl"] } },
+  muscovy:      { species: "duck", kind: "muscovy", name: "Muscovy", price: 22, incubate: 35, genes: { pied: ["Pi", "pi"] } },
+  whiteMuscovy: { species: "duck", kind: "muscovy", name: "White Muscovy", short: "Muscovy", price: 24, incubate: 35, genes: { white: "c" } },
+  blueMuscovy:  { species: "duck", kind: "muscovy", name: "Blue Muscovy", short: "Muscovy", price: 26, incubate: 35, genes: { blue: ["Bl", "bl"], pied: ["Pi", "pi"] } },
+  mixDuck:      { species: "duck", name: "Duck Mix", price: 0, cross: true },
+  mixMuscovy:   { species: "duck", kind: "muscovy", name: "Muscovy Mix", price: 0, cross: true, incubate: 35 },
+  mulard:       { species: "duck", kind: "mule", name: "Mulard", price: 0, cross: true, incubate: 32 },
 
-  // ---------- Ducks, geese & swans (Duck Pond) ----------
-  pekin: {
-    species: "duck", name: "Pekin Duck", price: 14,
-    body: "#FFFDF4", shade: "#E4DCC8", light: "#FFFFFF", wing: "#F2ECDD", tail: "#EFE8D6",
-    neck: "#FFFDF4", head: "#FFFDF4", bill: "#F2A93B", feet: "#F2A93B", chick: "#FFE27A",
-    egg: { name: "Duck", color: "#F6F2E6" },
-  },
-  mallard: {
-    species: "duck", name: "Mallard", price: 16,
-    body: "#BDB8AF", shade: "#8E8980", light: "#E2DED6", wing: "#8C8378", chest: "#7A4A2E",
-    tail: "#2C2C30", curl: "#1E1E22", neck: "#1F6B3A", head: "#1B5E34", headLight: "#3FA36A", ring: "#FFFFFF",
-    bill: "#D9CB4A", feet: "#F09A3A", speculum: "#3F5FD8", chick: "#E6C766", chickStripe: "#6E5530",
-    egg: { name: "Pale green", color: "#D9E8CF" },
-  },
-  runner: {
-    species: "duck", name: "Indian Runner", price: 18, upright: true,
-    body: "#D8C2A0", shade: "#A88F6C", light: "#F2E4CC", wing: "#BCA37F", tail: "#A88F6C",
-    neck: "#F4F0E6", head: "#C9B08A", bill: "#B8C050", feet: "#F09A3A", chick: "#F0D48A",
-    egg: { name: "Blue-green", color: "#C3E3D6" },
-  },
-  swedish: {
-    species: "duck", name: "Swedish Blue", price: 18,
-    body: "#5E7189", shade: "#3F4E62", light: "#8A9DB4", wing: "#4E5F75", tail: "#3F4E62",
-    neck: "#5E7189", head: "#4A5B70", bib: "#F4F2EC", bill: "#6F7F8E", feet: "#5B4A3E",
-    chick: "#4D5566", chickSpot: "#F0E9D8", egg: { name: "Duck", color: "#E9EFEA" },
-  },
-  call: {
-    species: "duck", name: "Call Duck", price: 20, small: 0.72,
-    body: "#FFFDF4", shade: "#E6DECB", light: "#FFFFFF", wing: "#F2ECDD", tail: "#EFE8D6",
-    neck: "#FFFDF4", head: "#FFFDF4", bill: "#F2B23B", feet: "#F2A93B", chick: "#FFE680",
-    egg: { name: "Tiny duck", color: "#F4F0E4" },
-  },
-  embden: {
-    species: "goose", name: "Embden Goose", price: 34,
-    body: "#FBFAF4", shade: "#DCD6C8", light: "#FFFFFF", wing: "#EDE8DC", tail: "#E7E1D3",
-    neck: "#FBFAF4", head: "#FBFAF4", bill: "#F2913B", feet: "#F2913B", chick: "#EFD98A",
-    egg: { name: "Goose", color: "#FBF9F1" },
-  },
-  muteSwan: {
-    species: "goose", swan: true, name: "Mute Swan", price: 60, baby: "cygnet",
-    body: "#FFFFFF", shade: "#DCDDE2", light: "#FFFFFF", wing: "#F3F3F6", tail: "#E8E8EC",
-    neck: "#FFFFFF", head: "#FFFFFF", bill: "#F07A2E", knob: "#1E1E22", feet: "#3A3A40", chick: "#B9BCC4",
-    egg: { name: "Swan", color: "#E3EBDD" },
-  },
-  blackSwan: {
-    species: "goose", swan: true, name: "Black Swan", price: 80, baby: "cygnet",
-    body: "#26262C", shade: "#101014", light: "#4A4A54", wing: "#1C1C22", wingTip: "#F4F4F6", tail: "#18181D",
-    neck: "#26262C", head: "#26262C", bill: "#D8303A", band: "#FFFFFF", feet: "#2A2A30", chick: "#8E8E96",
-    egg: { name: "Swan", color: "#D4E2CE" },
-  },
+  // ---------- Geese & swans (Duck Pond) ----------
+  embden:       { species: "goose", name: "Embden Goose", short: "Embden", price: 34, genes: { white: "c", size: 1.25 } },
+  toulouse:     { species: "goose", name: "Toulouse Goose", short: "Toulouse", price: 36, genes: { dewlap: "Dw", size: 1.3 } },
+  african:      { species: "goose", name: "African Goose", short: "African", price: 40, genes: { knob: "K", dewlap: "Dw", size: 1.25 } },
+  chinese:      { species: "goose", name: "Brown Chinese Goose", short: "Chinese", price: 30, genes: { knob: "K", size: 0.9, lay: 1.3 } },
+  whiteChinese: { species: "goose", name: "White Chinese Goose", short: "Chinese", price: 32, genes: { knob: "K", white: "c", size: 0.9, lay: 1.3 } },
+  sebastopol:   { species: "goose", name: "Sebastopol Goose", short: "Sebastopol", price: 44, genes: { white: "c", curl: "Cu" } },
+  pilgrim:      { species: "goose", name: "Pilgrim Goose", short: "Pilgrim", price: 36, genes: { sd: "Sd" } },
+  americanBuff: { species: "goose", name: "American Buff Goose", short: "Buff Goose", price: 38, genes: { buff: "g", size: 1.1 } },
+  pomeranian:   { species: "goose", name: "Pomeranian Goose", short: "Pomeranian", price: 38, genes: { saddle: "sb" } },
+  mixGoose:     { species: "goose", name: "Goose Mix", price: 0, cross: true },
+  muteSwan:     { species: "goose", kind: "swan", name: "Mute Swan", price: 60, baby: "cygnet", incubate: 36, genes: { bill: "or", knob: "Kn" } },
+  polishSwan:   { species: "goose", kind: "swan", name: "Polish Mute Swan", short: "Mute Swan", price: 70, baby: "cygnet", incubate: 36, genes: { bill: "or", knob: "Kn", polish: "pl" } },
+  blackSwan:    { species: "goose", kind: "swan", name: "Black Swan", price: 80, baby: "cygnet", incubate: 36, genes: { black: "Bk", bill: "rd" } },
+  trumpeter:    { species: "goose", kind: "swan", name: "Trumpeter Swan", price: 90, baby: "cygnet", incubate: 33, genes: { bill: "bk", size: 1.15 } },
+  mixSwan:      { species: "goose", kind: "swan", name: "Swan Mix", price: 0, cross: true, baby: "cygnet", incubate: 36 },
 
   // ---------- Game birds (Wildflower Meadow) ----------
-  coturnix: {
-    species: "quail", name: "Coturnix Quail", price: 6, pattern: "streak",
-    body: "#9C7A55", shade: "#6A4E34", light: "#C9A77E", wing: "#7E6044", head: "#8A6A48",
-    breast: "#C9A77E", brow: "#F2E6CC", legs: "#E8B8A0", chick: "#C9A77E", chickStripe: "#6A4E34",
-    egg: { name: "Speckled", color: "#EFE3C8", blotch: true },
-  },
-  california: {
-    species: "quail", name: "California Quail", price: 12, pattern: "scaled",
-    body: "#7C8A9C", shade: "#55606E", light: "#A6B2C0", wing: "#8C7658", head: "#7E6B56",
-    breast: "#6F8096", belly: "#E8D6B0", face: "#1E1E22", plume: "#1E1E22", legs: "#8E8C94",
-    chick: "#C9B08A", chickStripe: "#6E5530", egg: { name: "Speckled", color: "#EFE6CF", blotch: true },
-  },
-  guinea: {
-    species: "guinea", name: "Guinea Fowl", price: 16,
-    body: "#4B4F5C", shade: "#2E313A", light: "#6E7384", dot: "#FFFFFF",
-    face: "#DCEAF5", wattle: "#D8473A", casque: "#9C6A3E", beak: "#E9D8B4", legs: "#6E6A6E",
-    chick: "#B89868", chickStripe: "#6E5530", egg: { name: "Speckled tan", color: "#DCC39C", speckle: true },
-  },
-  ringneck: {
-    species: "pheasant", name: "Ring-necked Pheasant", price: 24,
-    body: "#B8642E", shade: "#7A3A18", light: "#E08A48", wing: "#8E6A4A", tail: "#9C7A50", bars: "#4A3420",
-    neck: "#1E5A4A", head: "#2A3A7A", headLight: "#4A6AB4", ring: "#FFFFFF", wattle: "#D8303A", ear: "#1E5A4A",
-    beak: "#E6D6A8", legs: "#9A9086", chick: "#C9A77E", chickStripe: "#6A4E34",
-    egg: { name: "Olive-brown", color: "#A5956C" },
-  },
-  goldenPh: {
-    species: "pheasant", name: "Golden Pheasant", price: 40,
-    body: "#D8342A", shade: "#9C1E18", light: "#FF5A40", wing: "#2F4FA8", tail: "#B89048", bars: "#4A3420",
-    neck: "#F2A33A", head: "#F2C14E", headLight: "#FFE27A", crest: "#FFD23A", cape: "#F28A2E", capeBar: "#1E1E22",
-    beak: "#F2C14E", legs: "#C9A87A", chick: "#C9A77E", chickStripe: "#6A4E34",
-    egg: { name: "Cream", color: "#EEDDB8" },
-  },
-  turkey: {
-    species: "turkey", name: "Bronze Turkey", price: 36,
-    body: "#5A4432", shade: "#2E2218", light: "#8A6A48", sheen: "#4E7A5E", wing: "#6E5A46", wingBar: "#F4EFE6",
-    tail: "#5A4432", tailBand: "#E6D6B8", neck: "#B89CA0", head: "#9CC8E8", wattle: "#D8303A", beard: "#1E1A16",
-    beak: "#E6D8B8", legs: "#D9A89A", chick: "#D8C29A",
-    egg: { name: "Speckled", color: "#E8D6B8", speckle: true },
-  },
+  coturnix:     { species: "quail", name: "Coturnix Quail", short: "Coturnix", price: 6, genes: {} },
+  goldenQuail:  { species: "quail", name: "Golden Coturnix", short: "Coturnix", price: 8, genes: { gold: "Y" } },
+  englishWhite: { species: "quail", name: "English White Quail", short: "Coturnix", price: 8, genes: { white: "wh" } },
+  tibetan:      { species: "quail", name: "Tibetan Quail", short: "Coturnix", price: 8, genes: { dark: "Tb" } },
+  tuxedoQuail:  { species: "quail", name: "Tuxedo Quail", short: "Coturnix", price: 10, genes: { dark: "Tb", tux: "s" } },
+  celadonQuail: { species: "quail", name: "Celadon Quail", short: "Coturnix", price: 10, genes: { celadon: "ce" } },
+  jumboQuail:   { species: "quail", name: "Jumbo Coturnix", short: "Coturnix", price: 10, genes: { size: 1.35 } },
+  mixQuail:     { species: "quail", name: "Quail Mix", price: 0, cross: true },
+  california:   { species: "quail", kind: "calQuail", name: "California Quail", price: 12, incubate: 22, genes: {} },
+  bobwhite:     { species: "quail", kind: "bobwhite", name: "Bobwhite Quail", short: "Bobwhite", price: 14, incubate: 23, genes: {} },
+  snowflake:    { species: "quail", kind: "bobwhite", name: "Snowflake Bobwhite", short: "Bobwhite", price: 16, incubate: 23, genes: { snow: "sn" } },
+  mixBobwhite:  { species: "quail", kind: "bobwhite", name: "Bobwhite Mix", price: 0, cross: true, incubate: 23 },
+  guinea:       { species: "guinea", name: "Pearl Guinea", short: "Guinea", price: 16, genes: {} },
+  lavenderGuinea:{ species: "guinea", name: "Lavender Guinea", short: "Guinea", price: 18, genes: { lav: "lv" } },
+  whiteGuinea:  { species: "guinea", name: "White Guinea", short: "Guinea", price: 18, genes: { white: "c" } },
+  royalPurple:  { species: "guinea", name: "Royal Purple Guinea", short: "Guinea", price: 20, genes: { pearl: "pt" } },
+  buffGuinea:   { species: "guinea", name: "Buff Guinea", short: "Guinea", price: 20, genes: { buff: "br" } },
+  piedGuinea:   { species: "guinea", name: "Pied Guinea", short: "Guinea", price: 20, genes: { pied: ["Pi", "pi"] } },
+  mixGuinea:    { species: "guinea", name: "Guinea Mix", price: 0, cross: true },
+  ringneck:     { species: "pheasant", name: "Ring-necked Pheasant", short: "Pheasant", price: 24, genes: {} },
+  blackneck:    { species: "pheasant", name: "Blackneck Pheasant", short: "Pheasant", price: 24, genes: { ring: "rg" } },
+  melanistic:   { species: "pheasant", name: "Melanistic Mutant Pheasant", short: "Pheasant", price: 30, genes: { mel: "Mel" } },
+  whitePheasant:{ species: "pheasant", name: "White Pheasant", short: "Pheasant", price: 30, genes: { white: "c" } },
+  buffPheasant: { species: "pheasant", name: "Buff Pheasant", short: "Pheasant", price: 30, genes: { fawn: "fw" } },
+  mixPheasant:  { species: "pheasant", name: "Pheasant Mix", price: 0, cross: true },
+  goldenPh:     { species: "pheasant", kind: "ruffed", name: "Golden Pheasant", short: "Golden Pheasant", price: 40, incubate: 23, genes: {} },
+  yellowGolden: { species: "pheasant", kind: "ruffed", name: "Yellow Golden Pheasant", short: "Golden Pheasant", price: 50, incubate: 23, genes: { yellow: "yg" } },
+  darkThroated: { species: "pheasant", kind: "ruffed", name: "Dark-throated Golden Pheasant", short: "Golden Pheasant", price: 50, incubate: 23, genes: { dark: "Dt" } },
+  ladyAmherst:  { species: "pheasant", kind: "ruffed", name: "Lady Amherst's Pheasant", short: "Lady Amherst", price: 50, incubate: 23, genes: { amherst: "A" } },
+  mixRuffed:    { species: "pheasant", kind: "ruffed", name: "Ruffed Pheasant Mix", price: 0, cross: true, incubate: 23 },
+  silverPh:     { species: "pheasant", kind: "silverPh", name: "Silver Pheasant", price: 50, incubate: 25, genes: {} },
+  reeves:       { species: "pheasant", kind: "reeves", name: "Reeves's Pheasant", price: 60, incubate: 25, genes: {} },
+  turkey:       { species: "turkey", name: "Bronze Turkey", short: "Turkey", price: 36, genes: {} },
+  blackSpanish: { species: "turkey", name: "Black Spanish Turkey", short: "Turkey", price: 36, genes: { base: "B" } },
+  bourbonRed:   { species: "turkey", name: "Bourbon Red Turkey", short: "Turkey", price: 38, genes: { base: "b" } },
+  narragansett: { species: "turkey", name: "Narragansett Turkey", short: "Turkey", price: 38, genes: { narr: "n" } },
+  royalPalm:    { species: "turkey", name: "Royal Palm Turkey", short: "Turkey", price: 42, genes: { palm: "cp" } },
+  blueSlate:    { species: "turkey", name: "Blue Slate Turkey", short: "Turkey", price: 42, genes: { slate: ["Sl", "sl"] } },
+  whiteHolland: { species: "turkey", name: "White Holland Turkey", short: "Turkey", price: 34, genes: { white: "c" } },
+  midgetWhite:  { species: "turkey", name: "Midget White Turkey", short: "Turkey", price: 32, genes: { white: "c", size: 0.75 } },
+  mixTurkey:    { species: "turkey", name: "Turkey Mix", price: 0, cross: true },
 
   // ---------- Fancy birds (Flamingo Lagoon) ----------
-  flamingo: {
-    species: "flamingo", name: "American Flamingo", price: 60,
-    body: "#F47FA0", shade: "#D8557A", light: "#FFB3C6", wing: "#F68AA8", wingTip: "#1E1E22",
-    neck: "#F58AA8", head: "#F58AA8", bill: "#FCE3E8", billTip: "#1E1E22", legs: "#E86A8A", eye: "#F2C14E",
-    chick: "#C9C9CF", egg: { name: "Flamingo", color: "#FBF8F0" },
-  },
-  peacock: {
-    species: "peafowl", name: "Indian Peacock", price: 80,
-    body: "#1D5FB4", shade: "#123D7A", light: "#3E86D8", neck: "#1F6FCC", head: "#1F6FCC", back: "#3F9A6A",
-    train: "#2F8A5A", trainDark: "#1D5A3A", eyeRing: "#C9A04A", eyeMid: "#2AB0A0", eyeCore: "#1E3A9C",
-    wing: "#C8A27A", wingBar: "#5A4030", crest: "#1F6FCC", legs: "#8E8478", chick: "#C9AE82",
-    egg: { name: "Peafowl", color: "#EAD4A8" },
-  },
-  whitePeacock: {
-    species: "peafowl", name: "White Peacock", price: 120, noStripes: true,
-    body: "#FAFAF7", shade: "#DDDCD6", light: "#FFFFFF", neck: "#FAFAF7", head: "#FAFAF7", back: "#F2F1EC",
-    train: "#F2F1EC", trainDark: "#DEDCD4", eyeRing: "#E9E4D6", eyeMid: "#F4F1E8", eyeCore: "#E2DDCF",
-    wing: "#F2F1EC", wingBar: "#E2DFD6", crest: "#FAFAF7", legs: "#B8AFA4", chick: "#F4EEDD",
-    egg: { name: "Peafowl", color: "#EAD4A8" },
-  },
+  flamingo:     { species: "flamingo", name: "American Flamingo", short: "Flamingo", price: 60, genes: { pink: 1, legs: "pk", bill: "pb" } },
+  chilean:      { species: "flamingo", name: "Chilean Flamingo", short: "Flamingo", price: 60, genes: { pink: 0.55, legs: "gy", bill: "cb" } },
+  greater:      { species: "flamingo", name: "Greater Flamingo", short: "Flamingo", price: 70, genes: { pink: 0.35, legs: "pk", bill: "pp", size: 1.15 } },
+  lesser:       { species: "flamingo", name: "Lesser Flamingo", short: "Flamingo", price: 70, genes: { pink: 0.85, legs: "rd", bill: "db", size: 0.78 } },
+  andean:       { species: "flamingo", name: "Andean Flamingo", short: "Flamingo", price: 90, genes: { pink: 0.6, legs: "yl", bill: "yb" } },
+  james:        { species: "flamingo", name: "James's Flamingo", short: "Flamingo", price: 90, genes: { pink: 0.45, legs: "rd", bill: "yb", size: 0.85 } },
+  mixFlamingo:  { species: "flamingo", name: "Hybrid Flamingo", price: 0, cross: true },
+  peacock:      { species: "peafowl", name: "India Blue Peafowl", short: "Peafowl", price: 80, genes: {} },
+  greenPeafowl: { species: "peafowl", name: "Green Peafowl", short: "Peafowl", price: 120, genes: { green: "Pm", size: 1.1 } },
+  whitePeacock: { species: "peafowl", name: "White Peafowl", short: "Peafowl", price: 120, genes: { white: "w" } },
+  piedPeacock:  { species: "peafowl", name: "Pied Peafowl", short: "Peafowl", price: 110, genes: { white: ["w", "W"] } },
+  cameoPeacock: { species: "peafowl", name: "Cameo Peafowl", short: "Peafowl", price: 110, genes: { cameo: "ca" } },
+  purplePeacock:{ species: "peafowl", name: "Purple Peafowl", short: "Peafowl", price: 120, genes: { purple: "pu" } },
+  blackShoulder:{ species: "peafowl", name: "Black Shoulder Peafowl", short: "Peafowl", price: 110, genes: { bs: "bs" } },
+  opalPeacock:  { species: "peafowl", name: "Opal Peafowl", short: "Peafowl", price: 130, genes: { opal: "op" } },
+  mixPeafowl:   { species: "peafowl", name: "Peafowl Mix", price: 0, cross: true },
 };
 const farmOfBreed = (key) => SPECIES[BREEDS[key].species].farm;
 
@@ -716,16 +618,17 @@ const Sound = {
   call(c, pan = 0, v = 1) {
     const S = SP(c);
     if (c.growth < 0.55) { this.peep(pan, v * 0.9, S.bill === "flat" ? 0.8 : S.size < 0.8 ? 1.2 : 1); return; }
+    const boy = isRooster(c);
     switch (S.voice) {
       case "cluck": this.cluck((lookOf(c).pitch || 1) * (roosterLook(c) > 0.5 ? 0.82 : 1), pan, v); break;
-      case "quack": this.quack(pan, v); break;
+      case "quack": if (boy) this.rasp(pan, v); else this.quack(pan, v); break;   // only girl ducks really quack!
       case "honk": this.honk(pan, v); break;
       case "quail": this.quail(pan, v); break;
-      case "guinea": this.guinea(pan, v); break;
+      case "guinea": if (boy) this.guinea(pan, v); else this.buckwheat(pan, v); break;
       case "pheasant": this.pheasant(pan, v); break;
-      case "gobble": this.gobble(pan, v); break;
+      case "gobble": if (boy) this.gobble(pan, v); else this.yelp(pan, v); break;
       case "flamingo": this.flamingo(pan, v); break;
-      case "peacock": this.peacock(pan, v); break;
+      case "peacock": if (boy) this.peacock(pan, v); else this.peahen(pan, v); break;
     }
   },
   // "buk buk buk buk... ba-GAWK!" — the real song hens sing after laying
@@ -1175,7 +1078,8 @@ function makeBird(o = {}) {
     hat: o.hat || null,               // dress-up: "bow", "tophat", "crown"...
     sex: o.sex === "rooster" ? "rooster" : "hen",   // only hens lay eggs
     sexKnown: o.sexKnown !== false,   // hatched chicks keep it a surprise until they grow up
-    genes: o.genes || null,           // a Barnyard Mix's very own look (see ROOSTERS & GENETICS)
+    geno: o.geno || null,             // its genes (see BOYS, GIRLS & GENES)
+    cross: o.cross || null,           // a name for a hatched cross or mix, like "Black Star"
     mom: o.mom || null, dad: o.dad || null,   // the breeds of its parents, if it hatched here
     kids: o.kids || 0,                // how many chicks this bird is the mom or dad of
     crowT: rand(20, 70), crowed: false, rival: null,
@@ -1184,7 +1088,7 @@ function makeBird(o = {}) {
 
 const isBaby = (c) => c.growth < 0.55;
 const growK = (c) => (isBaby(c) ? 0.6 : lerp(0.66, 1, (c.growth - 0.55) / 0.45));
-const smallK = (c) => (BREEDS[c.breed].small || 1) * (1 + 0.1 * roosterLook(c));   // roosters are a bit bigger
+const smallK = (c) => (lookOf(c).size || 1) * maleK(c) * (1 + 0.1 * roosterLook(c));   // size genes; boys are a bit bigger
 const bodyH = (c) => (isBaby(c) ? 16 : SP(c).body * growK(c)) * SP(c).size * smallK(c);
 const headH = (c) => (isBaby(c) ? 38 : SP(c).height * growK(c)) * SP(c).size * smallK(c);
 const sinkOf = (c) => (SP(c).sink || 10) * c.wet * SP(c).size * (isBaby(c) ? 0.5 : 1);
@@ -1194,7 +1098,7 @@ const rollGolden = () => Math.random() < SETTINGS.goldenEggChance;
 const eggInterval = () => SETTINGS.eggEverySeconds * rand(0.8, 1.25);
 const eggValueOf = (breed, golden) => (golden ? SETTINGS.goldenEggValue : SPECIES[BREEDS[breed].species].eggValue);
 const babyWord = (key) => BREEDS[key].baby || SPECIES[BREEDS[key].species].baby;
-const layBoostOf = (c) => (lookOf(c).layBoost || 1) * (SP(c).layBoost || 1) * (isChicken(c) ? flockBoost() : 1);
+const layBoostOf = (c) => (lookOf(c).layBoost || 1) * (SP(c).layBoost || 1) * flockBoostOf(c);
 
 // How a bird feels, from 0 (grumpy) to 1 (very happy)
 function mood(c) {
@@ -1238,7 +1142,10 @@ function updateNeeds(c, dt) {
 function grewUp(c) {
   let msg = `${c.name} is all grown up! ${SP(c).icon}`;
   // Nobody can tell a chick's a boy or a girl until it grows up. Surprise!
-  if (isChicken(c) && !c.sexKnown) msg = isRooster(c) ? `${c.name} grew up, and he's a rooster! 🐓` : `${c.name} grew up, and she's a hen! 🐔`;
+  if (!c.sexKnown && !KINDS[kindOf(c)].sterile) {
+    const icon = isChicken(c) ? (isRooster(c) ? "🐓" : "🐔") : SP(c).icon;
+    msg = isRooster(c) ? `${c.name} grew up, and he's a ${sexWord(c)}! ${icon}` : `${c.name} grew up, and she's a ${sexWord(c)}! ${icon}`;
+  }
   c.sexKnown = true;
   toast(msg, 3000);
   const sc = scaleAt(c.y);
@@ -1254,6 +1161,7 @@ function pickAct(c) {
     if (isBaby(c) && (k === "dust" || k === "display" || k === "preen")) continue;
     if ((k === "swim" || k === "wade") && !places.water) continue;
     if (k === "dust" && !places.dust) continue;
+    if (k === "display" && !isRooster(c)) continue;   // only the boys show off their tails
     ok.push(k);
     total += acts[k];
   }
@@ -1279,7 +1187,7 @@ function think(c) {
     walkTo(c, f.x + rand(-8, 8), f.y + rand(0, 10), speedOf(c) * 1.3);
     return;
   }
-  if (c.growth >= 1 && c.eggClock <= 0 && !isRooster(c)) { startLaying(c); return; }
+  if (c.growth >= 1 && c.eggClock <= 0 && canLay(c)) { startLaying(c); return; }
   // Most birds don't like rain, so they go stand under the house or the tree
   if (isRaining() && dislikesRain(c) && Math.random() < 0.75) {
     const s = shelterSpot(c);
@@ -1308,7 +1216,7 @@ function think(c) {
     case "swim":
     case "wade": { c.goal = "swim"; const p = waterSpot(); walkTo(c, p.x, p.y, speedOf(c)); break; }
     case "peck":
-      if (isRooster(c) && c.growth >= 1 && Math.random() < 0.2) { startTidbit(c, true); break; }   // "Ladies! A snack!"
+      if (isRooster(c) && isChicken(c) && c.growth >= 1 && Math.random() < 0.2) { startTidbit(c, true); break; }   // "Ladies! A snack!"
       if (S.swim && c.wet > 0.5) { c.state = "dabble"; c.t = rand(1.5, 3); }   // bottoms up!
       else { c.state = "peck"; c.t = rand(1.2, 3); c.peckT = 0; }
       break;
@@ -1405,7 +1313,7 @@ function arrive(c) {
     case "treat":
       if (c.pile && c.pile.bites > 0) {
         c.state = "treatPeck"; c.peckT = 0; c.biteT = rand(0, 0.3); c.dir = c.pile.x >= c.x ? 1 : -1;
-        if (isRooster(c) && c.growth >= 1 && Math.random() < 0.7) startTidbit(c, false);   // he calls the hens first
+        if (isRooster(c) && isChicken(c) && c.growth >= 1 && Math.random() < 0.7) startTidbit(c, false);   // he calls the hens first
       } else think(c);
       return;
     case "squabble": {
@@ -1475,7 +1383,7 @@ function layEggInYard(c) {
   const sc = scaleAt(c.y);
   if (F.yardEggs.length < SETTINGS.maxYardEggs) {
     const [x, y] = avoidSpots(c.x - c.dir * 16 * sc, c.y + 2, false);
-    F.yardEggs.push({ id: nextId++, x, y, breed: c.breed, egg: c.genes ? c.genes.egg : undefined, golden: rollGolden(), glint: rand(0, 3) });
+    F.yardEggs.push({ id: nextId++, x, y, breed: c.breed, egg: eggLookOf(c), golden: rollGolden(), glint: rand(0, 3) });
   }
   finishLaying(c);
   c.state = "song"; c.t = 1.6;
@@ -1483,7 +1391,7 @@ function layEggInYard(c) {
   notes(c.x, c.y, headH(c) * sc, 4, sc);
 }
 function layEggInNest(c) {
-  F.nestEggs.push({ id: nextId++, box: c.nestBox, breed: c.breed, egg: c.genes ? c.genes.egg : undefined, golden: rollGolden() });
+  F.nestEggs.push({ id: nextId++, box: c.nestBox, breed: c.breed, egg: eggLookOf(c), golden: rollGolden() });
   finishLaying(c);
   c.state = "nestSong"; c.t = 1.6;
   if (scene === "coop") {
@@ -1582,7 +1490,7 @@ function updateYardBird(c, dt) {
   if (inW && !canWater(c) && INTERRUPTIBLE.has(c.state) && c.goal !== "shore") think(c);
 
   // The egg clock: happy grown-ups get ready to lay
-  if (c.growth >= 1 && !isRooster(c) && !bedtime && c.goal !== "lay" && c.goal !== "layYard" && c.state !== "carried") {
+  if (c.growth >= 1 && canLay(c) && !bedtime && c.goal !== "lay" && c.goal !== "layYard" && c.state !== "carried") {
     const m = mood(c);
     if (m > 0.35) c.eggClock -= dt * (0.6 + 0.8 * m) * layBoostOf(c);
     if (c.eggClock <= 0 && INTERRUPTIBLE.has(c.state) && c.goal !== "bed" && c.goal !== "shore") startLaying(c);
@@ -1824,7 +1732,7 @@ function landed(c) {
 */
 function simulateFarm(id, dt) {
   const st = farms[id], natural = naturalWater(id), bed = isBedtime();
-  if (id === "backyard") flockCache = null;
+  flockCache = {};
   for (const c of st.birds) {
     c.food = clamp(c.food - (dt / SETTINGS.hungerSeconds) * 0.6);
     if (c.food < 0.5 && st.feeder > 0) {
@@ -1843,14 +1751,14 @@ function simulateFarm(id, dt) {
     }
     if (c.growth < 1 && c.food > 0.15 && c.water > 0.15) c.growth = Math.min(1, c.growth + dt / SETTINGS.growUpSeconds);
     c.loc = bed ? "coop" : "yard";
-    if (c.growth >= 1 && !bed && !isRooster(c)) {
+    if (c.growth >= 1 && !bed && canLay(c)) {
       const m = mood(c);
       if (m > 0.35) c.eggClock -= dt * (0.6 + 0.8 * m) * layBoostOf(c);
       if (c.eggClock <= 0) {
         c.eggClock = eggInterval();
         c.laid++;
         game.totalEggs++;
-        const egg = c.genes ? c.genes.egg : undefined;
+        const egg = eggLookOf(c);
         if (!addNestEggTo(id, c.breed, rollGolden(), egg)) addYardEggTo(id, c.breed, rollGolden(), egg);
       }
     }
@@ -2107,10 +2015,10 @@ function timeEvents(prev, t) {
   if (B.doorClosed && !isBedtime(t)) {
     B.doorClosed = false;
     if (game.farm === "backyard") Sound.thunk();
-    const hens = B.birds.filter((c) => c.growth >= 1 && !isRooster(c));
+    const hens = B.birds.filter((c) => c.growth >= 1 && canLay(c));
     const hen = hens.length ? pick(hens) : null;
     if (game.farm === "backyard") dawnChorus();
-    if (hen && addNestEggTo("backyard", hen.breed, false, hen.genes ? hen.genes.egg : undefined)) {
+    if (hen && addNestEggTo("backyard", hen.breed, false, eggLookOf(hen))) {
       if (started) toast("Good morning! 🌅 A thank-you egg is waiting in the coop.", 3200);
     } else if (started) toast("Good morning! 🌅");
   } else if (prev < 0.03 && t >= 0.03 && started) {
@@ -3126,13 +3034,15 @@ function drawBirdAt(g, c, x, y, sc) {
   }
 }
 function drawBird(g, c, now) {
-  if (isBaby(c)) { drawBaby(g, c, now); return; }
+  // Size genes (and bigger boys): a Serama is tiny, a Jersey Giant is huge
+  let z = (lookOf(c).size || 1) * maleK(c);
+  if (c.portrait) z = clamp(z, 0.8, 1);
   const S = SP(c);
-  if (S.draw === drawHen) { drawHen(g, c, now); return; }
-  const k = growK(c);
   g.save();
-  g.scale(k, k);
-  S.draw(g, c, BREEDS[c.breed], now);
+  g.scale(z, z);
+  if (isBaby(c)) drawBaby(g, c, now);
+  else if (S.draw === drawHen) drawHen(g, c, now);
+  else { const k = growK(c); g.scale(k, k); S.draw(g, c, lookOf(c), now); }
   g.restore();
 }
 const isFlapping = (c) => c.flapT > 0 || c.state === "carried" || c.state === "fall";
@@ -3156,6 +3066,7 @@ function drawLegPair(g, c, now, o) {
     if (o.knee) g.lineTo((hx + fx) / 2 - o.knee, (o.hipY + fy) / 2);   // birds' "knees" bend backward!
     g.lineTo(fx, fy);
     g.stroke();
+    if (o.kneeColor && o.knee) { g.fillStyle = o.kneeColor; circle(g, (hx + fx) / 2 - o.knee, (o.hipY + fy) / 2, o.width * 1.1); g.fill(); g.fillStyle = o.color; }   // pink "knees"
     if (o.web) { g.beginPath(); g.moveTo(fx - 3, fy); g.lineTo(fx + 9, fy + 1); g.lineTo(fx + 2, fy - 3); g.closePath(); g.fill(); }
     else { g.lineWidth = o.width * 0.68; g.beginPath(); g.moveTo(fx - 3.5, fy); g.lineTo(fx + 7, fy + 0.4); g.stroke(); }
   });
@@ -3181,8 +3092,10 @@ function drawHen(g, c, now) {
   g.save();
   g.translate(-21 - fluff * 6, by - 6);
   g.rotate(Math.sin(now * 1.6 + c.id) * 0.05 + (c.moving ? Math.sin(c.walkPhase * 2) * 0.07 : 0) - c.headDown * 0.12 + (c.dance ? Math.sin(now * 11.7) * 0.15 : 0));
-  drawTail(g, B);
-  if (R > 0.05 && !B.silkie) drawSickles(g, B, R, now, c);   // a rooster's long, curvy tail
+  if (!B.rumpless) {                       // rumpless chickens have no tail at all!
+    drawTail(g, B);
+    if (R > 0.05 && !B.silkie && !B.henny) drawSickles(g, B, R, now, c);   // a rooster's long, curvy tail
+  }
   g.restore();
 
   // body (a rooster puffs out his chest)
@@ -3200,6 +3113,7 @@ function drawHen(g, c, now) {
     ellipse(g, -2, by, rx, ry, -0.1);
     g.lineWidth = 1.2; g.strokeStyle = "rgba(70,40,20,.2)"; g.stroke();
   }
+  if (B.frizzle) drawFrizzle(g, B, rx, ry, by, B.frizzle, c.id);
 
   // wing (it flaps when she's excited, carried, or falling)
   const flap = isFlapping(c) ? (Math.sin(now * 38) * 0.5 + 0.5) * 1.1 : 0;
@@ -3210,7 +3124,7 @@ function drawHen(g, c, now) {
   ellipse(g, -10, 3, 15, 9.5, -0.08); g.fill();
   if (B.pattern === "barred" || B.pattern === "laced") {
     g.save(); ellipse(g, -10, 3, 15, 9.5, -0.08); g.clip();
-    g.fillStyle = "rgba(38,38,44,.6)";
+    g.fillStyle = rgba(B.mark || "#26262C", 0.6);
     for (let x = -26; x < 6; x += 5.5) g.fillRect(x, -8, 2.4, 22);
     g.restore();
   }
@@ -3226,10 +3140,19 @@ function drawHen(g, c, now) {
   hy = lerp(hy, -9 + sy * 0.4, c.headDown);
   hx -= c.headUp * 3;
   hy -= c.headUp * 7;
-  g.strokeStyle = B.neck || B.body; g.lineCap = "round"; g.lineWidth = 15;
+  const skin = "#F28E80";
+  g.strokeStyle = B.naked === 2 ? skin : B.neck || B.body; g.lineCap = "round"; g.lineWidth = B.naked === 2 ? 10 : 15;
   g.beginPath(); g.moveTo(7, by - 8); g.lineTo(hx - 3, hy + 4); g.stroke();
+  if (B.naked === 1) {         // one naked-neck gene: a bare patch on the front of the neck
+    g.strokeStyle = skin; g.lineWidth = 6;
+    g.beginPath(); g.moveTo(lerp(7, hx - 3, 0.35) + 3, lerp(by - 8, hy + 4, 0.35) + 2); g.lineTo(lerp(7, hx - 3, 0.75) + 3, lerp(by - 8, hy + 4, 0.75) + 2); g.stroke();
+  } else if (B.naked === 2) {  // two: a bare neck with a little "bow tie" of feathers
+    const bx = lerp(7, hx - 3, 0.45), bny = lerp(by - 8, hy + 4, 0.45);
+    g.fillStyle = B.neck || B.body;
+    ellipse(g, bx + 3, bny + 2, 5, 4); g.fill(); ellipse(g, bx - 2, bny + 1, 4, 3.4); g.fill();
+  }
   if (B.silkie) { g.fillStyle = B.body; circle(g, (7 + hx) / 2, (by - 8 + hy) / 2, 10); g.fill(); }
-  if (R > 0.05 && !B.silkie) drawHackles(g, B, R, hx, hy, by, c.state === "puff" ? 1 : 0);
+  if (R > 0.05 && !B.silkie && !B.henny && B.naked !== 2) drawHackles(g, B, R, hx, hy, by, c.state === "puff" ? 1 : 0);
 
   g.save();
   g.translate(hx, hy);
@@ -3239,7 +3162,7 @@ function drawHen(g, c, now) {
   hg.addColorStop(0, B.light);
   hg.addColorStop(1, B.neck || B.body);
   g.fillStyle = hg; circle(g, 0, 0, 11.5); g.fill();
-  if (B.silkie) { g.fillStyle = B.face; ellipse(g, 5, 1, 6.5, 5.5); g.fill(); }
+  if (B.face) { g.fillStyle = B.face; ellipse(g, 5, 1, 6.5, 5.5); g.fill(); }     // dark faces (Silkies, Ayam Cemanis)
   const open = c.beakOpen || 0;
   g.fillStyle = B.beak;
   g.beginPath(); g.moveTo(8, -3.5); g.lineTo(19, 0.5 - open * 2); g.lineTo(8, 1.8); g.closePath(); g.fill();
@@ -3247,23 +3170,28 @@ function drawHen(g, c, now) {
   if (B.muffs) {           // Easter & Olive Eggers have fluffy cheeks and a beard!
     g.fillStyle = B.muffs;
     circle(g, -1, 6, 5.2); g.fill(); circle(g, 5, 8.5, 5.4); g.fill(); circle(g, 10, 7, 4); g.fill();
-  } else if (!B.silkie && !B.crest) {  // wattles
+  } else if (!B.silkie) {  // wattles
     g.fillStyle = B.comb;
     ellipse(g, 9.5, 8, 2.6 * combK + 1, 4.6 * combK + 1.2, 0.15); g.fill();
     ellipse(g, 6, 8.5, 2.2 * combK + 1, 4 * combK + 1); g.fill();
   }
-  if (!B.silkie) { g.fillStyle = B.earlobe || B.comb; ellipse(g, -3.5, 3, 2.3, 2.9); g.fill(); }
+  g.fillStyle = B.earlobe || B.comb; ellipse(g, -3.5, 3, 2.3, 2.9); g.fill();
+  if (B.tufts) {           // Araucana ear tufts
+    g.fillStyle = B.tufts;
+    g.beginPath(); g.moveTo(-5, 4); g.quadraticCurveTo(-14, 2, -17, 9); g.quadraticCurveTo(-10, 8, -4, 7); g.closePath(); g.fill();
+  }
   drawEye(g, c, 4.6, -3, 1);
-  if (B.silkie) {          // the silkie's pom-pom hairdo
+  if (B.silkie && B.crest) {   // the silkie's pom-pom hairdo
     g.fillStyle = B.body;
     circle(g, -4, -11, 7); g.fill(); circle(g, 2, -13, 7); g.fill(); circle(g, -10, -6, 6); g.fill(); circle(g, 7, -11, 4.5); g.fill();
     g.fillStyle = "rgba(255,255,255,.55)"; circle(g, -1, -15, 3.5); g.fill();
   }
-  if (B.crest) {           // the Polish chicken's giant wobbly pom-pom!
+  if (B.crest && !B.silkie) {  // a crest: one gene makes a little one, two make a giant wobbly pom-pom!
     const w = c.moving ? Math.sin(c.walkPhase * 2) * 1.2 : Math.sin(now * 2) * 0.4;
-    g.fillStyle = B.crest;
-    for (const [x, y, r] of [[-6, -12, 8], [1, -15, 8.5], [7, -12, 6], [-11, -6, 6], [-2, -8, 6.5]]) { circle(g, x + w, y, r * combK); g.fill(); }
-    g.fillStyle = "rgba(0,0,0,.06)"; circle(g, -2 + w, -9, 5 * combK); g.fill();
+    const ck = combK * (B.crest === 2 ? 1.3 : 0.66);
+    g.fillStyle = B.crestColor;
+    for (const [x, y, r] of [[-6, -12, 8], [1, -15, 8.5], [7, -12, 6], [-11, -6, 6], [-2, -8, 6.5]]) { circle(g, x + w, y * (B.crest === 2 ? 1 : 0.85), r * ck); g.fill(); }
+    g.fillStyle = "rgba(0,0,0,.06)"; circle(g, -2 + w, -9, 5 * ck); g.fill();
   }
   drawAccessory(g, c, 11.5, 4.6, -3);
   g.restore();
@@ -3278,42 +3206,55 @@ function drawTail(g, B) {
   f(1.25, 28 * L, 6.5, B.tail2 || B.tail);
 }
 function drawPattern(g, B, by, seed) {
-  if (B.pattern === "barred" || B.pattern === "cuckoo") {
-    g.save();
-    g.translate(-2, by);
-    g.rotate(B.pattern === "cuckoo" ? -0.3 : -0.35);
-    g.fillStyle = B.pattern === "cuckoo" ? "rgba(60,58,56,.42)" : "rgba(38,38,44,.78)";
-    const step = B.pattern === "cuckoo" ? 7 : 6.2, w = B.pattern === "cuckoo" ? 3.6 : 2.8;
-    for (let y = -34; y < 34; y += step) g.fillRect(-44, y, 88, w);
-    g.restore();
-  } else if (B.pattern === "speckle") {
-    const R = seeded(seed * 97 + 3);
-    for (let i = 0; i < 26; i++) {
-      const a = R() * TAU, dd = Math.sqrt(R());
-      g.fillStyle = R() < 0.5 ? rgba(B.shade, 0.8) : rgba(B.light, 0.8);
-      circle(g, -2 + Math.cos(a) * dd * 25, by + Math.sin(a) * dd * 18, 1.3 + R() * 1.2);
-      g.fill();
-    }
-  } else if (B.pattern === "laced") {    // every feather outlined in black
-    g.strokeStyle = "rgba(30,30,36,.72)"; g.lineWidth = 1.5;
-    for (let row = 0; row < 7; row++) {
-      const y = by - 20 + row * 6.5;
-      for (let x = -30 + (row % 2) * 4; x < 28; x += 8) { g.beginPath(); g.arc(x, y, 4.2, 0.1 * Math.PI, 0.9 * Math.PI); g.stroke(); }
-    }
-  } else if (B.pattern === "flecks") {   // a few little black flecks
-    const R = seeded(seed * 53 + 11);
-    g.fillStyle = "rgba(30,30,36,.7)";
-    for (let i = 0; i < 14; i++) {
-      const a = R() * TAU, dd = Math.sqrt(R());
-      ellipse(g, -2 + Math.cos(a) * dd * 24, by + Math.sin(a) * dd * 17, 2.2, 1.1, -0.3); g.fill();
-    }
-  } else if (B.pattern === "dots") {     // speckled: a white dot on every feather
-    const R = seeded(seed * 31 + 7);
-    for (let i = 0; i < 34; i++) {
-      const a = R() * TAU, dd = Math.sqrt(R()), x = -2 + Math.cos(a) * dd * 25, y = by + Math.sin(a) * dd * 18;
-      g.fillStyle = "rgba(20,14,10,.55)"; g.fillRect(x - 2, y - 0.6, 4, 1.3);
-      g.fillStyle = "#FFF8EC"; circle(g, x + 1.5, y + 1.4, 1.3); g.fill();
-    }
+  const mark = B.mark || "#26262C", a = B.markA || 0.78, R = seeded(seed * 97 + 3);
+  const spot = (fn, n) => { for (let i = 0; i < n; i++) { const ang = R() * TAU, d = Math.sqrt(R()); fn(-2 + Math.cos(ang) * d * 25, by + Math.sin(ang) * d * 18); } };
+  switch (B.pattern) {
+    case "barred": case "cuckoo":   // black and white stripes
+      g.save(); g.translate(-2, by); g.rotate(-0.35);
+      g.fillStyle = rgba(mark, a);
+      for (let y = -34; y < 34; y += 6.2) g.fillRect(-44, y, 88, 2.8);
+      g.restore();
+      break;
+    case "speckle":
+      spot((x, y) => { g.fillStyle = R() < 0.5 ? rgba(B.shade, 0.8) : rgba(B.light, 0.8); circle(g, x, y, 1.3 + R() * 1.2); g.fill(); }, 26);
+      break;
+    case "laced": case "dlaced":    // every feather outlined (twice, for double-laced!)
+      g.strokeStyle = rgba(mark, a); g.lineWidth = 1.5;
+      for (let row = 0; row < 7; row++) {
+        const y = by - 20 + row * 6.5;
+        for (let x = -30 + (row % 2) * 4; x < 28; x += 8) {
+          g.beginPath(); g.arc(x, y, 4.2, 0.1 * Math.PI, 0.9 * Math.PI); g.stroke();
+          if (B.pattern === "dlaced") { g.beginPath(); g.arc(x, y - 1, 2, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke(); }
+        }
+      }
+      break;
+    case "spangled":                // a round black spot at the tip of each feather
+      g.fillStyle = rgba(mark, 0.85);
+      for (let row = 0; row < 6; row++) for (let x = -28 + (row % 2) * 4; x < 26; x += 8) { ellipse(g, x, by - 17 + row * 7, 2.6, 2); g.fill(); }
+      break;
+    case "dots":                    // speckled: dark bar + white dot on every feather
+      spot((x, y) => { g.fillStyle = rgba(mark, 0.55); g.fillRect(x - 2, y - 0.6, 4, 1.3); g.fillStyle = "#FFF8EC"; circle(g, x + 1.5, y + 1.4, 1.3); g.fill(); }, 34);
+      break;
+    case "mottled":                 // white tips on dark feathers
+      spot((x, y) => { g.fillStyle = "rgba(255,255,255,.9)"; circle(g, x, y, 1.2 + R() * 0.7); g.fill(); }, 30);
+      break;
+    case "pencil":                  // fine wavy lines, like wild hens
+      g.strokeStyle = rgba(mark, a); g.lineWidth = 0.9;
+      for (let row = 0; row < 8; row++) {
+        const y = by - 18 + row * 5;
+        g.beginPath();
+        for (let x = -30; x <= 26; x += 4) g.lineTo(x, y + Math.sin(x * 0.6 + row) * 1.2);
+        g.stroke();
+      }
+      break;
+    case "flecks":                  // one dominant-white gene: little specks
+      g.fillStyle = rgba(mark, a);
+      spot((x, y) => { ellipse(g, x, y, 2.2, 1.1, -0.3); g.fill(); }, 14);
+      break;
+    case "splash":                  // splash: blue blotches on white
+      g.fillStyle = rgba(mark, 0.55);
+      spot((x, y) => { circle(g, x, y, 2 + R() * 2.5); g.fill(); }, 16);
+      break;
   }
 }
 function drawLegs(g, c, B, by, now) {
@@ -3326,6 +3267,7 @@ function drawLegs(g, c, B, by, now) {
     if (ph === 0 && c.legKick > 0.01) { fx -= c.legKick * 14; fy -= c.legKick * 5; }
     g.lineWidth = 3.4; g.beginPath(); g.moveTo(hx, hipY); g.lineTo(fx, fy); g.stroke();
     g.lineWidth = 2.3; g.beginPath(); g.moveTo(fx - 3.5, fy); g.lineTo(fx + 7, fy + 0.4); g.stroke();
+    if (B.toes5) { g.lineWidth = 1.8; g.beginPath(); g.moveTo(fx - 3, fy - 0.6); g.lineTo(fx - 7, fy - 3); g.stroke(); }   // a fifth toe!
     if (roosterLook(c) > 0.6) {        // a rooster's spur, on the back of each leg
       const sx = lerp(fx, hx, 0.3), sy = lerp(fy, hipY, 0.3);
       g.lineWidth = 2; g.beginPath(); g.moveTo(sx, sy); g.lineTo(sx - 5, sy - 1.5); g.stroke();
@@ -3340,15 +3282,25 @@ function drawLegs(g, c, B, by, now) {
 function drawComb(g, B, k) {
   if (B.silkie) return;
   g.fillStyle = B.comb;
-  if (B.combType === "pea") {
+  const t = B.combType;
+  if (t === "pea") {
     for (const [x, y, r] of [[-3, -10.5, 2.6], [1, -11.5, 3], [5, -10.5, 2.6]]) { circle(g, x * (0.6 + 0.4 * k), -8 + (y + 8) * k, r * (0.5 + 0.5 * k)); g.fill(); }
     return;
   }
-  if (B.combType === "rose") { ellipse(g, 1, -10.5, 7 * k + 1, 3 * k + 0.8); g.fill(); circle(g, -6 * k, -11 * k - 1, 1.8 * k); g.fill(); return; }
-  if (B.combType === "tiny") { circle(g, 2, -11, 2.2 * k + 0.5); g.fill(); circle(g, 6, -10, 1.8 * k + 0.4); g.fill(); return; }
-  const big = B.combType === "big" ? 1.4 : 1, s = k * big;
+  if (t === "rose") { ellipse(g, 1, -10.5, 7 * k + 1, 3 * k + 0.8); g.fill(); circle(g, -6 * k, -11 * k - 1, 1.8 * k); g.fill(); return; }
+  if (t === "walnut") {     // rose + pea together: a lumpy little walnut
+    ellipse(g, 1.5, -10, 5.2 * k + 1, 3.6 * k + 0.8); g.fill();
+    g.fillStyle = "rgba(0,0,0,.14)"; circle(g, 0, -10.5, 1.1 * k); g.fill(); circle(g, 3.2, -9.6, 1 * k); g.fill();
+    return;
+  }
+  if (t === "v") {          // V comb: two little horns
+    g.beginPath(); g.moveTo(-1, -8); g.quadraticCurveTo(-6, -11 * k - 2, -3, -14 * k - 2); g.quadraticCurveTo(0, -11 * k, 1.5, -8); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(2, -8); g.quadraticCurveTo(3, -12 * k - 2, 7, -13 * k - 2); g.quadraticCurveTo(5, -10 * k, 4.5, -7.5); g.closePath(); g.fill();
+    return;
+  }
+  const size = B.combSize || 1, s = k * size;
   g.save();
-  if (big > 1) g.rotate(-0.1);
+  if (size > 1.25) g.rotate(-0.1);    // big combs flop over a little
   for (const [x, y, r] of [[-7, -9, 4], [-2, -12, 5], [4, -11.5, 4.6], [9, -8, 3.6]]) { circle(g, x * (0.7 + 0.3 * s), -6 + (y + 6) * s, r * s); g.fill(); }
   g.restore();
 }
@@ -3394,7 +3346,7 @@ function drawBaby(g, c, now) {
   ellipse(g, -4, by + 1, 6.5, 4.2, -0.3 - (isFlapping(c) ? Math.abs(Math.sin(now * 30)) * 0.8 : 0)); g.fill();
   const hx = 8 + c.headDown * 5, hy = by - 10 + c.headDown * 9 - c.headUp * 3;
   g.fillStyle = col; circle(g, hx, hy, 8.2); g.fill();
-  if (B.chickSpot) { g.fillStyle = B.chickSpot; circle(g, hx - 1, hy - 4, 3); g.fill(); }
+  if (B.chickSpot) { g.fillStyle = B.chickSpot; circle(g, hx - 1, hy - 4, B.chickSpotBig ? 4.2 : 3); g.fill(); }
   g.fillStyle = "rgba(255,255,255,.28)"; ellipse(g, hx + 1, hy - 3, 4, 2.5); g.fill();
   g.strokeStyle = col; g.lineWidth = 1.6;
   g.beginPath(); g.moveTo(hx - 2, hy - 7.5); g.quadraticCurveTo(hx - 1, hy - 12, hx + 1, hy - 10); g.stroke();
@@ -3412,7 +3364,7 @@ function drawBaby(g, c, now) {
 
 // ---------- Ducks (Pekin, Mallard, Runner, Swedish Blue, Call duck) ----------
 function drawDuck(g, c, B, now) {
-  const swim = c.wet > 0.5, up = B.upright ? 1 : 0, small = B.small || 1;
+  const swim = c.wet > 0.5, up = B.upright || 0, small = 1;
   const bob = swim ? Math.sin(now * 2 + c.id) : c.moving ? -Math.abs(Math.sin(c.walkPhase)) * 1.6 : Math.sin(now * 2 + c.id) * 0.4;
   const by = -24 - up * 12 + bob + c.sit * 8;
   g.save();
@@ -3431,11 +3383,21 @@ function drawDuck(g, c, B, now) {
   g.fillStyle = gr; ellipse(g, -3, by, 30, 16.5, -0.05); g.fill();
   if (B.chest) { g.save(); ellipse(g, -3, by, 30, 16.5, -0.05); g.clip(); g.fillStyle = B.chest; ellipse(g, 22, by + 1, 15, 17); g.fill(); g.restore(); }
   if (B.bib) { g.fillStyle = B.bib; ellipse(g, 20, by - 1, 8, 10); g.fill(); }
+  if (B.back || B.scallop) {
+    g.save(); ellipse(g, -3, by, 30, 16.5, -0.05); g.clip();
+    if (B.back) { g.fillStyle = B.back; ellipse(g, -8, by - 12, 26, 10); g.fill(); }   // magpie: colored back
+    if (B.scallop) {       // girl ducks are speckled brown, so they're hard to see on a nest
+      g.strokeStyle = rgba(B.scallop, 0.45); g.lineWidth = 1;
+      for (let row = 0; row < 4; row++) for (let x = -28 + (row % 2) * 3; x < 24; x += 6) { g.beginPath(); g.arc(x, by - 9 + row * 5, 2.6, 0.1 * Math.PI, 0.9 * Math.PI); g.stroke(); }
+    }
+    g.restore();
+  }
   ellipse(g, -3, by, 30, 16.5, -0.05); g.lineWidth = 1.1; g.strokeStyle = "rgba(60,40,20,.18)"; g.stroke();
   // wing
   g.save(); g.translate(4, by - 6); g.rotate(-0.06 - (isFlapping(c) ? Math.sin(now * 34) * 0.5 + 0.5 : 0));
   g.fillStyle = B.wing || B.shade; ellipse(g, -12, 2, 18, 8, -0.04); g.fill();
   if (B.speculum) { g.fillStyle = B.speculum; roundRect(g, -25, 2, 10, 4, 2); g.fill(); }
+  if (B.wingPatch) { g.fillStyle = B.wingPatch; ellipse(g, -4, 1, 8, 4.5); g.fill(); }
   g.restore();
   // neck & head
   let hx = 18 + (c.moving && !swim ? Math.sin(c.walkPhase * 2) * 1.5 : 0), hy = by - 17;
@@ -3450,6 +3412,19 @@ function drawDuck(g, c, B, now) {
   g.rotate(c.headDown * 0.7 - c.headUp * 0.3 + c.preen * 2.6 + c.sleep * 2.4);
   const hg = g.createRadialGradient(2, -4, 1, 0, 0, 12); hg.addColorStop(0, B.headLight || B.light); hg.addColorStop(1, B.head || B.body);
   g.fillStyle = hg; circle(g, 0, 0, 10); g.fill();
+  if (B.cap) { g.save(); circle(g, 0, 0, 10); g.clip(); g.fillStyle = B.cap; ellipse(g, -2, -6, 11, 7); g.fill(); g.restore(); }
+  if (B.stripe) { g.strokeStyle = rgba(B.stripe, 0.7); g.lineWidth = 1.4; g.beginPath(); g.moveTo(-7, -2); g.lineTo(8, -3); g.stroke(); }
+  if (B.caruncle) {        // a Muscovy's red, bumpy face
+    const k = B.caruncleK || 1;
+    g.fillStyle = B.caruncle; circle(g, 3, -2, 5 * k); g.fill(); circle(g, 7, 0, 3.4 * k); g.fill(); circle(g, 5.5, -5, 2.4 * k); g.fill();
+  }
+  if (B.crest) {           // a crested duck's puffball
+    const k = B.crest === 2 ? 1 : 0.75;
+    g.fillStyle = B.crestColor || B.head;
+    circle(g, -3, -10 * k, 6 * k); g.fill(); circle(g, 1, -11 * k, 5 * k); g.fill(); circle(g, -7, -8 * k, 4.5 * k); g.fill();
+    g.strokeStyle = "rgba(90,80,60,.25)"; g.lineWidth = 0.8;
+    circle(g, -3, -10 * k, 6 * k); g.stroke(); circle(g, 1, -11 * k, 5 * k); g.stroke();
+  }
   g.fillStyle = B.bill;
   g.beginPath(); g.moveTo(6, -3.5); g.quadraticCurveTo(20, -3.5, 21.5, 1); g.quadraticCurveTo(20, 4.2 + c.beakOpen * 3, 6.5, 3.8); g.closePath(); g.fill();
   g.fillStyle = "rgba(0,0,0,.3)"; circle(g, 19, -0.6, 1.1); g.fill();
@@ -3475,12 +3450,17 @@ function drawGoose(g, c, B, now) {
   const gr = g.createRadialGradient(6, by - 10, 3, -4, by, 40);
   gr.addColorStop(0, B.light); gr.addColorStop(0.55, B.body); gr.addColorStop(1, B.shade);
   g.fillStyle = gr; ellipse(g, -4, by, 37, 19.5, -0.04); g.fill();
+  if (B.back) { g.save(); ellipse(g, -4, by, 37, 19.5, -0.04); g.clip(); g.fillStyle = B.back; ellipse(g, -10, by - 14, 32, 11); g.fill(); g.restore(); }   // saddleback
   ellipse(g, -4, by, 37, 19.5, -0.04); g.lineWidth = 1.1; g.strokeStyle = "rgba(60,40,20,.15)"; g.stroke();
   // wings (swans hold theirs up a little, like sails)
   g.save(); g.translate(2, by - 8); g.rotate(-0.08 - (swan ? 0.22 : 0) - flap);
   g.fillStyle = B.wing; ellipse(g, -15, 1, 23, 10, -0.08); g.fill();
   if (B.wingTip) { g.fillStyle = B.wingTip; ellipse(g, -32, 4, 7, 3.2, 0.2); g.fill(); ellipse(g, -26, 7, 6, 2.8, 0.2); g.fill(); }
   g.strokeStyle = rgba(B.light, 0.5); g.lineWidth = 1.3; g.beginPath(); g.moveTo(-34, 3); g.quadraticCurveTo(-18, 9, 0, 4); g.stroke();
+  if (B.curly) {           // Sebastopol geese have long curly feathers
+    g.strokeStyle = rgba(B.light, 0.95); g.lineWidth = 1.6;
+    for (let i = 0; i < (B.curly === 2 ? 7 : 4); i++) { g.beginPath(); g.arc(-32 + i * 5, 8 + (i % 2) * 2, 3.2, 0.2 * Math.PI, 1.6 * Math.PI); g.stroke(); }
+  }
   g.restore();
   // the long neck
   let hx = swan ? 15 : 22, hy = by - (swan ? 54 : 46);
@@ -3490,13 +3470,16 @@ function drawGoose(g, c, B, now) {
   hy -= c.headUp * 5;
   g.strokeStyle = B.neck || B.body; g.lineWidth = swan ? 9 : 11; g.lineCap = "round";
   g.beginPath(); g.moveTo(16, by - 6); g.quadraticCurveTo(swan ? 36 : 28, by - (swan ? 26 : 22), hx - 2, hy + 4); g.stroke();
+  if (B.neckStripe) { g.strokeStyle = B.neckStripe; g.lineWidth = 3; g.beginPath(); g.moveTo(12, by - 8); g.quadraticCurveTo(23, by - 24, hx - 6, hy + 2); g.stroke(); }
   g.save(); g.translate(hx, hy);
   g.rotate(c.headDown * 0.8 - c.headUp * 0.3 + c.preen * 2.6 + (swan ? 0.25 : 0));
   const hg = g.createRadialGradient(2, -3, 1, 0, 0, 10); hg.addColorStop(0, B.light); hg.addColorStop(1, B.head || B.body);
   g.fillStyle = hg; circle(g, 0, 0, 8.5); g.fill();
+  if (B.face) { g.fillStyle = B.face; ellipse(g, 3.5, 1, 4.5, 4); g.fill(); }
   g.fillStyle = B.bill;
   g.beginPath(); g.moveTo(5, -3); g.lineTo(18, -0.5); g.quadraticCurveTo(20, 1.5, 18, 3); g.lineTo(5, 4); g.closePath(); g.fill();
-  if (B.knob) { g.fillStyle = B.knob; circle(g, 6, -3.5, 3.2); g.fill(); ellipse(g, 5, 0.5, 2.5, 3.2); g.fill(); }
+  if (B.knob) { const k = B.knobK || 1; g.fillStyle = B.knob; circle(g, 6, -3.5 - k, 3.2 * k + 0.6); g.fill(); ellipse(g, 5, 0.5, 2.5 * k, 3.2 * k); g.fill(); }
+  if (B.dewlap) { g.fillStyle = B.dewlap; ellipse(g, 4, 8, 4.5, 5.5); g.fill(); }   // a floppy chin pouch
   if (B.band) { g.fillStyle = B.band; g.fillRect(14.5, -1.5, 2, 4.5); }
   drawEye(g, c, 1.5, -2.5, 0.85);
   drawAccessory(g, c, 8.5, 1.5, -2.5);
@@ -3520,6 +3503,7 @@ function drawQuail(g, c, B, now) {
   g.fillStyle = gr; ellipse(g, -1, by, 18, 13.5, -0.1); g.fill();
   g.save(); ellipse(g, -1, by, 18, 13.5, -0.1); g.clip();
   if (B.breast) { g.fillStyle = B.breast; ellipse(g, 11, by - 1, 11, 11); g.fill(); }
+  if (B.breastSpots) { const Rb = seeded(c.id * 7 + 1); g.fillStyle = rgba(B.breastSpots, 0.8); for (let i = 0; i < 12; i++) { circle(g, 6 + Rb() * 12, by - 6 + Rb() * 12, 0.9); g.fill(); } }
   if (B.belly) { g.fillStyle = B.belly; ellipse(g, 6, by + 9, 12, 7); g.fill(); }
   const R = seeded(c.id * 13 + 5);
   if (B.pattern === "streak") {
@@ -3542,7 +3526,7 @@ function drawQuail(g, c, B, now) {
   g.save(); g.translate(hx, hy); g.rotate(c.headDown * 0.8 - c.headUp * 0.3);
   if (B.plume) {      // the California quail's bouncy topknot
     const w = c.moving ? Math.sin(c.walkPhase * 2) * 0.15 : Math.sin(now * 2) * 0.05;
-    g.save(); g.translate(1, -6); g.rotate(0.35 + w);
+    g.save(); g.translate(1, -6); g.rotate(0.35 + w); g.scale(B.plumeK || 1, B.plumeK || 1);
     g.fillStyle = B.plume;
     g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(-2, -8, 3, -11); g.quadraticCurveTo(8, -10, 5, -6); g.quadraticCurveTo(3, -3, 0, 0); g.fill();
     g.restore();
@@ -3573,7 +3557,8 @@ function drawGuinea(g, c, B, now) {
   gr.addColorStop(0, B.light); gr.addColorStop(0.6, B.body); gr.addColorStop(1, B.shade);
   g.fillStyle = gr; ellipse(g, -3, by, 26, 20, -0.28); g.fill();
   g.save(); ellipse(g, -3, by, 26, 20, -0.28); g.clip();
-  g.fillStyle = B.dot;
+  if (B.pied) { g.fillStyle = "#F6F4EE"; ellipse(g, 12, by + 6, B.pied === 2 ? 30 : 14, B.pied === 2 ? 22 : 13); g.fill(); }   // pied: white chest
+  g.fillStyle = B.dot || "rgba(0,0,0,0)";
   let row = 0;
   for (let y = by - 24; y < by + 24; y += 4.6, row++) for (let x = -32 + (row % 2) * 2.3; x < 26; x += 4.6) { circle(g, x, y, 0.95); g.fill(); }
   g.restore();
@@ -3587,10 +3572,10 @@ function drawGuinea(g, c, B, now) {
   g.strokeStyle = B.shade; g.lineWidth = 5.5; g.lineCap = "round";
   g.beginPath(); g.moveTo(12, by - 10); g.quadraticCurveTo(20, by - 14, hx - 1, hy + 3); g.stroke();
   g.save(); g.translate(hx, hy); g.rotate(c.headDown * 0.8 - c.headUp * 0.3);
-  g.fillStyle = B.casque; g.beginPath(); g.moveTo(-3, -4); g.lineTo(0, -13); g.lineTo(3, -4); g.closePath(); g.fill();
+  g.fillStyle = B.casque; g.beginPath(); g.moveTo(-3, -4); g.lineTo(0, -4 - 9 * (B.casqueK || 1)); g.lineTo(3, -4); g.closePath(); g.fill();
   g.fillStyle = B.face; circle(g, 0, 0, 6.2); g.fill();
   g.fillStyle = "#5E88C8"; ellipse(g, -1, 2, 3, 3.4); g.fill();
-  g.fillStyle = B.wattle; ellipse(g, 4, 6.5, 1.8, 3); g.fill();
+  g.fillStyle = B.wattle; ellipse(g, 4, 6.5, 1.8 * (B.wattleK || 1), 3 * (B.wattleK || 1)); g.fill();
   g.fillStyle = B.beak; g.beginPath(); g.moveTo(4.5, -1.5); g.lineTo(10, 0.5 - c.beakOpen); g.lineTo(4.5, 2.5); g.closePath(); g.fill();
   drawEye(g, c, 2, -1.5, 0.7);
   drawAccessory(g, c, 6.2, 2, -1.5);
@@ -3608,7 +3593,8 @@ function drawPheasant(g, c, B, now) {
   if (c.sit < 0.6) drawLegPair(g, c, now, { hips: [-3, 5], hipY: by + 12, color: B.legs, width: 2.8, stride: 7, lift: 4, dangle: 14 });
   g.save(); g.translate(-20, by - 2);
   g.rotate(-0.1 + Math.sin(now * 1.3 + c.id) * 0.03 + (c.moving ? Math.sin(c.walkPhase * 2) * 0.04 : 0) - c.headDown * 0.1);
-  for (const [len, w, ang] of [[62, 3.4, 0.02], [54, 3, 0.1], [46, 2.6, -0.06]]) {
+  for (const [len0, w, ang] of [[62, 3.4, 0.02], [54, 3, 0.1], [46, 2.6, -0.06]]) {
+    const len = len0 * (B.tailK || 1);   // girls have shorter tails; a Reeves's is enormous!
     g.save(); g.rotate(ang);
     g.fillStyle = B.tail; ellipse(g, -len / 2, 0, len / 2, w); g.fill();
     g.strokeStyle = rgba(B.bars, 0.65); g.lineWidth = 1;
@@ -3620,8 +3606,9 @@ function drawPheasant(g, c, B, now) {
   gr.addColorStop(0, B.light); gr.addColorStop(0.6, B.body); gr.addColorStop(1, B.shade);
   g.fillStyle = gr; ellipse(g, -2, by, 24, 13.5, -0.12); g.fill();
   g.save(); ellipse(g, -2, by, 24, 13.5, -0.12); g.clip();
-  g.strokeStyle = "rgba(40,20,10,.35)"; g.lineWidth = 1;
+  g.strokeStyle = B.scallop ? rgba(B.scallop, 0.5) : "rgba(40,20,10,.35)"; g.lineWidth = 1;
   for (let row = 0; row < 4; row++) for (let x = -18 + (row % 2) * 3; x < 20; x += 6) { g.beginPath(); g.arc(x, by - 8 + row * 5, 2.6, 0.1 * Math.PI, 0.9 * Math.PI); g.stroke(); }
+  if (B.breast) { g.fillStyle = B.breast; ellipse(g, 16, by + 3, 12, 12); g.fill(); }
   g.restore();
   if (B.cape) {       // the golden pheasant's striped cape
     g.save(); g.translate(12, by - 12);
@@ -3641,6 +3628,7 @@ function drawPheasant(g, c, B, now) {
   if (B.crest) { g.fillStyle = B.crest; g.beginPath(); g.moveTo(3, -6); g.quadraticCurveTo(-10, -10, -18, -2); g.quadraticCurveTo(-8, -4, -2, -1); g.closePath(); g.fill(); }
   const hg = g.createRadialGradient(2, -3, 1, 0, 0, 9); hg.addColorStop(0, B.headLight || B.head); hg.addColorStop(1, B.head);
   g.fillStyle = hg; circle(g, 0, 0, 7.5); g.fill();
+  if (B.mask) { g.save(); circle(g, 0, 0, 7.5); g.clip(); g.fillStyle = B.mask; g.fillRect(-8, -3, 16, 4.4); g.restore(); }
   if (B.ear) { g.fillStyle = B.ear; g.beginPath(); g.moveTo(-4, -5); g.lineTo(-2, -12); g.lineTo(0, -5); g.closePath(); g.fill(); }
   if (B.wattle) { g.fillStyle = B.wattle; ellipse(g, 3.5, 0, 4.5, 4.4); g.fill(); }
   g.fillStyle = B.beak; g.beginPath(); g.moveTo(5.5, -1); g.lineTo(11.5, 1 - c.beakOpen); g.lineTo(5.5, 3); g.closePath(); g.fill();
@@ -3676,18 +3664,23 @@ function drawTurkey(g, c, B, now) {
   const gr = g.createRadialGradient(6, -10, 3, 0, 0, 34);
   gr.addColorStop(0, B.light); gr.addColorStop(0.55, B.body); gr.addColorStop(1, B.shade);
   g.fillStyle = gr; ellipse(g, 0, 0, 31, 24, -0.18); g.fill();
-  g.fillStyle = rgba(B.sheen, 0.35); ellipse(g, 6, -10, 16, 8, -0.3); g.fill();
+  g.fillStyle = rgba(B.sheen, B.sheenA == null ? 0.35 : B.sheenA); ellipse(g, 6, -10, 16, 8, -0.3); g.fill();
   g.save(); ellipse(g, 0, 0, 31, 24, -0.18); g.clip();
   g.strokeStyle = "rgba(230,200,150,.25)"; g.lineWidth = 1.2;
   for (let row = 0; row < 6; row++) for (let x = -26 + (row % 2) * 3; x < 28; x += 6) { g.beginPath(); g.arc(x, -16 + row * 6, 2.8, 0.1 * Math.PI, 0.9 * Math.PI); g.stroke(); }
+  if (B.palm) { g.strokeStyle = rgba(B.palm, 0.8); g.lineWidth = 2.2; for (let row = 0; row < 4; row++) { g.beginPath(); g.arc(0, -8 + row * 8, 30, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke(); } }   // royal palm stripes
   g.restore();
   g.restore();
-  g.strokeStyle = B.beard; g.lineWidth = 1.4;
-  g.beginPath(); for (let i = 0; i < 5; i++) { g.moveTo(22 + i * 0.5, by - 4); g.lineTo(22 + i * 0.8, by + 8); } g.stroke();
+  if (B.beard) {           // only toms have a beard
+    g.strokeStyle = B.beard; g.lineWidth = 1.4;
+    g.beginPath(); for (let i = 0; i < 5; i++) { g.moveTo(22 + i * 0.5, by - 4); g.lineTo(22 + i * 0.8, by + 8); } g.stroke();
+  }
   g.save(); g.translate(0, by - 4); g.rotate(-0.1 - (isFlapping(c) ? Math.sin(now * 30) * 0.5 + 0.5 : 0) + fan * 0.25);
   g.fillStyle = B.wing; ellipse(g, -8, 2, 17, 9, -0.1); g.fill();
-  g.strokeStyle = rgba(B.wingBar, 0.8); g.lineWidth = 1.4;
-  for (let x = -20; x < 6; x += 5) { g.beginPath(); g.moveTo(x, -3); g.lineTo(x + 2, 8); g.stroke(); }
+  if (B.wingBar) {
+    g.strokeStyle = rgba(B.wingBar, 0.8); g.lineWidth = 1.4;
+    for (let x = -20; x < 6; x += 5) { g.beginPath(); g.moveTo(x, -3); g.lineTo(x + 2, 8); g.stroke(); }
+  }
   g.restore();
   let hx = lerp(22, 14, fan), hy = lerp(by - 34, by - 26, fan);
   hx = lerp(hx, 30, c.headDown); hy = lerp(hy, -8, c.headDown); hy -= c.headUp * 4;
@@ -3697,7 +3690,7 @@ function drawTurkey(g, c, B, now) {
   g.save(); g.translate(hx, hy); g.rotate(c.headDown * 0.8 - c.headUp * 0.3);
   g.fillStyle = B.head; circle(g, 0, 0, 6.5); g.fill();
   if (fan > 0.05) { g.fillStyle = `rgba(216,48,58,${0.5 * fan})`; circle(g, 0, 1, 6.4); g.fill(); }   // blushing while showing off
-  const sn = lerp(4, 9, fan);
+  const sn = lerp(4, 9, fan) * (B.snoodK == null ? 1 : B.snoodK);
   g.fillStyle = B.wattle;
   g.beginPath(); g.moveTo(3, -4); g.quadraticCurveTo(9, -3, 8, sn); g.lineTo(6, sn); g.quadraticCurveTo(7, -1, 2, -2); g.closePath(); g.fill();   // the snood
   ellipse(g, 1, 7, 3.2, 5.5 * lerp(1, 1.3, fan)); g.fill();
@@ -3715,7 +3708,7 @@ function drawFlamingo(g, c, B, now) {
   const flap = isFlapping(c) ? Math.sin(now * 26) * 0.5 + 0.5 : 0;
   g.save();
   g.scale(c.dir, 1);
-  if (c.sit < 0.6) drawLegPair(g, c, now, { hips: [-3, 2], hipY: by + 8, color: B.legs, width: 2.6, stride: 10, lift: 6, web: true, knee: 5, dangle: 36, oneLeg: c.oneLeg > 0.5 });
+  if (c.sit < 0.6) drawLegPair(g, c, now, { hips: [-3, 2], hipY: by + 8, color: B.legs, width: 2.6, stride: 10, lift: 6, web: true, knee: 5, dangle: 36, oneLeg: c.oneLeg > 0.5, kneeColor: B.knee });
   const gr = g.createRadialGradient(4, by - 6, 2, -4, by, 28);
   gr.addColorStop(0, B.light); gr.addColorStop(0.6, B.body); gr.addColorStop(1, B.shade);
   g.fillStyle = gr; ellipse(g, -4, by, 24, 13.5, -0.12); g.fill();
@@ -3736,8 +3729,10 @@ function drawFlamingo(g, c, B, now) {
   g.fillStyle = B.head; circle(g, 0, 0, 6.5); g.fill();
   g.fillStyle = B.bill;
   g.beginPath(); g.moveTo(4, -3); g.quadraticCurveTo(12, -3, 13, 1); g.quadraticCurveTo(13.5, 6, 11, 10); g.lineTo(9, 9.5); g.quadraticCurveTo(10, 5, 8, 3.5); g.quadraticCurveTo(6, 3, 4, 3); g.closePath(); g.fill();
+  g.save(); g.translate(10, 9.5); const tk = (B.billTipK || 0.45) / 0.45; g.scale(tk, tk); g.translate(-10, -9.5);   // some kinds have more black on the bill
   g.fillStyle = B.billTip;
   g.beginPath(); g.moveTo(13, 4); g.quadraticCurveTo(13.5, 7, 11, 10); g.lineTo(9, 9.5); g.quadraticCurveTo(10.5, 7, 10.5, 4.5); g.closePath(); g.fill();
+  g.restore();
   if (c.sleep > 0.5 || c.blink > 0) drawEye(g, c, 1.5, -1.5, 0.6);
   else { g.fillStyle = B.eye; circle(g, 1.5, -1.5, 1.8); g.fill(); g.fillStyle = "#1E1E22"; circle(g, 1.7, -1.5, 0.9); g.fill(); }
   drawAccessory(g, c, 6.5, 1.5, -1.5);
@@ -3752,7 +3747,7 @@ function drawPeacock(g, c, B, now) {
   const by = -36 + bob + c.sit * 14;
   g.save();
   g.scale(c.dir, 1);
-  if (fan > 0.03) {
+  if (fan > 0.03 && B.train) {
     g.save(); g.translate(-10, by - 6);
     const R = lerp(44, 112, fan), spread = fan * 1.5, shake = fan > 0.85 ? Math.sin(now * 34) * 0.012 : 0, N = 23;
     for (let i = 0; i < N; i++) {
@@ -3775,7 +3770,7 @@ function drawPeacock(g, c, B, now) {
     }
     g.restore();
   }
-  if (fan < 0.95) {     // the long train, folded and dragging behind
+  if (fan < 0.95 && B.train) {     // the long train, folded and dragging behind
     g.save(); g.globalAlpha *= clamp(1 - fan * 1.4);
     const L = 86, sway = Math.sin(now * 1.2 + c.id) * 2;
     g.fillStyle = B.train;
@@ -3787,17 +3782,21 @@ function drawPeacock(g, c, B, now) {
     }
     g.restore();
   }
+  if (!B.train) { g.fillStyle = B.back || B.body; ellipse(g, -26, by + 2, 14, 6, 0.3); g.fill(); }   // peahens have a short tail
   if (c.sit < 0.6) drawLegPair(g, c, now, { hips: [-4, 5], hipY: by + 13, color: B.legs, width: 3.2, stride: 7, lift: 4, dangle: 14 });
   const gr = g.createRadialGradient(6, by - 6, 2, -2, by, 26);
   gr.addColorStop(0, B.light); gr.addColorStop(0.6, B.body); gr.addColorStop(1, B.shade);
   g.fillStyle = gr; ellipse(g, -2, by, 22, 16, -0.2); g.fill();
   g.save(); ellipse(g, -2, by, 22, 16, -0.2); g.clip();
   g.fillStyle = B.back; ellipse(g, -14, by - 2, 14, 12); g.fill();
+  if (B.pied) { g.fillStyle = B.pied; ellipse(g, 6, by + 4, 9, 7); g.fill(); ellipse(g, -8, by + 8, 6, 4); g.fill(); }   // pied: white patches
   g.restore();
   g.save(); g.translate(0, by - 3); g.rotate(-0.1 - (isFlapping(c) ? Math.sin(now * 30) * 0.5 + 0.5 : 0));
   g.fillStyle = B.wing; ellipse(g, -7, 1, 13, 7.5, -0.1); g.fill();
-  g.strokeStyle = rgba(B.wingBar, 0.8); g.lineWidth = 1.2;
-  for (let x = -17; x < 3; x += 4) { g.beginPath(); g.moveTo(x, -4); g.lineTo(x + 1, 6); g.stroke(); }
+  if (B.wingBar) {
+    g.strokeStyle = rgba(B.wingBar, 0.8); g.lineWidth = 1.2;
+    for (let x = -17; x < 3; x += 4) { g.beginPath(); g.moveTo(x, -4); g.lineTo(x + 1, 6); g.stroke(); }
+  }
   g.restore();
   let hx = 15, hy = by - 36;
   hx = lerp(hx, 24, c.headDown); hy = lerp(hy, -8, c.headDown); hy -= c.headUp * 4;
@@ -3806,7 +3805,8 @@ function drawPeacock(g, c, B, now) {
   g.beginPath(); g.moveTo(8, by - 8); g.lineTo(hx - 1, hy + 3); g.stroke();
   g.save(); g.translate(hx, hy); g.rotate(c.headDown * 0.8 - c.headUp * 0.3);
   g.strokeStyle = B.crest; g.fillStyle = B.crest; g.lineWidth = 0.9;
-  for (let i = -2; i <= 2; i++) { const tx = i * 2.4 - 1, ty = -15 + Math.abs(i) * 0.8; g.beginPath(); g.moveTo(0, -5); g.lineTo(tx, ty); g.stroke(); circle(g, tx, ty, 1.6); g.fill(); }
+  // (green peafowl have a tall, narrow crest)
+  for (let i = -2; i <= 2; i++) { const tall = B.crestTall ? 1.35 : 1, tx = i * (B.crestTall ? 1.2 : 2.4) - 1, ty = (-15 + Math.abs(i) * 0.8) * tall; g.beginPath(); g.moveTo(0, -5); g.lineTo(tx, ty); g.stroke(); circle(g, tx, ty, 1.6); g.fill(); }
   g.fillStyle = B.head; circle(g, 0, 0, 6.8); g.fill();
   if (!B.noStripes) {
     g.strokeStyle = "#FFFFFF"; g.lineWidth = 1.2;
@@ -4263,10 +4263,11 @@ function drawFlyers(g) {
 
 // ---------- Little pictures in the Market, the Map, and the name card ----------
 function portraitBird(breed, sex) {
-  const c = makeBird({ breed, growth: 1, sex, name: "Portrait" });
+  const c = makeBird({ breed, growth: 1, sex: sex || (SHOW_MALES.has(kindOfBreed(breed)) ? "rooster" : "hen"), name: "Portrait" });
+  c.portrait = true;
   nextId--;
   c.id = 3; c.dir = 1; c.state = "idle";
-  if (SPECIES[BREEDS[breed].species].acts.display) c.fan = 1;   // show off that tail!
+  if (SPECIES[BREEDS[breed].species].acts.display && isRooster(c)) c.fan = 1;   // show off that tail!
   return c;
 }
 function prepCanvas(cv, cssW, cssH) {
@@ -4468,7 +4469,7 @@ function pokeBird(c) {
   c.joy = clamp(c.joy + 0.02);
   c.beakOpenT = 0.3;
   // Turkeys and peacocks show off their fans when you tap them!
-  if (SP(c).acts.display && !isBaby(c) && INTERRUPTIBLE.has(c.state) && c.goal !== "lay" && c.goal !== "bed" && c.state !== "display") {
+  if (SP(c).acts.display && isRooster(c) && !isBaby(c) && INTERRUPTIBLE.has(c.state) && c.goal !== "lay" && c.goal !== "bed" && c.state !== "display") {
     c.goal = null; startDisplay(c);
     return;
   }
@@ -4799,33 +4800,43 @@ function renderMarket() {
   tabCoop.setAttribute("aria-selected", String(!onBirds));
   marketGrid.textContent = "";
   if (onBirds) {
-    marketNote.textContent = "New birds arrive as babies at their own farm and grow up in a few minutes. Fancier birds lay eggs worth more! Chickens come as hens or roosters.";
+    marketNote.textContent = "Babies arrive at their own farm and grow up in a few minutes. Pick girls or boys: girls lay eggs, and boys are the dads!";
     const order = [game.farm, ...FARM_ORDER.filter((id) => id !== game.farm)];
     for (const id of order) {
       const st = farms[id], cap = capacityOf(id), n = birdCount(id), full = n >= cap;
       const head = el("div", "grid-head", FARMS[id].name);
       head.append(el("span", null, st.unlocked ? (full ? `Full · ${n} of ${cap}` : `${n} of ${cap} spots`) : `Unlock for ${FARMS[id].price} eggs`));
       marketGrid.append(head);
-      if (id === "backyard") marketGrid.append(sexPicker());
+      if (st.unlocked) marketGrid.append(sexPicker(id));
+      let lastGroup = null;
       for (const key of Object.keys(BREEDS)) {
         if (farmOfBreed(key) !== id || BREEDS[key].cross) continue;
-        const sex = id === "backyard" ? marketSex : "hen";
-        const B = BREEDS[key], S = SPECIES[B.species], t = el("div", "tile" + (st.unlocked ? "" : " locked"));
+        const sex = marketSex, kind = kindOfBreed(key);
+        // Fancier chickens need a bigger coop first
+        const tierLocked = id === "backyard" && (BREEDS[key].tier || 1) > farms.backyard.tier;
+        const group = id === "backyard" ? `${COOP_TIERS[BREEDS[key].tier || 1].name} breeds` : KIND_TITLE[kind];
+        if (group !== lastGroup) { lastGroup = group; marketGrid.append(el("div", "grid-sub", group + (tierLocked ? " 🔒" : ""))); }
+        const B = BREEDS[key], S = SPECIES[B.species], t = el("div", "tile" + (st.unlocked && !tierLocked ? "" : " locked"));
         const cv = el("canvas", "portrait-sm");
         drawPortrait(cv, portraitBird(key, sex), 120, 96);
         const sub = el("div", "tile-sub");
         const dot = el("i", "egg-dot");
         dot.style.background = B.egg.color;
         sub.append(dot, document.createTextNode(S.eggValue > 1 ? `${B.egg.name} eggs · worth ${S.eggValue}` : `${B.egg.name} eggs`));
-        if (sex === "rooster") { sub.textContent = ""; sub.append(document.createTextNode(`Dad of ${B.egg.name.toLowerCase()}-egg chicks`)); }
-        t.append(cv, el("div", "tile-name", sex === "rooster" ? `${B.name} rooster` : B.name), sub);
+        if (sex === "rooster") { sub.textContent = ""; sub.append(document.createTextNode(`Dad of ${B.egg.name.toLowerCase()}-egg ${plural(babyWord(key))}`)); }
+        t.append(cv, el("div", "tile-name", sex === "rooster" ? boyName(key) : B.name), sub);
         if (!st.unlocked) {
           const b = el("button", "buy unlock", "See the map");
           b.type = "button";
           b.addEventListener("click", openMap);
           t.append(b);
+        } else if (tierLocked) {
+          const b = el("button", "buy", "🔒 Bigger coop");
+          b.type = "button"; b.disabled = true;
+          b.setAttribute("aria-label", `Build the ${COOP_TIERS[B.tier].name} to unlock the ${B.name}`);
+          t.append(b);
         } else {
-          t.append(priceButton(B.price, `Buy a ${B.name} ${sex === "rooster" ? "rooster chick" : babyWord(key)} for ${B.price} eggs`, !full && game.eggs >= B.price, () => buyBird(key, sex)));
+          t.append(priceButton(B.price, `Buy a ${sex === "rooster" ? "boy" : "girl"} ${B.name} ${babyWord(key)} for ${B.price} eggs`, !full && game.eggs >= B.price, () => buyBird(key, sex)));
         }
         marketGrid.append(t);
       }
@@ -4864,31 +4875,42 @@ tabBirds.addEventListener("click", () => { marketTab = "birds"; renderMarket(); 
 tabCoop.addEventListener("click", () => { marketTab = "coop"; renderMarket(); marketGrid.scrollTop = 0; Sound.tick(); });
 
 function spend(n) { game.eggs -= n; updateHud(); }
-// The Hens / Roosters switch for the Backyard's chickens
+// The Girls / Boys switch in the Market
 let marketSex = "hen";
-function sexPicker() {
+function sexPicker(id) {
   const wrap = el("div", "sex-picker");
   const seg = el("div", "segmented small");
-  for (const [sex, label] of [["hen", "🐔 Hens"], ["rooster", "🐓 Roosters"]]) {
+  const labels = id === "backyard" ? [["hen", "🐔 Hens"], ["rooster", "🐓 Roosters"]] : [["hen", "♀ Girls"], ["rooster", "♂ Boys"]];
+  for (const [sex, label] of labels) {
     const b = el("button", "seg" + (marketSex === sex ? " on" : ""), label);
     b.type = "button";
     b.setAttribute("aria-pressed", String(marketSex === sex));
     b.addEventListener("click", () => { marketSex = sex; Sound.tick(); const y = marketGrid.scrollTop; renderMarket(); marketGrid.scrollTop = y; });
     seg.append(b);
   }
-  const f = flockInfo(true), note = el("div", "sex-note");
-  const dot = el("i", "flock-dot");
-  dot.style.background = f.color;
-  note.append(dot, document.createTextNode(`${f.roosters} ${f.roosters === 1 ? "rooster" : "roosters"}, ${f.hens} ${f.hens === 1 ? "hen" : "hens"}: ${f.label} About 1 rooster for every 10 hens is best.`));
+  const note = el("div", "sex-note"), f = mainFlock(id);
+  if (f) {
+    const W = KINDS[f.kind], dot = el("i", "flock-dot");
+    dot.style.background = f.color;
+    note.append(dot, document.createTextNode(`${KIND_TITLE[f.kind]}: ${f.males} ${f.males === 1 ? W.male : plural(W.male)}, ${f.females} ${f.females === 1 ? W.female : plural(W.female)}. ${f.label} Best: ${W.ideal}.`));
+  }
   wrap.append(seg, note);
   return wrap;
+}
+// "Pekin Duck" + boy = "Pekin drake"
+function boyName(key) {
+  const B = BREEDS[key], W = KINDS[kindOfBreed(key)];
+  if (/ Duck$/.test(B.name)) return B.name.replace(/ Duck$/, " drake");
+  if (/ Goose$/.test(B.name)) return B.name.replace(/ Goose$/, " gander");
+  return `${B.name} ${W.male}`;
 }
 function buyBird(key, sex = "hen") {
   const B = BREEDS[key], id = farmOfBreed(key), st = farms[id];
   if (!st.unlocked || game.eggs < B.price || birdCount(id) >= capacityOf(id)) return;
+  if (id === "backyard" && (B.tier || 1) > farms.backyard.tier) return;
   spend(B.price);
   Sound.sparkle();
-  const word = sex === "rooster" ? "rooster chick" : babyWord(key);
+  const word = sex === "rooster" ? `boy ${babyWord(key)}` : babyWord(key);
   if (id === game.farm) {
     const c = places.coop, sc = scaleAt(c.y), geo = houseGeo();
     fx.crates.push({ x: clampX(c.x + (geo.halfW + 40 + rand(0, 50)) * sc), y: clampY(c.y + rand(46, 90) * sc), t: 0, breed: key, sex, opened: false });
@@ -4975,7 +4997,11 @@ function unlockFarm(id) {
   if (st.unlocked || game.eggs < Fm.price) return;
   spend(Fm.price);
   st.unlocked = true;
-  for (const key of Fm.starter) { const c = addBirdToFarm(id, key, 1); c.eggClock = rand(10, 30); c.needsSpot = true; }
+  Fm.starter.forEach((key, i) => {   // a boy and some girls, so they can have babies
+    const c = addBirdToFarm(id, key, 1, i === 0 && Fm.starter.length > 1 ? "rooster" : "hen");
+    c.eggClock = rand(10, 30); c.needsSpot = true;
+    game.maleGift[kindOfBreed(key)] = true;
+  });
   Sound.fanfare();
   save();
   travelTo(id, true);
@@ -5027,6 +5053,7 @@ function openCard(c) {
   cardBird = c;
   nameInput.value = c.name;
   renderDress();
+  renderGenes();
   nameClear.hidden = true;
   nameDone.hidden = true;
   updateCardText();
@@ -5036,9 +5063,11 @@ function openCard(c) {
 function updateCardText() {
   const c = cardBird;
   if (!c) return;
-  const B = lookOf(c), S = SP(c), grown = c.growth >= 1;
-  if (isRooster(c) && (grown || c.sexKnown)) cardBreed.textContent = grown ? `${B.name} rooster · dad of the flock` : `${B.name} · a little rooster`;
-  else cardBreed.textContent = `${B.name}${isChicken(c) && grown ? " hen" : ""} · lays ${B.egg.name.toLowerCase()} eggs`;
+  const B = lookOf(c), S = SP(c), grown = c.growth >= 1, W = KINDS[kindOf(c)];
+  const who = grown || (c.sexKnown && isRooster(c)) ? sexWord(c) : babyWord(c.breed);
+  if (W.sterile) cardBreed.textContent = `${B.name} · a mule duck`;
+  else if (isRooster(c) && (grown || c.sexKnown)) cardBreed.textContent = `${B.name} ${who}${grown ? " · a dad" : ""}`;
+  else cardBreed.textContent = `${B.name} ${who} · lays ${B.egg.name.toLowerCase()} eggs`;
   const [mt, me] = moodText(c);
   cardMood.textContent = `${me} ${mt}`;
   if (c.growth < 1) {
@@ -5046,14 +5075,24 @@ function updateCardText() {
     growBar.hidden = false;
     growFill.style.width = `${Math.round(c.growth * 100)}%`;
   } else {
-    if (isRooster(c)) {
-      const f = flockInfo(), per = f.roosters ? Math.round(f.hens / f.roosters) : 0;
-      cardStats.textContent = `Crows every morning and keeps watch over ${per} ${per === 1 ? "hen" : "hens"}`;
+    if (W.sterile) cardStats.textContent = "Mule ducks are big and friendly, but they can't lay eggs or have babies";
+    else if (isRooster(c)) {
+      const s = flockStats(farmOfBreed(c.breed))[kindOf(c)], per = s && s.males ? Math.round(s.females / s.males) : 0;
+      cardStats.textContent = W.pairs ? "Looks after his partner" : `Keeps watch over ${per} ${per === 1 ? W.female : plural(W.female)}`;
     } else cardStats.textContent = c.laid ? `Has laid ${c.laid} ${c.laid === 1 ? "egg" : "eggs"} on your farm` : "Hasn't laid an egg here yet";
-    if (c.kids) cardStats.textContent += `. ${isRooster(c) ? "Dad" : "Mom"} of ${c.kids} ${c.kids === 1 ? "chick" : "chicks"}!`;
+    if (c.kids) cardStats.textContent += `. ${isRooster(c) ? "Dad" : "Mom"} of ${c.kids} ${c.kids === 1 ? "baby" : "babies"}!`;
     growBar.hidden = true;
   }
   if (c.mom && c.dad) cardStats.textContent += ` (Mom: ${c.mom} · Dad: ${c.dad})`;
+}
+// The genes this bird shows, and the ones it's secretly carrying
+function renderGenes() {
+  const box = $("cardGenes");
+  box.textContent = "";
+  if (!cardBird) return;
+  const chips = geneChips(cardBird);
+  if (!chips.length) { box.append(el("span", "gene-chip plain", "Plain wild genes")); return; }
+  for (const ch of chips) box.append(el("span", "gene-chip" + (ch.shows ? "" : " carried"), ch.text));
 }
 // Renaming a bird. Tapping the name highlights it, so you can just type a
 // new one. The × clears it. If you leave it empty, the old name comes back.
@@ -5325,7 +5364,7 @@ function renderHatch() {
   }
   const list = parts.slice(0, 3);
   const said = list.length > 1 ? `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}` : list[0] || "";
-  hatchNote.textContent = `Eggs have to stay warm until they hatch.${said ? " " + said.charAt(0).toUpperCase() + said.slice(1) + "." : ""} Each day goes by in just a few seconds here.${game.farm === "backyard" ? " Chicks get a little from Mom and a little from Dad!" : ""}`;
+  hatchNote.textContent = `Eggs have to stay warm until they hatch.${said ? " " + said.charAt(0).toUpperCase() + said.slice(1) + "." : ""} Each day goes by in just a few seconds here. Babies get one copy of every gene from Mom and one from Dad!`;
   hatchSlotsEl.textContent = "";
   slotViews = [];
   for (let i = 0; i < INCUBATOR_SLOTS; i++) {
@@ -5363,68 +5402,77 @@ function updateSlotText() {
     v.row.hidden = !!ready;
   }
 }
-// Hens you could hatch an egg from, grouped by breed (and Barnyard Mixes by egg color)
-function momGroups() {
-  const groups = new Map();
-  for (const c of F.birds) {
-    if (c.growth < 1 || isRooster(c)) continue;
-    const key = c.genes ? "mix:" + c.genes.egg.name : c.breed;
-    if (!groups.has(key)) groups.set(key, { key, breed: c.breed, hens: [], egg: eggLookOf(c), name: c.genes ? `Barnyard Mix (${c.genes.egg.name.toLowerCase()} eggs)` : BREEDS[c.breed].name });
-    groups.get(key).hens.push(c);
+// Pick a mom and a dad, see what the babies might look like, then keep the egg warm
+let hatchMom = null, hatchDad = null;
+function chipRow(label, birds, chosen, onPick) {
+  const row = el("div", "dad-row");
+  row.append(el("span", "dad-label", label));
+  const list = el("div", "chip-list");
+  for (const b of birds) {
+    const chip = el("button", "dad-chip" + (b === chosen ? " on" : ""));
+    chip.type = "button";
+    const dot = el("i", "egg-dot");
+    dot.style.background = lookOf(b).body;
+    chip.append(dot, document.createTextNode(b.name));
+    chip.title = `${lookOf(b).name} ${sexWord(b)}`;
+    chip.setAttribute("aria-pressed", String(b === chosen));
+    chip.setAttribute("aria-label", `${b.name} the ${lookOf(b).name} ${sexWord(b)}`);
+    chip.addEventListener("click", () => { onPick(b); Sound.tick(); renderPick(); });
+    list.append(chip);
   }
-  return [...groups.values()];
+  row.append(list);
+  return row;
 }
-let hatchDad = null;   // the rooster you picked to be the dad
 function renderPick() {
   hatchPickEl.textContent = "";
   const free = F.incubator.length < INCUBATOR_SLOTS, room = roomToHatch();
-  const groups = momGroups(), needsDad = game.farm === "backyard";
-  hatchPickEl.append(el("div", "pick-head", free ? "Choose an egg to keep warm" : "All three spots are full"));
-  if (!groups.length) { hatchPickEl.append(el("p", "pick-empty", needsDad ? "When your hens grow up, you can hatch their eggs here." : "When your birds grow up, you can hatch their eggs here.")); return; }
-  const dads = needsDad ? F.birds.filter((c) => isRooster(c) && c.growth >= 1) : [];
-  if (needsDad && !dads.length) {
-    hatchPickEl.append(el("p", "pick-empty", "Chicken eggs need a rooster in the flock to hatch into chicks. Get a rooster at the Market! 🐓"));
-  } else if (needsDad) {
-    if (!dads.includes(hatchDad)) hatchDad = dads[0];
-    const row = el("div", "dad-row");
-    row.append(el("span", "dad-label", "Dad"));
-    for (const r of dads) {
-      const b = el("button", "dad-chip" + (r === hatchDad ? " on" : ""));
-      b.type = "button";
-      const dot = el("i", "egg-dot");
-      dot.style.background = lookOf(r).body;
-      b.append(dot, document.createTextNode(r.name));
-      b.setAttribute("aria-pressed", String(r === hatchDad));
-      b.setAttribute("aria-label", `${r.name} the ${lookOf(r).name} rooster`);
-      b.addEventListener("click", () => { hatchDad = r; Sound.tick(); renderPick(); });
-      row.append(b);
-    }
-    hatchPickEl.append(row);
-    hatchPickEl.append(el("div", "dad-label mom-label", "Mom"));
+  const moms = F.birds.filter((c) => c.growth >= 1 && canLay(c));
+  hatchPickEl.append(el("div", "pick-head", free ? "Pick a mom and a dad" : "All three spots are full"));
+  if (!moms.length) { hatchPickEl.append(el("p", "pick-empty", "When your girls grow up, you can hatch their eggs here.")); return; }
+  if (!moms.includes(hatchMom)) hatchMom = moms[0];
+  hatchPickEl.append(chipRow("Mom", moms, hatchMom, (b) => { hatchMom = b; }));
+  const mk = kindOf(hatchMom), W = KINDS[mk];
+  const dads = F.birds.filter((c) => c.growth >= 1 && isRooster(c) && canMate(mk, kindOf(c)) !== "no");
+  if (!dads.length) {
+    hatchPickEl.append(el("p", "pick-empty", `${cap1(W.female)} eggs need a ${W.male} dad to hatch. Get a ${W.male} at the Market!`));
+    return;
   }
+  if (!dads.includes(hatchDad)) hatchDad = dads.find((d) => kindOf(d) === mk) || dads[0];
+  hatchPickEl.append(chipRow("Dad", dads, hatchDad, (b) => { hatchDad = b; }));
+  // What might hatch? We "pretend-hatch" 400 eggs to find out!
+  const odds = hatchOdds(hatchMom, hatchDad), box = el("div", "odds");
+  box.append(el("div", "odds-head", "What might hatch?"));
+  for (const o of odds.list) {
+    const r = el("div", "odds-row"), bar = el("span", "odds-bar"), fill = el("i");
+    fill.style.width = `${o.pct}%`;
+    bar.append(fill);
+    r.append(el("span", "odds-pct", `${o.pct}%`), bar, el("span", "odds-label", o.label));
+    box.append(r);
+  }
+  if (canMate(mk, kindOf(hatchDad)) === "mule") box.append(el("p", "odds-note", "🫏 A duck and a Muscovy make a \"mule\" duck. Mules can't have babies of their own."));
+  if (odds.autosex) box.append(el("p", "odds-note", "🎀 You'll be able to tell the boys from the girls the day they hatch!"));
+  hatchPickEl.append(box);
   if (room <= 0) hatchPickEl.append(el("p", "pick-empty", `There's no room in the ${houseName()} for another baby right now.`));
-  for (const gp of groups) {
-    const cost = eggValueOf(gp.breed, false);
-    const b = el("button", "pick-egg");
-    b.type = "button";
-    const dot = el("i", "egg-dot");
-    dot.style.background = gp.egg.color;
-    const price = el("span", "pick-cost");
-    price.append(el("i", "egg-dot"), document.createTextNode(String(cost)));
-    b.append(dot, el("span", "pick-name", gp.name), price);
-    b.setAttribute("aria-label", `Put a ${gp.name} egg in the incubator for ${cost} ${cost === 1 ? "egg" : "eggs"}`);
-    b.disabled = !free || room <= 0 || game.eggs < cost || (needsDad && !dads.length);
-    b.addEventListener("click", () => addToIncubator(gp));
-    hatchPickEl.append(b);
-  }
+  const cost = eggValueOf(hatchMom.breed, false);
+  const go = el("button", "pick-egg go");
+  go.type = "button";
+  const dot = el("i", "egg-dot");
+  dot.style.background = eggLookOf(hatchMom).color;
+  const price = el("span", "pick-cost");
+  price.append(el("i", "egg-dot"), document.createTextNode(String(cost)));
+  go.append(dot, el("span", "pick-name", `Keep ${hatchMom.name}'s egg warm`), price);
+  go.setAttribute("aria-label", `Put ${hatchMom.name}'s egg in the incubator for ${cost} ${cost === 1 ? "egg" : "eggs"}`);
+  go.disabled = !free || room <= 0 || game.eggs < cost;
+  go.addEventListener("click", addToIncubator);
+  hatchPickEl.append(go);
 }
-function addToIncubator(gp) {
-  const cost = eggValueOf(gp.breed, false), needsDad = game.farm === "backyard";
-  const dad = needsDad ? hatchDad : null;
-  if (F.incubator.length >= INCUBATOR_SLOTS || roomToHatch() <= 0 || game.eggs < cost || (needsDad && !dad)) return;
-  const mom = pick(gp.hens);
+function addToIncubator() {
+  const mom = hatchMom, dad = hatchDad;
+  if (!mom || !dad || !F.birds.includes(mom) || !F.birds.includes(dad)) return;
+  const cost = eggValueOf(mom.breed, false);
+  if (F.incubator.length >= INCUBATOR_SLOTS || roomToHatch() <= 0 || game.eggs < cost) return;
   spend(cost);
-  F.incubator.push({ breed: mom.breed, mom: parentRec(mom), dad: dad ? parentRec(dad) : null, egg: mom.genes ? eggLookOf(mom) : undefined, startedAt: Date.now(), crack: 0, wobble: 0.8 });
+  F.incubator.push({ breed: mom.breed, mom: parentRec(mom), dad: parentRec(dad), egg: eggLookOf(mom), startedAt: Date.now(), crack: 0, wobble: 0.8 });
   Sound.chime();
   renderHatch();
   save();
@@ -5440,30 +5488,44 @@ function tapSlotEgg(e) {
   updateSlotText();
 }
 function hatchBaby(e) {
-  const P = places.incubator, sc = scaleAt(P.y);
-  // What did Mom and Dad make?
-  const chicken = BREEDS[e.breed].species === "chicken";
-  const res = e.mom ? hatchResult(e.mom, e.dad) : { breed: e.breed, genes: null, sex: "hen" };
-  const B = BREEDS[res.breed], sexLink = !!B.boy;
+  const P = places.incubator, sc = scaleAt(P.y), mom = e.mom, dad = e.dad, kind = kindOfBreed(e.breed);
+  const sex = Math.random() < 0.5 ? "rooster" : "hen";
+  let breed = e.breed, cross = null, geno = null, sexKnown = false, hidden = false, mule = false;
+  if (mom && dad && canMate(kindOfBreed(mom.breed), kindOfBreed(dad.breed)) === "mule") {
+    mule = true; breed = "mulard";
+    game.crossesSeen.Mulard = true;
+  } else if (mom && dad) {
+    // Mom and Dad each pass on one copy of every gene
+    const momG = genoOfRec(mom), dadG = genoOfRec(dad);
+    geno = inheritGenes(kind, momG, dadG, sex);
+    const L = LOOKS[kind](geno, isMaleSex(sex));
+    ({ breed, cross } = nameChick(kind, mom, dad, geno, sex, L));
+    if (cross && NAMED_CROSSES.some((x) => x.name === cross)) game.crossesSeen[cross] = true;
+    sexKnown = isAutosexing(kind, momG, dadG);
+    hidden = showedHiddenGene(kind, momG, dadG, geno);
+    if (sexKnown) game.stats.autosex = (game.stats.autosex || 0) + 1;
+    if (hidden) game.stats.hidden = (game.stats.hidden || 0) + 1;
+  }
   const c = makeBird({
-    breed: res.breed, genes: res.genes, sex: chicken ? res.sex : "hen", sexKnown: !chicken || sexLink,
-    mom: e.mom && e.dad ? recName(e.mom) : null, dad: e.mom && e.dad ? recName(e.dad) : null,
+    breed, geno, cross, sex, sexKnown,
+    mom: mom && dad ? recName(mom) : null, dad: mom && dad ? recName(dad) : null,
     growth: 0.12, food: 0.95, water: 0.95, joy: 0.95, x: clampX(P.x + rand(40, 80) * sc), y: clampY(P.y + rand(16, 44) * sc),
   });
-  for (const par of [e.mom, e.dad]) { const b = par && F.birds.find((x) => x.id === par.id); if (b) b.kids++; }
-  if (res.genes) game.stats.mixes = (game.stats.mixes || 0) + 1;
   c.tagT = 5; c.vz = 170 * sc; c.state = "idle"; c.t = 1.5;
   F.birds.push(c);
+  for (const par of [mom, dad]) { const b = par && F.birds.find((x) => x.id === par.id); if (b) b.kids++; }
   e.baby = c;
   e.popAt = clock;
   game.stats.hatched++;
   Sound.call(c, panX(P.x));
   Sound.fanfare();
   confetti(P.x, P.y, 50 * sc, 24, sc);
-  let msg = `Welcome, ${c.name}! A brand-new ${lookOf(c).name} ${babyWord(res.breed)} 🐣`;
-  if (sexLink) msg += ` It's a ${isRooster(c) ? "boy" : "girl"}! You can tell by the color.`;
-  else if (c.mom && c.mom !== c.dad) msg = `Welcome, ${c.name}! 🐣 Mom is a ${c.mom} and Dad is a ${c.dad}.`;
-  toast(msg, 3800);
+  let msg = `Welcome, ${c.name}! A brand-new ${lookOf(c).name} ${babyWord(breed)} 🐣`;
+  if (mule) msg = `Welcome, ${c.name}! A Mulard duckling 🐣 Mule ducks can't have babies of their own.`;
+  else if (cross && NAMED_CROSSES.some((x) => x.name === cross)) msg = `Welcome, ${c.name}! It's ${/^[AEIOU]/.test(cross) ? "an" : "a"} ${cross}! 🐣`;
+  if (sexKnown) msg += ` It's a ${isRooster(c) ? "boy" : "girl"}. You can tell by the fuzz!`;
+  else if (hidden) msg += " It's showing a hidden gene! 🎁";
+  toast(msg, 4200);
   save();
   const farm = F;   // remember which farm, in case you travel in the next second
   setTimeout(() => {
@@ -5682,7 +5744,7 @@ const bookBtn = $("bookBtn");
 function checkStickers(quiet) {
   let fresh = null;
   for (const id of FARM_ORDER) for (const c of farms[id].birds) {
-    if (!game.stickers[c.breed]) { game.stickers[c.breed] = true; fresh = fresh || BREEDS[c.breed].name; }
+    if (!BREEDS[c.breed].cross && !game.stickers[c.breed]) { game.stickers[c.breed] = true; fresh = fresh || BREEDS[c.breed].name; }
   }
   for (const s of SPECIAL_STICKERS) {
     if (!game.special[s.id] && s.done()) { game.special[s.id] = true; fresh = fresh || s.name; }
@@ -5706,44 +5768,41 @@ function openBook() {
 }
 function renderBook() {
   bookGrid.textContent = "";
-  const keys = Object.keys(BREEDS);
+  const keys = Object.keys(BREEDS).filter((k) => !BREEDS[k].cross);
+  const specials = SPECIAL_STICKERS.filter((s) => !s.id.startsWith("g_") && !s.id.startsWith("x_"));
+  const genes = SPECIAL_STICKERS.filter((s) => s.id.startsWith("g_"));
+  const crosses = SPECIAL_STICKERS.filter((s) => s.id.startsWith("x_"));
   const got = keys.filter((k) => game.stickers[k]).length + SPECIAL_STICKERS.filter((s) => game.special[s.id]).length;
   bookCount.textContent = `${got} of ${keys.length + SPECIAL_STICKERS.length}`;
-  const head = (text, sub) => { const h = el("div", "grid-head", text); if (sub) h.append(el("span", null, sub)); bookGrid.append(h); };
-  head("Special stickers", `${SPECIAL_STICKERS.filter((s) => game.special[s.id]).length} of ${SPECIAL_STICKERS.length}`);
-  for (const s of SPECIAL_STICKERS) {
+  const head = (text, list, have) => {
+    const h = el("div", "grid-head", text);
+    h.append(el("span", null, `${list.filter(have).length} of ${list.length}`));
+    bookGrid.append(h);
+  };
+  const emojiSticker = (s) => {
     const have = !!game.special[s.id];
     const t = el("div", "sticker" + (have ? "" : " missing"));
-    t.append(el("div", "sticker-emoji", s.emoji), el("div", "sticker-name", s.name), el("div", "sticker-fact", s.how));
+    t.append(el("div", "sticker-emoji", s.emoji), el("div", "sticker-name", s.name), el("div", "sticker-fact", have && s.fact ? s.fact : s.how));
     bookGrid.append(t);
-  }
+  };
+  head("Special stickers", specials, (s) => game.special[s.id]);
+  specials.forEach(emojiSticker);
   for (const id of FARM_ORDER) {
-    const breeds = keys.filter((k) => farmOfBreed(k) === id && !BREEDS[k].cross);
-    head(`${FARMS[id].emoji} ${FARMS[id].name}`, `${breeds.filter((k) => game.stickers[k]).length} of ${breeds.length}`);
+    const breeds = keys.filter((k) => farmOfBreed(k) === id);
+    head(`${FARMS[id].emoji} ${FARMS[id].name}`, breeds, (k) => game.stickers[k]);
     for (const k of breeds) {
       const have = !!game.stickers[k];
       const t = el("div", "sticker" + (have ? "" : " missing"));
       const cv = el("canvas", "portrait-sm");
       drawPortrait(cv, portraitBird(k), 120, 96);
-      t.append(cv, el("div", "sticker-name", BREEDS[k].name), el("div", "sticker-fact", have ? FACTS[k] : "Raise one to earn this sticker"));
+      t.append(cv, el("div", "sticker-name", BREEDS[k].name), el("div", "sticker-fact", have ? FACTS[k] || "" : "Raise one to earn this sticker"));
       bookGrid.append(t);
     }
   }
-  // Chickens you can only get by hatching the right mom and dad
-  const crosses = keys.filter((k) => BREEDS[k].cross);
-  head("🧬 Special crosses", `${crosses.filter((k) => game.stickers[k]).length} of ${crosses.length}`);
-  for (const k of crosses) {
-    const have = !!game.stickers[k];
-    const t = el("div", "sticker" + (have ? "" : " missing"));
-    const cv = el("canvas", "portrait-sm");
-    drawPortrait(cv, portraitBird(k), 120, 96);
-    t.append(cv, el("div", "sticker-name", BREEDS[k].name), el("div", "sticker-fact", have ? FACTS[k] : crossHint(k)));
-    bookGrid.append(t);
-  }
-}
-function crossHint(k) {
-  const x = CROSSES.find((r) => r.kid === k);
-  return x ? `Hatch a chick with a ${BREEDS[x.dad].name} dad and a ${BREEDS[x.mom].name} mom` : "Hatch a chick from two different breeds";
+  head("🧬 Genes", genes, (s) => game.special[s.id]);
+  genes.forEach(emojiSticker);
+  head("🥚 Famous crosses", crosses, (s) => game.special[s.id]);
+  crosses.forEach(emojiSticker);
 }
 bookBtn.addEventListener("click", () => { Sound.unlock(); if (!started) begin(); openBook(); });
 
@@ -6105,7 +6164,7 @@ function startHawk() {
   let called = false;
   for (const c of F.birds) {
     if (c.loc !== "yard" || !INTERRUPTIBLE.has(c.state) || c.goal === "lay" || c.goal === "bed") continue;
-    if (isRooster(c) && c.growth >= 1) {       // the rooster doesn't hide: he keeps watch!
+    if (isRooster(c) && c.growth >= 1 && GUARD_KINDS.has(kindOf(c))) {   // roosters, ganders, toms and guineas keep watch!
       c.state = "guard"; c.goal = null; c.t = hawk.dur + 0.6; c.lookT = 0.5; c.flapT = 0.5;
       Sound.alarm(panX(c.x));
       continue;
@@ -6326,24 +6385,988 @@ function catchUpAfterBackground() {
 }
 
 /* ================================================================
-   25. ROOSTERS & GENETICS
+   25. BOYS, GIRLS & GENES
    ================================================================
-   Every chicken is a hen or a rooster. Roosters don't lay eggs, but
-   they're the dads! They crow at sunrise, call the hens over when they
-   find a snack (farmers call that "tidbitting"), and stand guard when
-   a hawk flies over.
+   Every bird is a boy or a girl, and every bird carries GENES: tiny
+   instructions that say what it looks like. A bird has TWO copies of
+   each gene, one from Mom and one from Dad. When it has babies, it
+   passes on ONE of its two copies, picked at random, like a coin flip.
 
-   A flock is happiest with about 1 rooster for every 10 hens. With
-   just the right number, the hens feel safe and lay more eggs. With
-   too many roosters, the roosters squabble and the hens get stressed.
+   Some genes are "dominant": one copy is enough to show (like the
+   blue-egg gene). Some are "recessive": they only show with two
+   copies, so a bird can secretly CARRY a gene without showing it
+   (like white feathers). And some are "in-between": one copy shows a
+   little, two copies show a lot (one blue gene makes a blue chicken,
+   two make a "splash" chicken!).
 
-   When you hatch an egg, the chick gets a little from Mom and a little
-   from Dad: feather colors, patterns, combs, fluffy feet... and even
-   the color of the eggs she'll lay someday!
+   A few genes ride on the "Z" chromosome, which decides boy or girl.
+   Boy birds have two Z's, girl birds have only one. That's why some
+   crosses make boy chicks and girl chicks that look different on the
+   very day they hatch ("sex-links").
+
+   Every breed below (in BREEDS, near the top of this file) is just a
+   list of genes. Change a breed's genes and it changes how it looks!
 */
+
+// ---------- Kinds of birds that can have babies together ----------
+// "ratio" is how many girls per boy makes the happiest flock.
+const KINDS = {
+  chicken:  { species: "chicken",  male: "rooster", female: "hen",  ratio: [6, 12], ideal: "about 1 rooster for every 10 hens", mix: "mix" },
+  duck:     { species: "duck",     male: "drake",   female: "duck", ratio: [3, 6],  ideal: "about 1 drake for every 5 ducks", mix: "mixDuck", maleSize: 1.05 },
+  muscovy:  { species: "duck",     male: "drake",   female: "duck", ratio: [3, 6],  ideal: "about 1 drake for every 5 ducks", mix: "mixMuscovy", maleSize: 1.3 },
+  mule:     { species: "duck",     male: "drake",   female: "duck", ratio: [0, 99], ideal: "", mix: "mulard", sterile: true },
+  goose:    { species: "goose",    male: "gander",  female: "goose", ratio: [1, 4], ideal: "about 1 gander for every 3 geese", mix: "mixGoose", maleSize: 1.08 },
+  swan:     { species: "goose",    male: "cob",     female: "pen",  ratio: [1, 1],  ideal: "swans live in pairs: 1 cob and 1 pen", mix: "mixSwan", maleSize: 1.08, pairs: true },
+  quail:    { species: "quail",    male: "cock",    female: "hen",  ratio: [3, 5],  ideal: "about 1 cock for every 4 hens", mix: "mixQuail", maleSize: 0.95 },
+  calQuail: { species: "quail",    male: "cock",    female: "hen",  ratio: [1, 3],  ideal: "about 1 cock for every 2 hens", mix: "calQuail" },
+  bobwhite: { species: "quail",    male: "cock",    female: "hen",  ratio: [1, 3],  ideal: "about 1 cock for every 2 hens", mix: "mixBobwhite" },
+  guinea:   { species: "guinea",   male: "cock",    female: "hen",  ratio: [1, 4],  ideal: "about 1 cock for every 3 hens", mix: "mixGuinea", maleSize: 1.05 },
+  pheasant: { species: "pheasant", male: "cock",    female: "hen",  ratio: [4, 8],  ideal: "about 1 cock for every 6 hens", mix: "mixPheasant", maleSize: 1.1 },
+  ruffed:   { species: "pheasant", male: "cock",    female: "hen",  ratio: [2, 5],  ideal: "about 1 cock for every 4 hens", mix: "mixRuffed", maleSize: 1.05 },
+  silverPh: { species: "pheasant", male: "cock",    female: "hen",  ratio: [2, 5],  ideal: "about 1 cock for every 4 hens", mix: "silverPh", maleSize: 1.1 },
+  reeves:   { species: "pheasant", male: "cock",    female: "hen",  ratio: [2, 5],  ideal: "about 1 cock for every 4 hens", mix: "reeves", maleSize: 1.1 },
+  turkey:   { species: "turkey",   male: "tom",     female: "hen",  ratio: [5, 10], ideal: "about 1 tom for every 8 hens", mix: "mixTurkey", maleSize: 1.25 },
+  flamingo: { species: "flamingo", male: "male",    female: "female", ratio: [1, 1], ideal: "flamingos pair up: 1 male and 1 female", mix: "mixFlamingo", maleSize: 1.1, pairs: true },
+  peafowl:  { species: "peafowl",  male: "peacock", female: "peahen", ratio: [3, 5], ideal: "about 1 peacock for every 4 peahens", mix: "mixPeafowl", maleSize: 1.05 },
+};
+const kindOfBreed = (key) => BREEDS[key].kind || BREEDS[key].species;
+const kindOf = (c) => kindOfBreed(c.breed);
+// Can these two have babies together? "yes", "mule" (babies can't have babies), or "no"
+function canMate(momKind, dadKind) {
+  if (momKind === dadKind) return KINDS[momKind].sterile ? "no" : "yes";
+  const pair = [momKind, dadKind].sort().join("+");
+  if (pair === "duck+muscovy") return "mule";
+  return "no";
+}
+
+// ---------- Every gene each kind of bird has ----------
+// type "dom": the first allele in the list wins over the ones after it
+// type "inc": in-between; one copy shows a little, two copies show a lot
+// type "num": a number; the chick gets the average of its two copies
+// type "blend": the two copies mix together (like paint)
+// z: true means the gene rides on the Z chromosome (girls have just one copy)
+const LOCI = {
+  chicken: [
+    { id: "base", name: "Main color", type: "dom", alleles: ["E", "ER", "R", "p"], wild: "p", say: { E: "Black", ER: "Black with a colored neck", R: "Red / buff", p: "Wild colors" }, always: true },
+    { id: "tone", name: "Red shade", type: "dom", alleles: ["Mh", "n", "di"], wild: "n", say: { Mh: "Deep red", n: "Gold", di: "Buff" } },
+    { id: "silver", name: "Silver", type: "dom", z: true, alleles: ["S", "s"], wild: "s", say: { S: "Silver", s: "Gold" }, always: true },
+    { id: "bar", name: "Barring", type: "dom", z: true, alleles: ["B", "b"], wild: "b", say: { B: "Barred stripes" } },
+    { id: "domW", name: "Dominant white", type: "inc", alleles: ["I", "i"], wild: "i", say: { 1: "White with specks", 2: "White" } },
+    { id: "recW", name: "Recessive white", type: "dom", alleles: ["C", "c"], wild: "C", say: { c: "White" } },
+    { id: "blue", name: "Blue", type: "inc", alleles: ["Bl", "bl"], wild: "bl", say: { 1: "Blue", 2: "Splash" } },
+    { id: "lav", name: "Lavender", type: "dom", alleles: ["L", "lav"], wild: "L", say: { lav: "Lavender" } },
+    { id: "choc", name: "Chocolate", type: "dom", z: true, alleles: ["Ch", "ch"], wild: "Ch", say: { ch: "Chocolate" } },
+    { id: "pat", name: "Pattern", type: "dom", alleles: ["col", "lace", "dlace", "spang", "n", "mot"], wild: "n", say: { col: "Black neck & tail", lace: "Laced", dlace: "Double laced", spang: "Spangled", mot: "Mottled" } },
+    { id: "silkie", name: "Silkie feathers", type: "dom", alleles: ["H", "h"], wild: "H", say: { h: "Silkie fluff" } },
+    { id: "frizzle", name: "Frizzle", type: "inc", alleles: ["F", "f"], wild: "f", say: { 1: "Frizzle", 2: "Frazzle" } },
+    { id: "naked", name: "Naked neck", type: "inc", alleles: ["Na", "na"], wild: "na", say: { 1: "Half-naked neck", 2: "Naked neck" } },
+    { id: "crest", name: "Crest", type: "inc", alleles: ["Cr", "cr"], wild: "cr", say: { 1: "Small crest", 2: "Big crest" } },
+    { id: "wcrest", name: "White crest", type: "dom", alleles: ["Wc", "wc"], wild: "wc", say: { Wc: "White crest" } },
+    { id: "beard", name: "Beard", type: "dom", alleles: ["Mb", "mb"], wild: "mb", say: { Mb: "Beard & muffs" } },
+    { id: "feet", name: "Feathered feet", type: "dom", alleles: ["Pti", "pti"], wild: "pti", say: { Pti: "Feathery feet" } },
+    { id: "toes", name: "Five toes", type: "dom", alleles: ["Po", "po"], wild: "po", say: { Po: "Five toes" } },
+    { id: "rose", name: "Rose comb", type: "dom", alleles: ["Rc", "rc"], wild: "rc", say: { Rc: "Rose comb" } },
+    { id: "pea", name: "Pea comb", type: "dom", alleles: ["Pc", "pc"], wild: "pc", say: { Pc: "Pea comb" } },
+    { id: "vcomb", name: "V comb", type: "dom", alleles: ["D", "d"], wild: "d", say: { D: "V comb (little horns)" } },
+    { id: "blueEgg", name: "Blue eggs", type: "dom", alleles: ["O", "o"], wild: "o", say: { O: "Blue eggs" } },
+    { id: "speckEgg", name: "Speckled eggs", type: "dom", alleles: ["Sp", "sp"], wild: "sp", say: { Sp: "Speckled eggs" } },
+    { id: "skin", name: "Black skin", type: "dom", alleles: ["Fm", "fm"], wild: "fm", say: { Fm: "Black skin" } },
+    { id: "skinY", name: "Leg color", type: "dom", alleles: ["W", "w"], wild: "w", say: { W: "White legs", w: "Yellow legs" } },
+    { id: "lobe", name: "Earlobes", type: "inc", alleles: ["Wl", "wl"], wild: "wl", say: { 1: "Pinkish earlobes", 2: "White earlobes" } },
+    { id: "rump", name: "Rumpless", type: "dom", alleles: ["Rp", "rp"], wild: "rp", say: { Rp: "No tail" } },
+    { id: "tufts", name: "Ear tufts", type: "dom", alleles: ["Et", "et"], wild: "et", say: { Et: "Ear tufts" } },
+    { id: "henny", name: "Hen-feathering", type: "dom", alleles: ["Hf", "hf"], wild: "hf", say: { Hf: "Boys look like girls" } },
+    { id: "longTail", name: "Long tail", type: "dom", alleles: ["Gt", "gt"], wild: "Gt", say: { gt: "Super long tail" } },
+    { id: "brownEgg", name: "Brown eggs", type: "num", wild: 2 },
+    { id: "combSize", name: "Comb size", type: "num", wild: 1 },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+    { id: "fluff", name: "Fluffiness", type: "num", wild: 0 },
+    { id: "lay", name: "Laying", type: "num", wild: 1 },
+  ],
+  duck: [
+    { id: "base", name: "Main color", type: "dom", alleles: ["E", "M", "md"], wild: "M", say: { E: "Black", M: "Mallard colors", md: "Dusky" }, always: true },
+    { id: "blue", name: "Blue", type: "inc", alleles: ["Bl", "bl"], wild: "bl", say: { 1: "Blue", 2: "Silver-splash" } },
+    { id: "brown", name: "Brown", type: "dom", alleles: ["D", "d"], wild: "D", say: { d: "Brown (khaki)" } },
+    { id: "white", name: "White", type: "dom", alleles: ["C", "c"], wild: "C", say: { c: "White" } },
+    { id: "bib", name: "White patches", type: "dom", alleles: ["n", "bib", "mag"], wild: "n", say: { bib: "White bib", mag: "Magpie" } },
+    { id: "harl", name: "Harlequin", type: "dom", alleles: ["Hq", "hq"], wild: "Hq", say: { hq: "Harlequin (frosty)" } },
+    { id: "crest", name: "Crest", type: "inc", alleles: ["Cr", "cr"], wild: "cr", say: { 1: "Crest", 2: "Big crest" } },
+    { id: "blueEgg", name: "Green eggs", type: "dom", alleles: ["O", "o"], wild: "o", say: { O: "Blue-green eggs" } },
+    { id: "darkEgg", name: "Dark eggs", type: "dom", alleles: ["Cu", "cu"], wild: "cu", say: { Cu: "Dark gray eggs" } },
+    { id: "upright", name: "Stands tall", type: "num", wild: 0 },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+    { id: "lay", name: "Laying", type: "num", wild: 1 },
+  ],
+  muscovy: [
+    { id: "blue", name: "Blue", type: "inc", alleles: ["Bl", "bl"], wild: "bl", say: { 1: "Blue", 2: "Splash" } },
+    { id: "choc", name: "Chocolate", type: "dom", z: true, alleles: ["Ch", "ch"], wild: "Ch", say: { ch: "Chocolate" } },
+    { id: "white", name: "White", type: "dom", alleles: ["C", "c"], wild: "C", say: { c: "White" } },
+    { id: "pied", name: "Pied", type: "inc", alleles: ["Pi", "pi"], wild: "pi", say: { 1: "White patches", 2: "Mostly white" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+    { id: "lay", name: "Laying", type: "num", wild: 1 },
+  ],
+  mule: [{ id: "size", name: "Size", type: "num", wild: 1.15 }],
+  goose: [
+    { id: "sd", name: "Pilgrim gray", type: "inc", z: true, alleles: ["Sd", "sd"], wild: "sd", say: { 1: "Light gray", 2: "White" } },
+    { id: "white", name: "White", type: "dom", alleles: ["C", "c"], wild: "C", say: { c: "White" } },
+    { id: "buff", name: "Buff", type: "dom", alleles: ["G", "g"], wild: "G", say: { g: "Buff" } },
+    { id: "saddle", name: "Saddleback", type: "dom", alleles: ["Sb", "sb"], wild: "Sb", say: { sb: "Saddleback" } },
+    { id: "knob", name: "Knob", type: "inc", alleles: ["K", "k"], wild: "k", say: { 1: "Small knob", 2: "Big knob" } },
+    { id: "dewlap", name: "Dewlap", type: "dom", alleles: ["Dw", "dw"], wild: "dw", say: { Dw: "Chin pouch (dewlap)" } },
+    { id: "curl", name: "Curly feathers", type: "inc", alleles: ["Cu", "cu"], wild: "cu", say: { 1: "Curly wings", 2: "Curly feathers" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+    { id: "lay", name: "Laying", type: "num", wild: 1 },
+  ],
+  swan: [
+    { id: "black", name: "Black feathers", type: "inc", alleles: ["Bk", "bk"], wild: "bk", say: { 1: "Gray", 2: "Black" } },
+    { id: "bill", name: "Bill color", type: "blend", alleles: ["or", "rd", "bk"], wild: "or", say: { or: "Orange bill", rd: "Red bill", bk: "Black bill" } },
+    { id: "knob", name: "Knob", type: "inc", alleles: ["Kn", "kn"], wild: "kn", say: { 1: "Small knob", 2: "Big knob" } },
+    { id: "polish", name: "Polish", type: "dom", z: true, alleles: ["Pl", "pl"], wild: "Pl", say: { pl: "White babies (Polish)" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+  ],
+  quail: [
+    { id: "gold", name: "Golden", type: "inc", alleles: ["Y", "y"], wild: "y", say: { 1: "Italian", 2: "Golden" } },
+    { id: "dark", name: "Dark", type: "inc", alleles: ["Tb", "tb"], wild: "tb", say: { 1: "Rosetta (reddish)", 2: "Tibetan (dark)" } },
+    { id: "white", name: "White", type: "dom", alleles: ["Wh", "wh"], wild: "Wh", say: { wh: "English white" } },
+    { id: "tux", name: "Tuxedo", type: "dom", alleles: ["S", "s"], wild: "S", say: { s: "Tuxedo (white chest)" } },
+    { id: "celadon", name: "Celadon eggs", type: "dom", alleles: ["Ce", "ce"], wild: "Ce", say: { ce: "Blue eggs" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+    { id: "lay", name: "Laying", type: "num", wild: 1 },
+  ],
+  calQuail: [{ id: "size", name: "Size", type: "num", wild: 1 }],
+  bobwhite: [
+    { id: "snow", name: "Snowflake", type: "dom", alleles: ["Sn", "sn"], wild: "Sn", say: { sn: "Snowflake (white)" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+  ],
+  guinea: [
+    { id: "pearl", name: "Polka dots", type: "dom", alleles: ["P", "pt"], wild: "P", say: { pt: "No polka dots" } },
+    { id: "lav", name: "Lavender", type: "dom", alleles: ["L", "lv"], wild: "L", say: { lv: "Lavender" } },
+    { id: "white", name: "White", type: "dom", alleles: ["C", "c"], wild: "C", say: { c: "White" } },
+    { id: "buff", name: "Buff", type: "dom", alleles: ["Br", "br"], wild: "Br", say: { br: "Buff" } },
+    { id: "pied", name: "Pied", type: "inc", alleles: ["Pi", "pi"], wild: "pi", say: { 1: "White chest", 2: "Mostly white" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+  ],
+  pheasant: [
+    { id: "mel", name: "Melanistic", type: "inc", alleles: ["Mel", "n"], wild: "n", say: { 1: "Half dark", 2: "Melanistic (very dark)" } },
+    { id: "white", name: "White", type: "dom", alleles: ["C", "c"], wild: "C", say: { c: "White" } },
+    { id: "fawn", name: "Buff", type: "dom", alleles: ["F", "fw"], wild: "F", say: { fw: "Buff" } },
+    { id: "ring", name: "Neck ring", type: "dom", alleles: ["Rg", "rg"], wild: "Rg", say: { rg: "No neck ring" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+  ],
+  ruffed: [
+    { id: "amherst", name: "Lady Amherst", type: "inc", alleles: ["A", "G"], wild: "G", say: { 1: "Half Lady Amherst", 2: "Lady Amherst" } },
+    { id: "yellow", name: "Yellow", type: "dom", alleles: ["Yg", "yg"], wild: "Yg", say: { yg: "Yellow" } },
+    { id: "dark", name: "Dark throat", type: "dom", alleles: ["Dt", "dt"], wild: "dt", say: { Dt: "Dark throat" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+  ],
+  silverPh: [{ id: "size", name: "Size", type: "num", wild: 1 }],
+  reeves: [{ id: "size", name: "Size", type: "num", wild: 1 }],
+  turkey: [
+    { id: "base", name: "Main color", type: "dom", alleles: ["B", "b+", "b"], wild: "b+", say: { B: "Black", "b+": "Bronze", b: "Red" }, always: true },
+    { id: "narr", name: "Narragansett", type: "dom", alleles: ["N", "n"], wild: "N", say: { n: "Steel gray" } },
+    { id: "white", name: "White", type: "dom", alleles: ["C", "c"], wild: "C", say: { c: "White" } },
+    { id: "slate", name: "Slate blue", type: "inc", alleles: ["Sl", "sl"], wild: "sl", say: { 1: "Blue slate", 2: "Pale slate" } },
+    { id: "palm", name: "Royal palm", type: "dom", alleles: ["Cp", "cp"], wild: "Cp", say: { cp: "Royal palm stripes" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+  ],
+  flamingo: [
+    { id: "pink", name: "Pinkness", type: "num", wild: 0.8 },
+    { id: "legs", name: "Leg color", type: "blend", alleles: ["pk", "gy", "yl", "rd"], wild: "pk", say: { pk: "Pink legs", gy: "Gray legs, pink knees", yl: "Yellow legs", rd: "Red legs" } },
+    { id: "bill", name: "Bill", type: "blend", alleles: ["pb", "pp", "cb", "db", "yb"], wild: "pb", say: { pb: "Pale bill", pp: "Pink bill", cb: "Half-black bill", db: "Dark bill", yb: "Yellow & black bill" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+  ],
+  peafowl: [
+    { id: "green", name: "Green peafowl", type: "inc", alleles: ["Pm", "Pc"], wild: "Pc", say: { 1: "Half green (Spalding)", 2: "Green" } },
+    { id: "white", name: "White", type: "inc", alleles: ["w", "W"], wild: "W", say: { 1: "Pied", 2: "White" } },
+    { id: "cameo", name: "Cameo", type: "dom", z: true, alleles: ["Ca", "ca"], wild: "Ca", say: { ca: "Cameo (brown)" } },
+    { id: "purple", name: "Purple", type: "dom", z: true, alleles: ["Pu", "pu"], wild: "Pu", say: { pu: "Purple" } },
+    { id: "bs", name: "Black shoulder", type: "dom", alleles: ["Bs", "bs"], wild: "Bs", say: { bs: "Black shoulders" } },
+    { id: "opal", name: "Opal", type: "dom", alleles: ["Op", "op"], wild: "Op", say: { op: "Opal (gray)" } },
+    { id: "size", name: "Size", type: "num", wild: 1 },
+  ],
+};
+
+// ---------- Making and mixing genes ----------
+const lociOf = (kind) => LOCI[kind] || [];
+const isMaleSex = (sex) => sex === "rooster";   // (every boy bird is stored as "rooster"; see KINDS for its real name)
+
+// Genes for a bird of a breed. "spec" lists the breed's genes; any gene
+// not listed is the ordinary "wild" kind.
+function genesFor(kind, spec, sex) {
+  const G = {};
+  for (const L of lociOf(kind)) {
+    let v = spec && spec[L.id];
+    if (v == null) v = L.wild;
+    let pair = Array.isArray(v) ? v.slice(0, 2) : [v, v];
+    if (L.type === "num") pair = pair.map((x) => (typeof x === "number" ? x : L.wild));
+    if (L.z && !isMaleSex(sex)) pair = [pick(pair)];   // girls have one Z
+    G[L.id] = pair;
+  }
+  return G;
+}
+// Mom + Dad = baby! One copy of each gene from each parent.
+function inheritGenes(kind, momG, dadG, sex) {
+  const G = {};
+  for (const L of lociOf(kind)) {
+    const m = (momG && momG[L.id]) || [L.wild], d = (dadG && dadG[L.id]) || [L.wild, L.wild];
+    const fromDad = pick(d);
+    if (L.z) G[L.id] = isMaleSex(sex) ? [fromDad, m[0]] : [fromDad];   // Mom gives her Z to sons only
+    else G[L.id] = [pick(m), fromDad];
+    if (L.type === "num") G[L.id] = G[L.id].map((x) => x * rand(0.98, 1.02));   // tiny natural differences
+  }
+  return G;
+}
+// Check genes from a save: fill in anything missing, drop anything odd
+function cleanGeno(kind, G, sex) {
+  const out = {}, wildG = genesFor(kind, null, sex);
+  for (const L of lociOf(kind)) {
+    const v = G && G[L.id], need = L.z && !isMaleSex(sex) ? 1 : 2;
+    const ok = Array.isArray(v) && v.length === need &&
+      v.every((a) => (L.type === "num" ? typeof a === "number" && isFinite(a) : L.alleles.includes(a)));
+    out[L.id] = ok ? (L.type === "num" ? v.map((a) => clamp(a, 0, 5)) : v.slice()) : wildG[L.id];
+  }
+  return out;
+}
+
+// Reading genes
+const locusOf = (kind, id) => lociOf(kind).find((L) => L.id === id);
+function gDom(kind, G, id) {             // the allele that shows
+  const L = locusOf(kind, id), v = G[id];
+  for (const a of L.alleles) if (v.includes(a)) return a;
+  return L.wild;
+}
+const gCount = (kind, G, id) => G[id].filter((a) => a !== locusOf(kind, id).wild).length;   // copies of the special one
+const gNum = (G, id) => G[id].reduce((s, x) => s + x, 0) / G[id].length;
+const gHas = (G, id, a) => G[id].includes(a);
+const gAll = (G, id, a) => G[id].every((x) => x === a);
+
+// Kid-friendly list of a bird's special genes: what shows, and what it secretly carries
+function geneChips(c) {
+  const kind = kindOf(c), G = genoOf(c), out = [];
+  for (const L of lociOf(kind)) {
+    if (L.type === "num" || L.type === "blend") continue;
+    const v = G[L.id];
+    if (L.type === "inc") {
+      const n = gCount(kind, G, L.id);
+      if (n) out.push({ text: L.say[n] + (v.length > 1 ? ` (${n === 1 ? "1 copy" : "2 copies"})` : ""), shows: true });
+      continue;
+    }
+    const shown = gDom(kind, G, L.id);
+    if (shown !== L.wild || L.always) { if (L.say[shown]) out.push({ text: L.say[shown], shows: true }); }
+    for (const a of new Set(v)) if (a !== shown && a !== L.wild && L.say[a]) out.push({ text: `carries ${L.say[a]}`, shows: false });
+    if (L.always && shown !== L.wild && v.includes(L.wild) && L.say[L.wild] && !out.some((x) => x.text === `carries ${L.say[L.wild]}`)) out.push({ text: `carries ${L.say[L.wild]}`, shows: false });
+  }
+  const size = gNum(G, "size");
+  if (size < 0.7) out.push({ text: "Bantam (tiny)", shows: true });
+  else if (size > 1.18) out.push({ text: "Extra big", shows: true });
+  if (G.lay && gNum(G, "lay") > 1.18) out.push({ text: "Super layer", shows: true });
+  if (G.upright && gNum(G, "upright") > 0.6) out.push({ text: "Stands tall", shows: true });
+  return out;
+}
+
+// ---------- From genes to looks ----------
+// Each kind of bird has a "look" function: give it genes, and it says
+// what colors and features the bird has. The painting code (section 13)
+// then draws exactly that.
+const dk = (c, t = 0.3) => mixHex(c, "#000000", t);   // a darker version of a color
+const lt = (c, t = 0.35) => mixHex(c, "#FFFFFF", t);  // a lighter version
+
+function chickenLook(G, male) {
+  const K = "chicken";
+  const base = gDom(K, G, "base"), tone = gDom(K, G, "tone");
+  const silver = gHas(G, "silver", "S"), barN = gCount(K, G, "bar");
+  const domW = gCount(K, G, "domW"), recWhite = gAll(G, "recW", "c");
+  const blueN = gCount(K, G, "blue"), lav = gAll(G, "lav", "lav"), choc = gAll(G, "choc", "ch");
+  const pat = gDom(K, G, "pat"), dark = base === "E" || base === "ER";
+  const white = domW === 2 || recWhite, splash = blueN === 2;
+
+  // A chicken has two kinds of color: "black" and "red".
+  // Other genes change what those two colors look like.
+  let blk = choc ? "#5B3A29" : "#26272D";
+  if (lav) blk = choc ? "#CDBBA8" : "#B9B4C4";
+  if (blueN === 1) blk = lav ? "#D3D0DA" : choc ? "#9C8474" : "#6F7F95";
+  const blkShow = splash ? "#8494AA" : blk;           // what the black parts look like
+  let red = { Mh: "#9A3A1E", n: "#C1662E", di: "#E7B454" }[tone];
+  if (silver) red = "#F3F1EC";                         // silver turns red into white
+  if (lav) red = mixHex(red, "#FFF4DC", 0.55);
+
+  let body, wing, neck, hackle, tail, pattern = null, mark = blkShow, markA = 0.78;
+  if (white) {
+    body = wing = neck = hackle = tail = "#FBFAF6";
+  } else if (dark) {
+    body = wing = tail = neck = hackle = splash ? "#ECEBEF" : blk;
+    if (base === "ER") { hackle = silver ? "#F0EEE8" : lt(red, 0.1); neck = male ? hackle : mixHex(body, hackle, 0.6); }
+    if (barN && !splash) {
+      body = wing = "#E9E7E2"; tail = mixHex(blk, "#FFFFFF", 0.45);
+      if (base !== "ER") neck = hackle = "#DAD7D0";
+      pattern = "barred"; mark = blk; markA = barN === 2 ? 0.6 : 0.8;   // boys have 2 copies, so they're lighter
+    } else if (splash) pattern = "splash";
+    else if (pat === "mot") { pattern = "mottled"; mark = "#FFFFFF"; }
+    else if (blueN === 1) { pattern = "laced"; mark = dk(blk, 0.35); markA = 0.55; }   // blue birds have darker edges
+    // black birds hiding a red gene often "leak" a little red on the neck (like Black Stars)
+    if (base === "E" && !barN && !splash && !silver && G.base.some((a) => a === "R" || a === "p")) { neck = mixHex(neck, red, 0.35); hackle = mixHex(hackle, red, 0.5); }
+  } else {
+    if (base === "R") { body = wing = neck = red; hackle = lt(red, 0.12); tail = blkShow; }
+    else if (male) {        // wild colors: black chest, red back, golden neck
+      body = splash ? "#ECEBEF" : blk; wing = silver ? "#E9E7E2" : dk(red, 0.05);
+      hackle = neck = silver ? "#F3F1EC" : lt(red, 0.25); tail = blkShow;
+    } else {                // wild-colored hens are brown with fine lines ("pencilling")
+      body = wing = silver ? (tone === "di" ? "#E8C4AE" : "#A9A6A0") : mixHex(red, "#5A3A22", 0.4);
+      neck = hackle = silver ? "#F0EEE8" : lt(red, 0.2); tail = blkShow;
+      pattern = "pencil"; mark = dk(body, 0.35); markA = 0.5;
+    }
+    if (pat === "col") {    // Columbian: light body, black-striped neck, black tail
+      body = wing = red; pattern = null;
+      neck = mixHex(blkShow, red, 0.35); hackle = mixHex(blkShow, lt(red, 0.1), 0.45); tail = blkShow;
+    } else if (pat === "lace") { pattern = "laced"; mark = blkShow; markA = 0.72; }
+    else if (pat === "dlace") { pattern = "dlaced"; mark = blkShow; }
+    else if (pat === "spang") { pattern = "spangled"; mark = blkShow; }
+    else if (pat === "mot") { pattern = "dots"; mark = blkShow; }
+    if (barN) { pattern = "barred"; mark = blkShow; markA = barN === 2 ? 0.42 : 0.58; body = lt(body, 0.35); wing = lt(wing, 0.35); }
+  }
+  if (domW === 1 && !recWhite) {     // one dominant-white gene: white with little specks
+    body = wing = neck = "#F6F4EE"; hackle = dark ? "#F6F4EE" : lt(red, 0.55); tail = "#EDEAE3";
+    pattern = "flecks"; mark = dark ? blkShow : mixHex(red, "#FFFFFF", 0.2); markA = 0.7;
+  }
+  const L = {
+    species: "chicken", body, shade: dk(body, 0.28), light: lt(body, 0.4), wing, neck, hackle, tail, tail2: lt(tail, 0.14),
+    pattern, mark, markA,
+  };
+
+  // Face, comb, beak and legs
+  const skinDark = gHas(G, "skin", "Fm");
+  const rose = gHas(G, "rose", "Rc"), pea = gHas(G, "pea", "Pc");
+  L.combType = rose && pea ? "walnut" : rose ? "rose" : pea ? "pea" : gHas(G, "vcomb", "D") ? "v" : "single";
+  L.combSize = clamp(gNum(G, "combSize"), 0.6, 1.6);
+  L.comb = skinDark ? (dark && !white ? "#2A2230" : "#5B4E6E") : "#E03A2F";
+  const lobeN = gCount(K, G, "lobe");
+  L.earlobe = lobeN === 2 ? "#F3EFE6" : lobeN === 1 ? "#F2C8C0" : skinDark ? "#6FA8C8" : L.comb;
+  if (skinDark) L.face = dark && !white ? "#1E1A22" : "#4B3F63";
+  const yellow = gAll(G, "skinY", "w");
+  const darkShank = dark && !barN && !white && domW === 0;
+  L.legs = skinDark ? "#3E3A48" : darkShank ? (yellow ? "#4E5A3E" : "#4F4E55") : yellow ? "#E8B84A" : "#E9D6C0";
+  L.beak = skinDark ? "#3A3642" : darkShank ? "#3D3B3A" : yellow ? "#E8B84A" : "#E3D2A6";
+
+  // Feathers and fancy features
+  L.silkie = gAll(G, "silkie", "h");
+  L.frizzle = gCount(K, G, "frizzle");
+  L.naked = gCount(K, G, "naked");
+  L.crest = gCount(K, G, "crest");
+  L.crestColor = gHas(G, "wcrest", "Wc") ? "#FFFFFF" : L.silkie ? body : lt(neck, 0.05);
+  L.muffs = gHas(G, "beard", "Mb") ? lt(neck, 0.15) : null;
+  L.featherFeet = gHas(G, "feet", "Pti");
+  L.toes5 = gHas(G, "toes", "Po");
+  L.rumpless = gHas(G, "rump", "Rp");
+  L.tufts = gHas(G, "tufts", "Et") ? lt(neck, 0.1) : null;
+  L.henny = gHas(G, "henny", "Hf");
+  L.longTail = gAll(G, "longTail", "gt");
+  L.tailK = L.longTail ? 1.9 : 1;
+  L.fluffy = clamp(gNum(G, "fluff"), 0, 0.35);
+  L.size = clamp(gNum(G, "size"), 0.35, 1.4);
+  L.layBoost = clamp(gNum(G, "lay"), 0.7, 1.4);
+  L.pitch = clamp(1.25 - L.size * 0.25, 0.85, 1.2);   // little bantams have squeaky voices
+
+  // Chick fuzz (sex-link chicks show boy or girl right here!)
+  let chick, spot = null, stripe = null;
+  if (white) chick = recWhite ? "#FFF1A8" : "#FFF6C8";
+  else if (domW === 1) chick = "#FFF6D0";
+  else if (dark) {
+    chick = splash ? "#E6E6EA" : blueN ? "#8E96A2" : lav ? "#C9C4D0" : choc ? "#6B4A38" : "#2C2C31";
+    if (barN || pat === "mot") spot = "#F4F1E6";
+    if (base === "ER") stripe = "#C9A06A";
+  } else if (base === "R" || pat === "col") chick = silver ? "#FFF6DC" : tone === "Mh" ? "#E3A060" : tone === "n" ? "#E9B86A" : "#FBE08B";
+  else { chick = silver ? "#CFC8B8" : "#C9A06A"; stripe = silver ? "#7C776D" : "#6E4A2A"; }
+  if (barN && !dark) { chick = lt(chick, 0.25); spot = "#F4F1E6"; }
+  L.chick = chick;
+  if (stripe) L.chickStripe = stripe; else if (spot) L.chickSpot = spot;
+  L.chickSpotBig = barN === 2;
+  L.egg = chickenEgg(G);
+  return L;
+}
+// Egg color: the blue gene makes the shell blue all the way through, and
+// brown genes paint brown on the outside. Blue + brown = green or olive!
+function chickenEgg(G) {
+  const blue = gHas(G, "blueEgg", "O");
+  const lv = clamp(gNum(G, "brownEgg"), 0, 4);
+  const plain = [["White", "#F8F4EA"], ["Cream", "#F1E4CC"], ["Light brown", "#D8B58C"], ["Brown", "#B98256"], ["Chocolate", "#6B3E23"]];
+  const blues = [["Blue", "#9FD3CE"], ["Mint", "#BFE0C4"], ["Green", "#A9BF7E"], ["Olive", "#8E9A5C"], ["Dark olive", "#6E7A44"]];
+  // a little brown on a blue egg goes a long way toward green and olive
+  const i = blue ? (lv < 0.75 ? 0 : lv < 1.5 ? 1 : lv < 2.1 ? 2 : lv < 3.2 ? 3 : 4) : Math.round(lv);
+  const [name, color] = (blue ? blues : plain)[i];
+  return { name, color, speckle: gHas(G, "speckEgg", "Sp") || (!blue && lv > 3.4) };
+}
+
+function duckLook(G, male) {
+  const K = "duck", base = gDom(K, G, "base"), blueN = gCount(K, G, "blue");
+  const brown = gAll(G, "brown", "d"), white = gAll(G, "white", "c"), bib = gDom(K, G, "bib"), harl = gAll(G, "harl", "hq");
+  // brown, blue and harlequin genes all change the colors a little
+  const dil = (col) => {
+    let x = col;
+    if (brown && blueN === 1) return mixHex(x, "#D9B27C", 0.8);   // brown + blue together make buff!
+    if (brown) x = mixHex(x, "#B08A5A", 0.55);
+    if (blueN === 1) x = mixHex(x, "#6E7F96", 0.6);
+    if (blueN === 2) x = mixHex(x, "#DCE2EA", 0.8);
+    if (harl) x = mixHex(x, "#F2EEE4", 0.45);
+    return x;
+  };
+  let L;
+  if (base === "E") {
+    const b = dil("#23272A");
+    L = { body: b, wing: b, tail: b, neck: b, head: male ? dil("#1E4A34") : b, headLight: male ? dil("#3A7A5A") : lt(b, 0.2), bill: male ? "#3A4A32" : "#3A3A3A", feet: "#2E2E30" };
+  } else if (base === "M" && male) {      // a mallard drake: green head, white ring, chestnut chest
+    L = { body: dil("#BDB8AF"), wing: dil("#8C8378"), tail: "#2C2C30", neck: dil("#1F6B3A"), head: dil("#1B5E34"), headLight: dil("#3FA36A"),
+      ring: "#FFFFFF", chest: dil("#7A4A2E"), bill: brown ? "#B8B85A" : "#D9CB4A", feet: "#F09A3A" };
+  } else if (base === "M") {              // mallard ducks (girls) are brown and speckly, to hide on nests
+    L = { body: dil("#A4815A"), wing: dil("#8C6A48"), tail: dil("#7A5A3A"), neck: dil("#9C7A56"), head: dil("#8E6E4E"), headLight: dil("#B89A76"),
+      bill: "#C98A3A", feet: "#F09A3A", scallop: dil("#5A3E26"), stripe: dil("#4A3420") };
+  } else if (male) {                      // dusky drakes
+    L = { body: dil("#6E6254"), wing: dil("#5E5448"), tail: dil("#3A3430"), neck: dil("#3A3A2E"), head: dil("#3A3A2E"), headLight: dil("#5A5A44"),
+      chest: dil("#5A4232"), bill: "#6E7A3A", feet: "#D8883A" };
+  } else {
+    L = { body: dil("#5E4E3E"), wing: dil("#4E4234"), tail: dil("#4A3E32"), neck: dil("#5E4E3E"), head: dil("#54463A"), headLight: dil("#6E5E4E"),
+      bill: "#4E4A3A", feet: "#B8783A", scallop: dil("#3A2E22") };
+  }
+  if (base !== "E") L.speculum = brown ? "#6A7FB8" : "#3F5FD8";
+  L.shade = dk(L.body, 0.25); L.light = lt(L.body, 0.3);
+  if (male) L.curl = dk(L.tail, 0.4);      // only drakes have the little curly tail feather!
+  if (bib === "bib") L.bib = "#F4F2EC";
+  if (bib === "mag") {                     // magpie & runner pattern: white with a colored cap and back
+    L.cap = L.head; L.back = L.body;
+    L.body = L.neck = L.head = L.headLight = "#F6F4EE"; L.wing = "#EEEAE0"; L.chest = null; L.ring = null; L.scallop = null;
+    L.shade = "#DCD8D0"; L.light = "#FFFFFF";
+  }
+  if (white) {
+    Object.assign(L, { body: "#FFFDF4", shade: "#E4DCC8", light: "#FFFFFF", wing: "#F2ECDD", tail: "#EFE8D6", neck: "#FFFDF4", head: "#FFFDF4", headLight: "#FFFFFF",
+      bill: "#F2A93B", feet: "#F2A93B", chest: null, ring: null, speculum: null, scallop: null, stripe: null, cap: null, back: null, bib: null });
+    if (male) L.curl = "#E4DCC8";
+  }
+  const cr = gCount(K, G, "crest");
+  if (cr) { L.crest = cr; L.crestColor = L.cap || L.head; }
+  L.species = "duck";
+  L.upright = clamp(gNum(G, "upright"), 0, 1);
+  L.size = clamp(gNum(G, "size"), 0.5, 1.4);
+  L.layBoost = clamp(gNum(G, "lay"), 0.6, 1.5);
+  L.chick = white ? "#FFE27A" : base === "E" ? "#2A2B2E" : blueN ? "#4D5566" : brown ? "#C9B07A" : "#E6C766";
+  if (base === "E" || blueN) L.chickSpot = "#F2D56A"; else if (!white) L.chickStripe = "#6E5530";
+  L.egg = gHas(G, "darkEgg", "Cu") ? { name: "Gray", color: "#6E7478" } : gHas(G, "blueEgg", "O") ? { name: "Blue-green", color: "#C3E3D6" } : { name: "Duck", color: "#F6F2E6" };
+  return L;
+}
+
+function muscovyLook(G, male) {
+  const K = "muscovy", blueN = gCount(K, G, "blue"), choc = gAll(G, "choc", "ch"), white = gAll(G, "white", "c"), pied = gCount(K, G, "pied");
+  let d = choc ? "#5A3E2E" : "#1E2624";
+  if (blueN === 1) d = "#5E6A7A";
+  if (blueN === 2) d = "#C8CED8";
+  const col = white ? "#FAF8F2" : d;
+  const L = {
+    species: "duck", body: col, shade: dk(col, 0.3), light: lt(col, 0.3), wing: col, tail: col, neck: col, head: col, headLight: lt(col, 0.25),
+    bill: "#F2C8B8", feet: white ? "#F2B880" : "#3A3A3A", caruncle: "#C8322E", caruncleK: male ? 1.3 : 0.7,
+    size: clamp(gNum(G, "size"), 0.7, 1.4), layBoost: clamp(gNum(G, "lay"), 0.6, 1.4),
+  };
+  if (!white && pied === 1) L.wingPatch = "#FFFFFF";
+  if (!white && pied === 2) { L.cap = col; L.back = col; L.body = L.neck = L.head = L.headLight = "#F6F4EE"; L.wing = "#EEEAE0"; L.shade = "#DCD8D0"; L.light = "#FFFFFF"; }
+  L.chick = white ? "#F4E68A" : "#E6D06A";
+  if (!white) L.chickSpot = dk(col, 0.1);
+  L.egg = { name: "Duck", color: "#F4F0E4" };
+  return L;
+}
+// A mule duck (Mulard): half duck, half Muscovy. Big and friendly, but it can't have babies.
+function muleLook(G, male) {
+  return {
+    species: "duck", body: "#F6F4EE", shade: "#DCD8D0", light: "#FFFFFF", wing: "#EEEAE0", tail: "#E8E4DA", neck: "#F6F4EE", head: "#F6F4EE", headLight: "#FFFFFF",
+    cap: "#2A2E2C", back: "#3A3E3A", bill: "#E8B060", feet: "#E8A050", caruncle: "#D8604A", caruncleK: 0.4, curl: male ? "#DCD8D0" : null,
+    size: clamp(gNum(G, "size"), 0.9, 1.4), layBoost: 1, chick: "#F2DC7A", chickSpot: "#3A3E3A", egg: { name: "Duck", color: "#F4F0E4" },
+  };
+}
+
+function gooseLook(G, male) {
+  const K = "goose", sdN = gCount(K, G, "sd"), white = gAll(G, "white", "c"), buff = gAll(G, "buff", "g");
+  const saddle = gAll(G, "saddle", "sb"), knob = gCount(K, G, "knob");
+  let base = buff ? "#C9A06A" : knob ? "#9C8A70" : "#8E8C86";   // gray; brown if it has knob (swan goose) genes
+  if (sdN === 1) base = lt(base, 0.5);
+  if (sdN >= 2) base = "#F4F3EE";
+  const L = { species: "goose", body: base, shade: dk(base, 0.25), light: lt(base, 0.35), wing: dk(base, 0.12), tail: dk(base, 0.2), neck: base, head: dk(base, 0.1), bill: "#E0823B", feet: "#E0823B" };
+  if (knob) {
+    L.neck = lt(base, 0.4); L.neckStripe = dk(base, 0.35);
+    L.bill = "#2A2A2E"; L.knob = "#2A2A2E"; L.knobK = knob === 2 ? 1 : 0.55;
+  }
+  if (sdN === 1) L.face = "#FFFFFF";          // Pilgrim geese (girls) have a white face
+  if (saddle && !white) {
+    L.back = base; L.body = "#FBFAF4"; L.shade = "#DCD6C8"; L.light = "#FFFFFF";
+  }
+  if (white) {
+    Object.assign(L, { body: "#FBFAF4", shade: "#DCD6C8", light: "#FFFFFF", wing: "#EDE8DC", tail: "#E7E1D3", neck: "#FBFAF4", head: "#FBFAF4",
+      bill: "#F2913B", feet: "#F2913B", neckStripe: null, face: null, back: null });
+    if (knob) L.knob = "#F2913B";
+  }
+  if (gHas(G, "dewlap", "Dw")) L.dewlap = L.neck;
+  L.curly = gCount(K, G, "curl");
+  L.size = clamp(gNum(G, "size"), 0.7, 1.45);
+  L.layBoost = clamp(gNum(G, "lay"), 0.5, 1.5);
+  L.chick = white ? "#EFD98A" : buff ? "#D8C08A" : knob ? "#B8A46A" : sdN === 2 ? "#EFE8C0" : sdN ? "#B8B49A" : "#8E8A66";   // Pilgrim boys hatch yellow, girls gray
+  L.egg = { name: "Goose", color: "#FBF9F1" };
+  return L;
+}
+
+function swanLook(G, male) {
+  const K = "swan", bN = gCount(K, G, "black"), kn = gCount(K, G, "knob"), polish = gAll(G, "polish", "pl");
+  const col = bN === 2 ? "#26262C" : bN === 1 ? "#8A8580" : "#FFFFFF";
+  const L = {
+    species: "goose", swan: true, body: col, shade: bN ? dk(col, 0.3) : "#DCDDE2", light: bN ? lt(col, 0.25) : "#FFFFFF",
+    wing: bN ? lt(col, 0.05) : "#F3F3F6", tail: bN ? col : "#E8E8EC", neck: col, head: col, feet: polish ? "#C8B8B0" : bN === 2 ? "#2A2A30" : "#3A3A40",
+  };
+  if (bN) L.wingTip = "#F4F4F6";
+  const BILL = { or: "#F07A2E", rd: "#D8303A", bk: "#26262A" };
+  L.bill = mixHex(BILL[G.bill[0]], BILL[G.bill[1]], 0.5);
+  if (G.bill.includes("rd")) L.band = "#FFFFFF";
+  if (kn) { L.knob = "#1E1E22"; L.knobK = kn === 2 ? (male ? 1.15 : 0.9) : 0.5; }
+  L.size = clamp(gNum(G, "size"), 0.8, 1.3);
+  L.chick = polish ? "#F6F4EE" : bN === 2 ? "#8E8E96" : "#B9BCC4";
+  L.egg = { name: "Swan", color: bN ? "#D4E2CE" : "#E3EBDD" };
+  return L;
+}
+
+function quailLook(G, male) {
+  const K = "quail", gold = gCount(K, G, "gold"), darkN = gCount(K, G, "dark"), white = gAll(G, "white", "wh"), tux = gAll(G, "tux", "s");
+  let body = "#9C7A55", shade = "#6A4E34", light = "#C9A77E", wing = "#7E6044", head = "#8A6A48";
+  const shift = (to, t) => { body = mixHex(body, to, t); shade = mixHex(shade, dk(to, 0.3), t); light = mixHex(light, lt(to, 0.3), t); wing = mixHex(wing, to, t); head = mixHex(head, to, t); };
+  if (gold) shift("#D8B070", gold === 2 ? 0.85 : 0.5);
+  if (darkN) shift(darkN === 2 ? "#4A3226" : "#8E4A2E", darkN === 2 ? 0.8 : 0.55);
+  const L = {
+    species: "quail", body, shade, light, wing, head, brow: "#F2E6CC", legs: "#E8B8A0", pattern: "streak",
+    breast: male ? mixHex(body, "#C4622A", 0.55) : lt(body, 0.35), breastSpots: male ? null : dk(body, 0.45),   // girls have a spotty chest
+    chick: gold ? "#F0D48A" : darkN ? "#6E4A36" : "#C9A77E",
+  };
+  if (darkN < 2) L.chickStripe = "#6A4E34";
+  if (tux) { L.belly = "#F6F2EA"; L.breast = "#F6F2EA"; L.breastSpots = null; }
+  if (white) Object.assign(L, { body: "#F6F2EA", shade: "#DAD4C8", light: "#FFFFFF", wing: "#EEE8DC", head: "#F6F2EA", pattern: null, brow: null,
+    breast: null, breastSpots: null, belly: null, legs: "#F2C8B8", chick: "#FFF1C8", chickStripe: null });
+  L.size = clamp(gNum(G, "size"), 0.7, 1.45);
+  L.layBoost = clamp(gNum(G, "lay"), 0.7, 1.3);
+  L.egg = gAll(G, "celadon", "ce") ? { name: "Blue", color: "#BFDCE0" } : { name: "Speckled", color: "#EFE3C8", blotch: true };
+  return L;
+}
+function calQuailLook(G, male) {
+  const L = male
+    ? { body: "#7C8A9C", shade: "#55606E", light: "#A6B2C0", wing: "#8C7658", head: "#7E6B56", breast: "#6F8096", belly: "#E8D6B0", face: "#1E1E22", plume: "#1E1E22", plumeK: 1 }
+    : { body: "#8C8478", shade: "#5E574E", light: "#B0A89C", wing: "#8C7658", head: "#8C8070", breast: "#8C8478", belly: "#E0D2B4", plume: "#5E5046", plumeK: 0.6 };
+  return Object.assign(L, { species: "quail", legs: "#8E8C94", pattern: "scaled", chick: "#C9B08A", chickStripe: "#6E5530",
+    size: clamp(gNum(G, "size"), 0.8, 1.2), egg: { name: "Speckled", color: "#EFE6CF", blotch: true } });
+}
+function bobwhiteLook(G, male) {
+  const L = { species: "quail", body: "#9C6A42", shade: "#6A4428", light: "#C99A6A", wing: "#8A6E4E", head: "#6E4A30", breast: "#C98A5A", belly: "#F2E8D6",
+    face: male ? "#1E1E22" : "#D8B888", brow: male ? "#FFFFFF" : "#E8D0A0", legs: "#C9A48A", pattern: "scaled", chick: "#B89868", chickStripe: "#6E5530" };
+  if (gAll(G, "snow", "sn")) Object.assign(L, { body: "#F4F2EE", shade: "#D8D4CC", light: "#FFFFFF", wing: "#ECE8E0", head: "#F4F2EE", breast: "#F4F2EE", belly: "#FFFFFF",
+    face: male ? "#8E8E96" : "#E8E4DC", brow: "#FFFFFF", chick: "#F4EEDA", chickStripe: null });
+  L.size = clamp(gNum(G, "size"), 0.8, 1.2);
+  L.egg = { name: "White", color: "#F8F6F0" };
+  return L;
+}
+
+function guineaLook(G, male) {
+  const K = "guinea", pearl = gHas(G, "pearl", "P"), lav = gAll(G, "lav", "lv"), white = gAll(G, "white", "c"), buff = gAll(G, "buff", "br");
+  let body = "#4B4F5C";                                  // "pearl" gray, the wild color
+  if (lav) body = "#8E94A8";
+  if (buff) body = lav ? "#D8C8B0" : "#B8946A";
+  if (!pearl) body = lav ? "#6A5E7E" : "#3A2E48";        // "royal purple": no polka dots
+  const L = {
+    species: "guinea", body, shade: dk(body, 0.3), light: lt(body, 0.25), dot: pearl ? "#FFFFFF" : null,
+    face: "#DCEAF5", wattle: "#D8473A", casque: "#9C6A3E", beak: "#E9D8B4", legs: "#6E6A6E",
+    wattleK: male ? 1.5 : 0.9, casqueK: male ? 1.15 : 0.95, pied: gCount(K, G, "pied"),
+  };
+  if (white) Object.assign(L, { body: "#F6F4EE", shade: "#DCD8D0", light: "#FFFFFF", dot: null, legs: "#E8B880", beak: "#F2D8A8", pied: 0 });
+  L.chick = white ? "#FFF0D0" : buff ? "#E0C090" : !pearl ? "#6E5A48" : lav ? "#C8B8A8" : "#B89868";
+  if (!white) L.chickStripe = "#6E5530";
+  L.size = clamp(gNum(G, "size"), 0.8, 1.2);
+  L.egg = { name: "Speckled tan", color: "#DCC39C", speckle: true };
+  return L;
+}
+
+function pheasantLook(G, male) {
+  const K = "pheasant", mel = gCount(K, G, "mel"), white = gAll(G, "white", "c"), fawn = gAll(G, "fawn", "fw"), ring = gHas(G, "ring", "Rg");
+  let L;
+  if (male) {   // cock pheasants are the colorful ones
+    L = { body: "#B8642E", shade: "#7A3A18", light: "#E08A48", wing: "#8E6A4A", tail: "#9C7A50", bars: "#4A3420", neck: "#1E5A4A", head: "#2A3A7A", headLight: "#4A6AB4",
+      ring: ring ? "#FFFFFF" : null, wattle: "#D8303A", ear: "#1E5A4A", beak: "#E6D6A8", legs: "#9A9086", tailK: 1 };
+    if (fawn) Object.assign(L, { body: "#D8B888", shade: "#A88A5E", light: "#F2DDB8", wing: "#C8B08A", tail: "#C8B08A", head: "#6E8A7A", headLight: "#9AB0A0", neck: "#8AA89A", ear: "#6E8A7A" });
+  } else {      // hens are brown so they can hide on their nests
+    L = { body: "#A58A62", shade: "#6E5A3E", light: "#C9B08A", wing: "#8E7452", tail: "#9C8260", bars: "#5A4632", neck: "#B09670", head: "#A08A68", headLight: "#C0A882",
+      beak: "#C9B89A", legs: "#9A9086", tailK: 0.6, scallop: "#5A4632" };
+    if (fawn) Object.assign(L, { body: "#E0CCA6", shade: "#B8A07A", light: "#F4E6C8", wing: "#D0BA92", tail: "#D8C29C", neck: "#E4D2AE", head: "#DCC8A2" });
+  }
+  if (mel) {
+    const t = mel === 2 ? 0.85 : 0.45;
+    for (const k of ["body", "shade", "light", "wing", "tail", "neck", "head", "headLight"]) L[k] = mixHex(L[k], male ? "#23283A" : "#3A3028", t);
+    if (mel === 2) L.ring = null;
+  }
+  if (white) Object.assign(L, { body: "#F8F6F0", shade: "#DCD8CE", light: "#FFFFFF", wing: "#EEEAE0", tail: "#F2EEE6", bars: "#D8D2C6", neck: "#F8F6F0",
+    head: "#F8F6F0", headLight: "#FFFFFF", ring: null, ear: null, scallop: null });
+  L.species = "pheasant";
+  L.size = clamp(gNum(G, "size"), 0.8, 1.25);
+  L.chick = white ? "#FFF4D6" : mel ? "#5A4A3A" : "#C9A77E";
+  if (!white) L.chickStripe = "#6A4E34";
+  L.egg = { name: "Olive-brown", color: "#A5956C" };
+  return L;
+}
+function ruffedLook(G, male) {
+  const K = "ruffed", a = gCount(K, G, "amherst") / 2, yel = gAll(G, "yellow", "yg"), dt = gHas(G, "dark", "Dt");
+  let L;
+  if (male) {
+    const Gd = { body: "#D8342A", shade: "#9C1E18", light: "#FF5A40", wing: "#2F4FA8", tail: "#B89048", bars: "#4A3420", neck: "#F2A33A", head: "#F2C14E",
+      headLight: "#FFE27A", crest: "#FFD23A", cape: "#F28A2E", capeBar: "#1E1E22", beak: "#F2C14E", legs: "#C9A87A" };
+    const Am = { body: "#F4F2EE", shade: "#C8C4BC", light: "#FFFFFF", wing: "#2F5F8A", tail: "#F2EFE8", bars: "#1E1E22", neck: "#2E6E4A", head: "#2E6E4A",
+      headLight: "#4A9A6A", crest: "#C8302A", cape: "#FFFFFF", capeBar: "#1E1E22", beak: "#A8B0A0", legs: "#8E96A0" };
+    L = {};
+    for (const k in Gd) L[k] = mixHex(Gd[k], Am[k], a);   // Lady Amherst genes turn golden colors into white & green
+    L.tailK = lerp(1.25, 1.7, a);
+    if (yel) for (const k of ["body", "shade", "light"]) L[k] = mixHex(L[k], { body: "#F4C84A", shade: "#C89A2A", light: "#FFE27A" }[k], 0.8 * (1 - a));
+    if (dt) L.neck = mixHex(L.neck, "#2A1E14", 0.6);
+  } else {
+    const b = mixHex("#A07A4E", "#7E5A3E", a);
+    L = { body: b, shade: dk(b, 0.3), light: lt(b, 0.3), wing: dk(b, 0.1), tail: b, bars: "#3A2A1A", neck: lt(b, 0.1), head: lt(b, 0.1), headLight: lt(b, 0.25),
+      beak: "#B8A88A", legs: a > 0.5 ? "#8E96A0" : "#C9A87A", tailK: 0.75, scallop: "#3A2A1A" };
+    if (yel) for (const k of ["body", "light", "neck", "head"]) L[k] = lt(L[k], 0.3);
+    if (dt) for (const k of ["body", "shade", "wing", "neck"]) L[k] = dk(L[k], 0.25);
+  }
+  L.species = "pheasant";
+  L.size = clamp(gNum(G, "size"), 0.8, 1.2);
+  L.chick = "#C9A77E"; L.chickStripe = "#6A4E34";
+  L.egg = { name: "Cream", color: "#EEDDB8" };
+  return L;
+}
+function silverPhLook(G, male) {
+  const L = male
+    ? { body: "#F4F4F2", shade: "#C8C8C6", light: "#FFFFFF", wing: "#F0F0EE", tail: "#F4F4F2", bars: "#8E8E92", neck: "#F4F4F2", head: "#1E1E22", headLight: "#3A3A42",
+      crest: "#1E1E22", wattle: "#D8303A", breast: "#1E1E22", scallop: "#1E1E22", beak: "#D8D2C0", legs: "#D8303A", tailK: 1.2 }
+    : { body: "#8A6A4A", shade: "#5E462E", light: "#A8886A", wing: "#7A5E42", tail: "#8A6A4A", bars: "#5A4430", neck: "#8A6A4A", head: "#7A5E42", headLight: "#9A7E62",
+      crest: "#6E5238", wattle: "#C8403A", scallop: "#4A3624", beak: "#C9B89A", legs: "#D8605A", tailK: 0.7 };
+  return Object.assign(L, { species: "pheasant", size: clamp(gNum(G, "size"), 0.8, 1.2), chick: "#B89868", chickStripe: "#6A4E34", egg: { name: "Cream", color: "#EEE2C8" } });
+}
+function reevesLook(G, male) {
+  const L = male
+    ? { body: "#D8A040", shade: "#9C6A1E", light: "#F2C870", wing: "#C89A4A", tail: "#E8E0D0", bars: "#8E5A2E", neck: "#FFFFFF", head: "#FFFFFF", headLight: "#FFFFFF",
+      mask: "#1E1E22", breast: "#8E3A1E", wattle: "#D8303A", scallop: "#1E1E22", beak: "#D8D0B8", legs: "#9A9086", tailK: 3 }
+    : { body: "#A07A50", shade: "#6E5234", light: "#C09A70", wing: "#8E6A44", tail: "#A08260", bars: "#5A4430", neck: "#C8A878", head: "#C8A878", headLight: "#DCC09A",
+      scallop: "#5A4430", beak: "#C9B89A", legs: "#9A9086", tailK: 0.9 };
+  return Object.assign(L, { species: "pheasant", size: clamp(gNum(G, "size"), 0.8, 1.25), chick: "#C9A77E", chickStripe: "#6A4E34", egg: { name: "Olive-brown", color: "#A8946A" } });
+}
+
+function turkeyLook(G, male) {
+  const K = "turkey", base = gDom(K, G, "base"), narr = gAll(G, "narr", "n"), white = gAll(G, "white", "c"), sl = gCount(K, G, "slate"), palm = gAll(G, "palm", "cp");
+  const L = { body: "#5A4432", shade: "#2E2218", light: "#8A6A48", sheen: "#4E7A5E", wing: "#6E5A46", wingBar: "#F4EFE6", tail: "#5A4432", tailBand: "#E6D6B8",
+    neck: "#B89CA0", head: "#9CC8E8", wattle: "#D8303A", beard: "#1E1A16", beak: "#E6D8B8", legs: "#D9A89A" };
+  if (base === "B") Object.assign(L, { body: "#1E1E22", shade: "#0E0E12", light: "#3A3A44", sheen: "#3A5A4A", wing: "#26262C", wingBar: null, tail: "#1E1E22", tailBand: "#2A2A2E", legs: "#8A6A6A" });
+  else if (base === "b") Object.assign(L, { body: "#8E3A22", shade: "#5A2212", light: "#B8603A", sheen: "#A04A2A", wing: "#F2EEE6", wingBar: "#8E3A22", tail: "#F2EEE6", tailBand: "#B8603A" });
+  if (narr && base !== "B") Object.assign(L, { body: "#4A4A4E", shade: "#26262A", light: "#C9C9CC", sheen: "#6A6A70", wing: "#8E8E92", wingBar: "#F6F6F4", tail: "#6E6E72", tailBand: "#E6E6E0" });
+  if (sl) {
+    const to = sl === 2 ? "#B8C0CC" : "#6F7A8A";
+    for (const k of ["body", "shade", "light", "wing", "tail"]) L[k] = mixHex(L[k], k === "shade" ? dk(to, 0.3) : k === "light" ? lt(to, 0.3) : to, 0.75);
+    L.sheen = "#8A96A8";
+  }
+  if (palm) Object.assign(L, { body: "#F6F4EE", shade: "#D8D4CC", light: "#FFFFFF", sheen: "#FFFFFF", wing: "#F6F4EE", wingBar: "#1E1E22", tail: "#F6F4EE", tailBand: "#1E1E22", palm: "#1E1E22" });
+  if (white) Object.assign(L, { body: "#FBFAF6", shade: "#DCD8CE", light: "#FFFFFF", sheen: "#FFFFFF", wing: "#F4F2EC", wingBar: null, tail: "#FBFAF6", tailBand: "#F2EEE6", palm: null });
+  if (male) Object.assign(L, { snoodK: 1, sheenA: 0.35 });
+  else Object.assign(L, { beard: null, snoodK: 0.45, sheenA: 0.15, body: lt(L.body, 0.08), light: lt(L.light, 0.1), head: "#B8C8D8", wattle: "#C85A64" });   // hens: no beard, small snood
+  L.species = "turkey";
+  L.size = clamp(gNum(G, "size"), 0.6, 1.3);
+  L.chick = white ? "#FFF4D0" : palm ? "#F0E6D0" : base === "B" ? "#3A3A3E" : base === "b" ? "#E0B890" : "#D8C29A";
+  if (!white && !palm && base !== "B") L.chickStripe = "#8E6A48";
+  L.egg = { name: "Speckled", color: "#E8D6B8", speckle: true };
+  return L;
+}
+
+const FL_LEGS = { pk: "#E86A8A", gy: "#8E8E96", yl: "#E8C84A", rd: "#D8403A" };
+const FL_BILL = { pb: ["#FCE3E8", 0.45], pp: ["#F4A6B8", 0.35], cb: ["#FCE3E8", 0.62], db: ["#7A2A3A", 0.75], yb: ["#F2D26A", 0.55] };
+function flamingoLook(G, male) {
+  const p = clamp(gNum(G, "pink"), 0, 1), body = mixHex("#F6EEEE", "#F2587F", p);
+  const L = { species: "flamingo", body, shade: dk(body, 0.18), light: lt(body, 0.35), wing: mixHex(body, "#E8305E", 0.35 * p), wingTip: "#1E1E22", neck: body, head: body, eye: "#F2C14E" };
+  L.legs = mixHex(FL_LEGS[G.legs[0]], FL_LEGS[G.legs[1]], 0.5);
+  if (G.legs.includes("gy")) L.knee = "#E86A8A";      // Chilean flamingos have pink "knees"!
+  L.bill = mixHex(FL_BILL[G.bill[0]][0], FL_BILL[G.bill[1]][0], 0.5);
+  L.billTip = "#1E1E22";
+  L.billTipK = (FL_BILL[G.bill[0]][1] + FL_BILL[G.bill[1]][1]) / 2;
+  L.size = clamp(gNum(G, "size"), 0.7, 1.25);
+  L.chick = "#C9C9CF";                                  // baby flamingos are gray!
+  L.egg = { name: "Flamingo", color: "#FBF8F0" };
+  return L;
+}
+
+function peafowlLook(G, male) {
+  const K = "peafowl", g = gCount(K, G, "green") / 2, wN = gCount(K, G, "white");
+  const cameo = gAll(G, "cameo", "ca"), purple = gAll(G, "purple", "pu"), bs = gAll(G, "bs", "bs"), opal = gAll(G, "opal", "op");
+  const m = (a, b) => mixHex(a, b, g);
+  let L;
+  if (male) {
+    L = { body: m("#1D5FB4", "#2E7A4A"), shade: m("#123D7A", "#1D5A34"), light: m("#3E86D8", "#5AAA6A"), neck: m("#1F6FCC", "#3F8A5A"), head: m("#1F6FCC", "#3F8A5A"),
+      back: m("#3F9A6A", "#4A8A3A"), train: m("#2F8A5A", "#3A9A4A"), trainDark: "#1D5A3A", eyeRing: "#C9A04A", eyeMid: "#2AB0A0", eyeCore: "#1E3A9C",
+      wing: m("#C8A27A", "#3A6AA8"), wingBar: m("#5A4030", "#2A4A6A"), crest: m("#1F6FCC", "#3F8A5A"), legs: "#8E8478", crestTall: g > 0.6, scales: g > 0.3 ? "#C9A04A" : null };
+    if (cameo) Object.assign(L, { body: "#7A5A3E", shade: "#5A402A", light: "#A07E5E", neck: "#8E6A4A", head: "#8E6A4A", back: "#A08060", train: "#A08060", trainDark: "#6E5A40",
+      eyeMid: "#B89A7A", eyeCore: "#5A4030", wing: "#C8B090", crest: "#8E6A4A" });
+    if (purple) Object.assign(L, { neck: "#5A3A9A", head: "#5A3A9A", body: "#4A2E8A", light: "#6A4AB8", train: mixHex(L.train, "#5A4A8A", 0.5), crest: "#5A3A9A" });
+    if (opal) Object.assign(L, { neck: "#8C98A8", head: "#8C98A8", body: "#7A8698", light: "#A8B4C4", shade: "#5A6678", train: "#9AA4A0", eyeCore: "#6A7A8A", crest: "#8C98A8" });
+    if (bs) Object.assign(L, { wing: "#1E1E22", wingBar: null });
+  } else {      // peahens: no long train, but a pretty green neck
+    L = { body: m("#8C7A66", "#6A7A5A"), neck: m("#4E7A5A", "#3F7A4A"), head: m("#8C7A66", "#4E6A4A"), back: m("#7A6A58", "#4E6A4A"),
+      wing: m("#8C7A66", "#3A5A7A"), wingBar: "#5A4A3A", crest: m("#7A6A58", "#3F7A4A"), legs: "#8E8478", train: null };
+    if (cameo) Object.assign(L, { body: "#C8B89C", neck: "#B8A488", head: "#C8B89C", back: "#B8A488", wing: "#C8B89C", crest: "#B8A488" });
+    if (purple) L.neck = "#6A5A7A";
+    if (opal) Object.assign(L, { body: "#A8B0B8", neck: "#98A2AE", head: "#A8B0B8", back: "#98A2AE", wing: "#A8B0B8" });
+    if (bs) Object.assign(L, { body: "#EDE3D0", neck: "#E0D6C0", head: "#EDE3D0", back: "#E0D6C0", wing: "#EDE3D0", crest: "#E0D6C0" });
+    L.shade = dk(L.body, 0.3); L.light = lt(L.body, 0.25);
+  }
+  if (wN === 2) Object.assign(L, { body: "#FAFAF7", shade: "#DDDCD6", light: "#FFFFFF", neck: "#FAFAF7", head: "#FAFAF7", back: "#F2F1EC", wing: "#F2F1EC",
+    wingBar: "#E2DFD6", crest: "#FAFAF7", legs: "#B8AFA4", noStripes: true, scales: null,
+    ...(male ? { train: "#F2F1EC", trainDark: "#DEDCD4", eyeRing: "#E9E4D6", eyeMid: "#F4F1E8", eyeCore: "#E2DDCF" } : {}) });
+  else if (wN === 1) L.pied = "#FAFAF7";
+  L.species = "peafowl";
+  L.size = clamp(gNum(G, "size"), 0.8, 1.2);
+  L.chick = wN === 2 ? "#F4EEDD" : bs ? "#F0E8D6" : cameo ? "#D8C4A0" : "#C9AE82";
+  L.egg = { name: "Peafowl", color: "#EAD4A8" };
+  return L;
+}
+
+const LOOKS = {
+  chicken: chickenLook, duck: duckLook, muscovy: muscovyLook, mule: muleLook, goose: gooseLook, swan: swanLook,
+  quail: quailLook, calQuail: calQuailLook, bobwhite: bobwhiteLook, guinea: guineaLook,
+  pheasant: pheasantLook, ruffed: ruffedLook, silverPh: silverPhLook, reeves: reevesLook,
+  turkey: turkeyLook, flamingo: flamingoLook, peafowl: peafowlLook,
+};
+
+// A bird's genes (made from its breed the first time we need them)
+function genoOf(c) {
+  if (!c.geno) c.geno = genesFor(kindOf(c), BREEDS[c.breed].genes, c.sex);
+  return c.geno;
+}
+// What a bird looks like (worked out once, then remembered)
+function lookOf(c) {
+  if (c._look) return c._look;
+  const L = LOOKS[kindOf(c)](genoOf(c), isMaleSex(c.sex));
+  L.name = c.cross || BREEDS[c.breed].name;
+  c._look = L;
+  return L;
+}
+const eggLookOf = (c) => lookOf(c).egg;
+
+// Every breed's usual egg (for the Market and the incubator)
+for (const k in BREEDS) {
+  const kind = kindOfBreed(k);
+  BREEDS[k].egg = LOOKS[kind](genesFor(kind, BREEDS[k].genes, "hen"), false).egg;
+}
+
+// ---------- Naming a new chick ----------
+// Two parents of the same breed make that breed (maybe a new color of it,
+// like a "Splash Andalusian"). Some famous crosses have their own names.
+// Everything else is a one-of-a-kind mix, named after how it looks.
+const KIND_NOUN = {
+  chicken: "", duck: "Duck", muscovy: "Muscovy", mule: "Duck", goose: "Goose", swan: "Swan", quail: "Quail", calQuail: "Quail", bobwhite: "Bobwhite",
+  guinea: "Guinea", pheasant: "Pheasant", ruffed: "Pheasant", silverPh: "Pheasant", reeves: "Pheasant", turkey: "Turkey", flamingo: "Flamingo", peafowl: "Peafowl",
+};
+const RED_DADS = ["rir", "newHampshire"];
+const NAMED_CROSSES = [
+  { name: "Black Star", kind: "chicken", emoji: "⭐", hint: "Rhode Island Red dad + Barred Rock mom", test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "barred",
+    fact: "A \"sex-link\": girl chicks hatch all black and boy chicks have a white spot on their heads." },
+  { name: "Golden Comet", kind: "chicken", emoji: "☄️", hint: "New Hampshire dad + White Rock mom", test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "whiteRock",
+    fact: "Girls hatch red and boys hatch yellow, because Mom's silver gene only goes to her sons." },
+  { name: "Red Star", kind: "chicken", emoji: "🌟", hint: "Rhode Island Red dad + Delaware mom", test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "delaware",
+    fact: "Red Stars are super layers. Girls are red and boys are white with a little black." },
+  { name: "Cinnamon Queen", kind: "chicken", emoji: "👸", hint: "Rhode Island Red dad + Silver Laced Wyandotte mom", test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "wyandotte",
+    fact: "Cinnamon Queen girls are cinnamon red. Their brothers come out silver!" },
+  { name: "Austra White", kind: "chicken", emoji: "🤍", hint: "Black Australorp dad + White Leghorn mom", test: (m, d) => d.breed === "australorp" && m.breed === "leghorn",
+    fact: "With just one dominant-white gene, the black shows through as little specks." },
+  { name: "Sizzle", kind: "chicken", emoji: "☁️", hint: "Silkie fluff + frizzle curls (takes two generations!)", test: (m, d, L) => L.silkie && L.frizzle > 0,
+    fact: "Silkie fluff is recessive, so it takes grandparents from both sides to make a Sizzle." },
+  { name: "Showgirl", kind: "chicken", emoji: "💃", hint: "Silkie fluff + a naked neck", test: (m, d, L) => L.silkie && L.naked > 0,
+    fact: "A fluffy Silkie with a bare neck, like it's wearing a feather boa!" },
+  { name: "Olive Egger", kind: "chicken", emoji: "🫒", hint: "A blue-egg bird + a dark-brown-egg bird", test: (m, d, L) => /Olive/.test(L.egg.name),
+    fact: "Blue on the inside, brown painted on the outside: together they look olive green!" },
+  { name: "Easter Egger", kind: "chicken", emoji: "🐣", hint: "A blue-egg bird + any other chicken", test: (m, d, L) => /Blue|Mint|Green/.test(L.egg.name),
+    fact: "Easter Eggers carry the blue-egg gene. Only one copy is needed for blue or green eggs." },
+  { name: "Red Sex-Link", kind: "chicken", auto: true, emoji: "❤️", hint: "A gold rooster + a silver hen", test: (m, d) => !gHas(genoOfRec(d), "silver", "S") && gHas(genoOfRec(m), "silver", "S"),
+    fact: "The silver gene rides on the Z chromosome, so only boys get it from Mom." },
+  { name: "Black Sex-Link", kind: "chicken", auto: true, emoji: "🖤", hint: "A plain rooster + a barred hen", test: (m, d) => !gHas(genoOfRec(d), "bar", "B") && gHas(genoOfRec(m), "bar", "B"),
+    fact: "Barring rides on the Z chromosome too: only the boys get Mom's stripes." },
+  { name: "Mulard", kind: "mule", emoji: "🦆", hint: "A duck + a Muscovy", test: () => true,
+    fact: "Muscovies aren't really the same kind of duck, so their babies (mules) can't have babies." },
+  { name: "Blute Swan", kind: "swan", emoji: "🦢", hint: "A Black Swan + a Mute Swan", test: (m, d) => [m.breed, d.breed].sort().join() === "blackSwan,muteSwan",
+    fact: "Half black, half white: blute swans come out a smoky gray-brown." },
+  { name: "Spalding", kind: "peafowl", emoji: "🦚", hint: "An India Blue + a Green peafowl", test: (m, d, L, G) => gCount("peafowl", G, "green") === 1,
+    fact: "Named after Mrs. Keith Spalding, who first raised them. Taller and shinier than India Blues!" },
+  { name: "Golden-Amherst", kind: "ruffed", emoji: "🌈", hint: "A Golden Pheasant + a Lady Amherst", test: (m, d, L, G) => gCount("ruffed", G, "amherst") === 1,
+    fact: "Golden and Lady Amherst pheasants are close cousins, so their babies can have babies too." },
+  { name: "Hybrid Flamingo", kind: "flamingo", emoji: "🦩", hint: "Two different kinds of flamingo", test: (m, d) => m.breed !== d.breed,
+    fact: "Flamingo kinds can mix. Their chicks have legs and bills a bit like both parents." },
+];
+const genoOfRec = (p) => p.geno || genesFor(kindOfBreed(p.breed), BREEDS[p.breed].genes, p.sex);
+
+// A word for a bird's main color, and one for a fancy feature
+function colorWords(kind, G, L) {
+  const c = (id) => gCount(kind, G, id);
+  switch (kind) {
+    case "chicken": {
+      let color;
+      if (c("domW") === 2 || gAll(G, "recW", "c")) color = "White";
+      else if (c("domW") === 1) color = "Speckled White";
+      else if (c("blue") === 2) color = "Splash";
+      else {
+        const base = gDom(kind, G, "base"), silver = gHas(G, "silver", "S"), tone = gDom(kind, G, "tone");
+        const shade = gAll(G, "lav", "lav") ? "Lavender" : gAll(G, "choc", "ch") ? "Chocolate" : c("blue") ? "Blue" : null;
+        const pat = { col: "Columbian", lace: "Laced", dlace: "Double-Laced", spang: "Spangled", mot: base === "E" || base === "ER" ? "Mottled" : "Speckled" }[gDom(kind, G, "pat")];
+        const red = silver ? "Silver" : tone === "di" ? "Buff" : tone === "Mh" ? "Red" : "Gold";
+        if (c("bar")) color = base === "E" || base === "ER" ? "Barred" : "Crele";
+        else if (base === "E") color = shade || (pat === "Mottled" ? "Mottled" : "Black");
+        else if (base === "ER") color = shade ? `${shade} Copper` : silver ? "Black Silver-neck" : "Black Copper";
+        else color = [pat && pat !== "Mottled" ? pat : null, base === "R" ? red : silver ? "Silver Partridge" : "Partridge"].filter(Boolean).join(" ");
+        if (shade && base !== "E" && base !== "ER") color = `${shade} ${color}`;
+      }
+      const L2 = L || chickenLook(G, false);
+      const trait = L2.silkie ? "Silkie" : L2.frizzle === 2 ? "Frazzled" : L2.frizzle ? "Frizzled" : L2.naked ? "Naked Neck" : L2.crest ? "Crested"
+        : L2.rumpless ? "Rumpless" : L2.muffs ? "Bearded" : L2.longTail ? "Long-tailed" : L2.size < 0.62 ? "Bantam" : L2.featherFeet ? "Feather-footed" : null;
+      return [color, trait];
+    }
+    case "duck":
+      if (gAll(G, "white", "c")) return ["White", c("crest") ? "Crested" : gNum(G, "upright") > 0.6 ? "Runner" : null];
+      return [[gDom(kind, G, "bib") === "mag" ? "Magpie" : gDom(kind, G, "bib") === "bib" ? "Bibbed" : null,
+        gAll(G, "harl", "hq") ? "Harlequin" : c("blue") === 2 ? "Silver" : c("blue") ? "Blue" : gAll(G, "brown", "d") ? (gDom(kind, G, "base") === "E" ? "Chocolate" : "Khaki")
+          : { E: "Black", M: "Mallard", md: "Dusky" }[gDom(kind, G, "base")]].filter(Boolean).join(" "),
+        c("crest") ? "Crested" : gNum(G, "upright") > 0.6 ? "Runner" : null];
+    case "muscovy":
+      return [gAll(G, "white", "c") ? "White" : [c("pied") ? "Pied" : null, c("blue") === 2 ? "Splash" : c("blue") ? "Blue" : gAll(G, "choc", "ch") ? "Chocolate" : "Black"].filter(Boolean).join(" "), null];
+    case "goose":
+      return [gAll(G, "white", "c") || c("sd") === 2 ? "White" : gAll(G, "saddle", "sb") ? "Saddleback" : gAll(G, "buff", "g") ? "Buff" : c("sd") ? "Light Gray" : c("knob") ? "Brown" : "Gray",
+        c("curl") ? "Curly" : c("knob") ? "Knobbed" : null];
+    case "swan": return [["White", "Gray", "Black"][c("black")], null];
+    case "quail":
+      return [gAll(G, "white", "wh") ? "White" : [gAll(G, "tux", "s") ? "Tuxedo" : null,
+        c("dark") === 2 ? "Tibetan" : c("dark") ? "Rosetta" : c("gold") === 2 ? "Golden" : c("gold") ? "Italian" : "Pharaoh"].filter(Boolean).join(" "), gAll(G, "celadon", "ce") ? "Celadon" : null];
+    case "bobwhite": return [gAll(G, "snow", "sn") ? "Snowflake" : "Wild", null];
+    case "guinea":
+      return [gAll(G, "white", "c") ? "White" : [c("pied") ? "Pied" : null, gAll(G, "buff", "br") ? "Buff" : gAll(G, "lav", "lv") ? "Lavender" : !gHas(G, "pearl", "P") ? "Royal Purple" : "Pearl"].filter(Boolean).join(" "), null];
+    case "pheasant":
+      return [gAll(G, "white", "c") ? "White" : c("mel") === 2 ? "Melanistic" : c("mel") ? "Dark" : gAll(G, "fawn", "fw") ? "Buff" : gHas(G, "ring", "Rg") ? "Ringneck" : "Blackneck", null];
+    case "ruffed":
+      return [c("amherst") === 2 ? "Lady Amherst" : c("amherst") ? "Golden-Amherst" : gAll(G, "yellow", "yg") ? "Yellow Golden" : "Golden", gHas(G, "dark", "Dt") ? "Dark-throated" : null];
+    case "turkey": {
+      if (gAll(G, "white", "c")) return ["White", null];
+      if (gAll(G, "palm", "cp")) return ["Royal Palm", null];
+      const base = gDom(kind, G, "base");
+      const col = base === "B" ? "Black" : c("slate") === 2 ? "Pale Slate" : c("slate") ? "Blue Slate" : gAll(G, "narr", "n") ? "Narragansett" : base === "b" ? "Red" : "Bronze";
+      return [col, null];
+    }
+    case "flamingo": { const p = gNum(G, "pink"); return [p > 0.85 ? "Deep Pink" : p > 0.5 ? "Pink" : "Pale Pink", null]; }
+    case "peafowl": {
+      const w = c("white");
+      if (w === 2) return ["White", null];
+      const col = gAll(G, "cameo", "ca") ? "Cameo" : gAll(G, "purple", "pu") ? "Purple" : gAll(G, "opal", "op") ? "Opal" : c("green") === 2 ? "Green" : c("green") ? "Spalding" : "India Blue";
+      return [[w ? "Pied" : null, gAll(G, "bs", "bs") ? "Black-shouldered" : null, col].filter(Boolean).join(" "), null];
+    }
+  }
+  return ["", null];
+}
+
+// What to call a new baby, and which breed it counts as
+function nameChick(kind, mom, dad, G, sex, L) {
+  if (kind === "mule") return { breed: "mulard", cross: null };
+  const mixKey = KINDS[kind].mix;
+  if (mom.breed === dad.breed && !BREEDS[mom.breed].cross) {
+    const B = BREEDS[mom.breed];
+    if (mom.breed === "frizzle") {
+      if (L.frizzle === 2) return { breed: mom.breed, cross: "Frazzle" };
+      if (L.frizzle === 0) return { breed: mom.breed, cross: "Smooth Frizzle" };
+    }
+    const stdG = genesFor(kind, B.genes, sex);
+    const [was] = colorWords(kind, stdG, LOOKS[kind](stdG, isMaleSex(sex))), [now] = colorWords(kind, G, L);
+    return { breed: mom.breed, cross: was !== now && now ? `${now} ${B.short || B.name}` : null };
+  }
+  for (const x of NAMED_CROSSES) {
+    if (x.kind !== kind || !x.test(mom, dad, L, G)) continue;
+    if (x.auto && !isAutosexing(kind, genoOfRec(mom), genoOfRec(dad))) continue;   // only a "sex-link" if you can really tell
+    return { breed: mixKey, cross: x.name };
+  }
+  const [color, trait] = colorWords(kind, G, L);
+  return { breed: mixKey, cross: [trait, color, KIND_NOUN[kind]].filter(Boolean).join(" ") + " Mix" };
+}
+
+// Could Mom and Dad's chicks be told apart, boys from girls, on hatching day?
+const downLook = (L) => `${L.chick}|${L.chickSpot || ""}|${L.chickStripe || ""}|${L.chickSpotBig ? 1 : 0}`;
+function isAutosexing(kind, momG, dadG) {
+  const boys = new Set(), girls = new Set();
+  for (let i = 0; i < 40; i++) {
+    boys.add(downLook(LOOKS[kind](inheritGenes(kind, momG, dadG, "rooster"), true)));
+    girls.add(downLook(LOOKS[kind](inheritGenes(kind, momG, dadG, "hen"), false)));
+  }
+  for (const b of boys) if (girls.has(b)) return false;
+  return true;
+}
+
+// The chances of what the chicks will look like (we "pretend-hatch" lots of eggs!)
+function hatchOdds(mom, dad) {
+  const kind = kindOf(mom), mode = canMate(kind, kindOf(dad));
+  if (mode === "mule") return { list: [{ label: "Mulard (mule duck)", pct: 100 }], autosex: false };
+  if (mode !== "yes") return { list: [], autosex: false };
+  const tally = new Map(), N = 400, momG = genoOf(mom), dadG = genoOf(dad);
+  for (let i = 0; i < N; i++) {
+    const sex = i % 2 ? "rooster" : "hen", G = inheritGenes(kind, momG, dadG, sex), L = LOOKS[kind](G, isMaleSex(sex));
+    const [color, trait] = colorWords(kind, G, L);
+    let label = [trait, color].filter(Boolean).join(" ") || "Wild";
+    if (kind === "chicken" && !isMaleSex(sex)) label += ` · ${L.egg.name.toLowerCase()} eggs`;
+    else if (kind === "chicken") label += " · rooster";
+    tally.set(label, (tally.get(label) || 0) + 1);
+  }
+  const list = [...tally].map(([label, n]) => ({ label, pct: Math.max(1, Math.round((n / N) * 100)) })).sort((a, b) => b.pct - a.pct).slice(0, 6);
+  return { list, autosex: isAutosexing(kind, momG, dadG) };
+}
+
+// Did a chick show a gene that neither parent showed? (It was hiding!)
+function showedHiddenGene(kind, momG, dadG, G) {
+  for (const L of lociOf(kind)) {
+    if (L.type !== "dom") continue;
+    const kid = gDom(kind, G, L.id);
+    if (kid !== gDom(kind, momG, L.id) && kid !== gDom(kind, dadG, L.id)) return true;
+  }
+  return false;
+}
+
+// ---------- Gene stickers ----------
+const anyBird = (test) => FARM_ORDER.some((id) => farms[id].birds.some((c) => c.growth >= 0.12 && test(c, lookOf(c), kindOf(c))));
+const GENE_STICKERS = [
+  { id: "g_hidden", emoji: "🎁", name: "Hidden Gene", how: "Hatch a chick that shows a gene neither parent showed", done: () => game.stats.hidden >= 1 },
+  { id: "g_sexlink", emoji: "🎀", name: "Boy or Girl?", how: "Hatch chicks you can tell apart on hatching day", done: () => game.stats.autosex >= 1 },
+  { id: "g_splash", emoji: "💦", name: "Splash!", how: "Two blue genes make a splash chicken", done: () => anyBird((c, L, k) => k === "chicken" && L.pattern === "splash") },
+  { id: "g_lavender", emoji: "💜", name: "Lavender", how: "Two lavender genes make a soft purple-gray bird", done: () => anyBird((c, L, k) => k === "chicken" && gAll(genoOf(c), "lav", "lav")) },
+  { id: "g_frizzle", emoji: "🌀", name: "Frizzle", how: "A chicken with curly feathers", done: () => anyBird((c, L, k) => k === "chicken" && L.frizzle > 0) },
+  { id: "g_frazzle", emoji: "🌪️", name: "Frazzle", how: "Two frizzle genes: extra curly!", done: () => anyBird((c, L, k) => k === "chicken" && L.frizzle === 2) },
+  { id: "g_walnut", emoji: "🌰", name: "Walnut Comb", how: "Rose comb + pea comb = walnut comb", done: () => anyBird((c, L, k) => k === "chicken" && L.combType === "walnut" && !L.silkie) },
+  { id: "g_green", emoji: "🟢", name: "Green Eggs", how: "Blue-egg genes + brown-egg genes", done: () => anyBird((c, L, k) => k === "chicken" && /Green|Olive|Mint/.test(L.egg.name)) },
+  { id: "g_naked", emoji: "🦃", name: "Naked Neck", how: "A chicken with a bare neck", done: () => anyBird((c, L, k) => k === "chicken" && L.naked > 0) },
+  { id: "g_rumpless", emoji: "✂️", name: "No Tail!", how: "A rumpless chicken (like an Araucana)", done: () => anyBird((c, L, k) => k === "chicken" && L.rumpless) },
+  { id: "g_bantam", emoji: "🤏", name: "Tiny Bantam", how: "A teeny-tiny chicken", done: () => anyBird((c, L, k) => k === "chicken" && L.size < 0.55) },
+  { id: "g_magpie", emoji: "🐧", name: "Magpie Duck", how: "A black-and-white magpie duck", done: () => anyBird((c, L, k) => k === "duck" && gDom("duck", genoOf(c), "bib") === "mag") },
+  { id: "g_mulard", emoji: "🫏", name: "Mule Duck", how: "Hatch a duck + Muscovy baby", done: () => anyBird((c, L, k) => k === "mule") },
+  { id: "g_blute", emoji: "🦢", name: "Blute Swan", how: "Hatch a black swan + mute swan baby", done: () => anyBird((c) => c.cross === "Blute Swan") },
+  { id: "g_spalding", emoji: "🦚", name: "Spalding", how: "Hatch an India Blue + Green peafowl baby", done: () => anyBird((c, L, k) => k === "peafowl" && gCount("peafowl", genoOf(c), "green") === 1) },
+  { id: "g_whitePea", emoji: "🤍", name: "White Peacock", how: "Two white genes: a snow-white peacock", done: () => anyBird((c, L, k) => k === "peafowl" && gCount("peafowl", genoOf(c), "white") === 2 && c.growth >= 1 && isMaleSex(c.sex)) },
+];
+
+// ---------- Boys and girls ----------
+// Every boy bird is stored with sex "rooster" and every girl with "hen";
+// KINDS has the real words (drake, gander, tom, peacock...).
+const isRooster = (c) => isMaleSex(c.sex);           // true for every boy bird
+const isChicken = (c) => kindOf(c) === "chicken";
+const sexWord = (c) => KINDS[kindOf(c)][isRooster(c) ? "male" : "female"];
+const canLay = (c) => !isRooster(c) && !KINDS[kindOf(c)].sterile;
+const plural = (w) => ({ goose: "geese" }[w] || w + "s");
+const cap1 = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+// How much a young rooster looks like a grown-up rooster yet (0 to 1)
+const roosterLook = (c) => (isRooster(c) && isChicken(c) && !isBaby(c) ? clamp((c.growth - 0.55) / 0.45) : 0);
+// Boys of most kinds grow a bit bigger than girls (but girl quail are bigger!)
+const maleK = (c) => (isRooster(c) && !isBaby(c) ? lerp(1, KINDS[kindOf(c)].maleSize || 1, clamp((c.growth - 0.55) / 0.45)) : 1);
+// Birds that show off with their tails: only the boys!
+const SHOW_MALES = new Set(["peafowl", "pheasant", "ruffed", "silverPh", "reeves", "turkey", "calQuail"]);
+
 const ROOSTER_NAMES = [
   "Rocky", "Duke", "Captain", "Elvis", "Hank", "Rex", "Big Red", "Tex", "Gus", "Bruno",
   "Kevin", "Admiral", "Sir Cluck", "Chief", "Ziggy", "Maverick", "Buster", "Cosmo", "Rusty", "Colonel",
+  "Mr. Waddles", "Sergeant", "Bingo", "Fred", "Moose", "Oscar", "Rolo", "Taco", "Sparky", "Jasper",
 ];
 function roosterName() {
   const used = new Set();
@@ -6352,59 +7375,66 @@ function roosterName() {
   return free.length ? pick(free) : freshName();
 }
 
-const isRooster = (c) => c.sex === "rooster";
-const isChicken = (c) => BREEDS[c.breed].species === "chicken";
-// How much a young rooster looks like a grown-up rooster yet (0 to 1)
-const roosterLook = (c) => (isRooster(c) && !isBaby(c) ? clamp((c.growth - 0.55) / 0.45) : 0);
-
-// What a bird looks like. Most birds look like their breed. A Barnyard
-// Mix has its very own "genes" (the recipe for how it looks), and
-// sex-link boys look a little different from their sisters.
-function lookOf(c) {
-  if (c.genes) return c.genes;
-  const B = BREEDS[c.breed];
-  if (B.boy && c.sex === "rooster") return B._boy || (B._boy = Object.assign({}, B, B.boy));
-  return B;
-}
-const eggLookOf = (c) => lookOf(c).egg;
-
-// ---------- The flock gauge: roosters vs. hens ----------
-const FLOCK_STATUS = {
-  none:    { label: "No rooster yet",        color: "#A9A39A", boost: 1,    say: "A rooster protects the hens and is the dad of every chick. Chicken eggs need one to hatch!" },
-  crowded: { label: "Too many roosters!",    color: "#E0533D", boost: 0.85, say: "The roosters keep squabbling, and the hens are stressed. They lay a little slower. Add more hens!" },
-  fewHens: { label: "Needs more hens",       color: "#F2A33A", boost: 1.1,  say: "Each rooster wants a bigger family to look after. Add a few more hens." },
-  good:    { label: "Just right!",           color: "#43A849", boost: 1.25, say: "Your hens feel safe and happy, so they lay eggs 25% faster!" },
-  fewRoos: { label: "Needs another rooster", color: "#F2A33A", boost: 1.1,  say: "That's a lot of hens for one rooster to watch. Another rooster would help." },
+// ---------- The flock gauge: boys vs. girls ----------
+const FLOCK_COLORS = { none: "#A9A39A", crowded: "#E0533D", fewHens: "#F2A33A", good: "#43A849", fewRoos: "#F2A33A" };
+const FLOCK_BOOST = { none: 1, crowded: 0.85, fewHens: 1.1, good: 1.25, fewRoos: 1.1 };
+const KIND_TITLE = {
+  chicken: "Chickens", duck: "Ducks", muscovy: "Muscovies", goose: "Geese", swan: "Swans", quail: "Coturnix quail", calQuail: "California quail",
+  bobwhite: "Bobwhites", guinea: "Guinea fowl", pheasant: "Pheasants", ruffed: "Golden & Amherst pheasants", silverPh: "Silver pheasants",
+  reeves: "Reeves's pheasants", turkey: "Turkeys", flamingo: "Flamingos", peafowl: "Peafowl",
 };
-let flockCache = null;
-function flockInfo(fresh) {
-  if (flockCache && !fresh) return flockCache;
-  let roosters = 0, hens = 0, chicks = 0;
-  for (const c of farms.backyard.birds) {
-    if (!isChicken(c)) continue;
-    if (c.growth < 1) chicks++;
-    else if (isRooster(c)) roosters++;
-    else hens++;
+let flockCache = {};
+function flockStats(farmId) {
+  if (flockCache[farmId]) return flockCache[farmId];
+  const out = {};
+  for (const c of farms[farmId].birds) {
+    const k = kindOf(c);
+    if (KINDS[k].sterile) continue;
+    const s = out[k] || (out[k] = { kind: k, males: 0, females: 0, young: 0 });
+    if (c.growth < 1) s.young++; else if (isRooster(c)) s.males++; else s.females++;
   }
-  const ratio = roosters ? hens / roosters : 0;   // hens for every rooster
-  const key = !roosters ? "none" : ratio < 3 ? "crowded" : ratio < 6 ? "fewHens" : ratio <= 12 ? "good" : "fewRoos";
-  flockCache = Object.assign({ roosters, hens, chicks, ratio, key }, FLOCK_STATUS[key]);
-  return flockCache;
+  for (const k in out) {
+    const s = out[k], W = KINDS[k], [lo, hi] = W.ratio, r = s.males ? s.females / s.males : 0, M = W.male, Fm = W.female;
+    s.ratio = r;
+    s.key = !s.males ? "none"
+      : W.pairs ? (r > 1.25 ? "fewRoos" : r < 0.5 ? "crowded" : r < 0.8 ? "fewHens" : "good")
+      : r < lo * 0.5 ? "crowded" : r < lo ? "fewHens" : r <= hi ? "good" : "fewRoos";
+    s.color = FLOCK_COLORS[s.key];
+    s.boost = FLOCK_BOOST[s.key];
+    s.label = W.pairs
+      ? { none: `No ${M} yet`, crowded: `Too many ${plural(M)}!`, fewHens: `A ${M} needs a partner`, good: "Everyone has a partner!", fewRoos: `A ${Fm} needs a partner` }[s.key]
+      : { none: `No ${M} yet`, crowded: `Too many ${plural(M)}!`, fewHens: `Needs more ${plural(Fm)}`, good: "Just right!", fewRoos: `Needs another ${M}` }[s.key];
+    s.say = {
+      none: `A ${M} is the dad of every baby. Eggs need one to hatch!`,
+      crowded: `The ${plural(M)} keep squabbling and the ${plural(Fm)} are stressed, so they lay a little slower.`,
+      fewHens: W.pairs ? `Add a ${Fm} so every ${M} has a partner.` : `Each ${M} wants a bigger family. Add a few more ${plural(Fm)}.`,
+      good: `Your ${plural(Fm)} feel safe and happy, so they lay eggs 25% faster!`,
+      fewRoos: W.pairs ? `Add a ${M} so every ${Fm} has a partner.` : `That's a lot of ${plural(Fm)} for one ${M}. Another ${M} would help.`,
+    }[s.key];
+  }
+  flockCache[farmId] = out;
+  return out;
 }
-const flockBoost = () => flockInfo().boost;
+const flockBoostOf = (c) => { const s = flockStats(farmOfBreed(c.breed))[kindOf(c)]; return s ? s.boost : 1; };
 
 const flockBtn = $("flockBtn");
 const flockText = $("flockText");
 const flockDot = $("flockDot");
 const flockSheet = $("flock");
+function mainFlock(farmId) {
+  const list = Object.values(flockStats(farmId));
+  return list.sort((a, b) => b.males + b.females + b.young - (a.males + a.females + a.young))[0] || null;
+}
 function updateFlockBtn() {
-  const show = game.farm === "backyard";
-  flockBtn.hidden = !show;
-  if (!show) return;
-  const f = flockInfo(true);
-  flockText.textContent = `🐓 ${f.roosters} : ${f.hens} 🐔`;
+  flockCache = {};
+  const f = mainFlock(game.farm);
+  flockBtn.hidden = !f;
+  if (!f) return;
+  const icons = game.farm === "backyard" ? ["🐓", "🐔"] : ["♂", "♀"];
+  flockText.textContent = `${icons[0]} ${f.males} : ${f.females} ${icons[1]}`;
   flockDot.style.background = f.color;
-  flockBtn.setAttribute("aria-label", `Your flock: ${f.roosters} ${f.roosters === 1 ? "rooster" : "roosters"} and ${f.hens} ${f.hens === 1 ? "hen" : "hens"}. ${f.label}`);
+  const W = KINDS[f.kind];
+  flockBtn.setAttribute("aria-label", `Your flock: ${f.males} ${f.males === 1 ? W.male : plural(W.male)} and ${f.females} ${f.females === 1 ? W.female : plural(W.female)}. ${f.label}`);
 }
 function openFlock() {
   renderFlock();
@@ -6412,172 +7442,62 @@ function openFlock() {
   Sound.tick();
 }
 function renderFlock() {
-  const f = flockInfo(true);
-  $("flockCounts").textContent = "";
-  const count = (emoji, n, one, many) => {
-    const d = el("div", "flock-count");
-    d.append(el("span", "flock-emoji", emoji), el("b", null, String(n)), el("span", null, n === 1 ? one : many));
-    $("flockCounts").append(d);
-  };
-  count("🐓", f.roosters, "rooster", "roosters");
-  count("🐔", f.hens, "hen", "hens");
-  count("🐣", f.chicks, "chick", "chicks");
-  const status = $("flockStatus");
-  status.textContent = f.label;
-  status.style.color = f.color;
-  $("flockSay").textContent = f.say;
-  // The marker slides along the bar: hens for every rooster, from 0 to 16
-  const marker = $("gaugeMarker");
-  marker.hidden = !f.roosters;
-  marker.style.left = `${(Math.min(f.ratio, 16) / 16) * 100}%`;
+  flockCache = {};
+  const rows = $("flockRows");
+  rows.textContent = "";
+  const stats = Object.values(flockStats(game.farm)).sort((a, b) => b.males + b.females - (a.males + a.females));
+  if (!stats.length) rows.append(el("p", "flock-say", "No birds here yet!"));
+  for (const s of stats) {
+    const W = KINDS[s.kind], row = el("div", "flock-row");
+    const head = el("div", "flock-row-head");
+    const status = el("span", "flock-status", s.label);
+    status.style.color = s.color;
+    head.append(el("b", "flock-kind", KIND_TITLE[s.kind]), status);
+    const counts = el("div", "flock-counts");
+    const count = (emoji, n, word) => { const d = el("div", "flock-count"); d.append(el("span", "flock-emoji", emoji), el("b", null, String(n)), el("span", null, n === 1 ? word : plural(word))); counts.append(d); };
+    count("♂", s.males, W.male);
+    count("♀", s.females, W.female);
+    if (s.young) count("🐣", s.young, "baby");
+    // the gauge: how many girls there are for every boy
+    const [lo, hi] = W.pairs ? [0.8, 1.25] : W.ratio, max = W.pairs ? 2 : Math.max(3, hi * 1.5), red = W.pairs ? 0.5 : lo * 0.5;
+    const gauge = el("div", "gauge"), bar = el("div", "gauge-bar");
+    for (const [cls, a, b] of [["red", 0, red], ["amber", red, lo], ["green", lo, hi], ["amber", hi, max]]) {
+      const z = el("span", "zone " + cls);
+      z.style.flex = String(Math.max(0.01, b - a));
+      bar.append(z);
+    }
+    const marker = el("i", "gauge-marker");
+    marker.hidden = !s.males;
+    marker.style.left = `${(Math.min(s.ratio, max) / max) * 100}%`;
+    gauge.append(bar, marker);
+    row.append(head, counts, gauge, el("p", "flock-say", s.say), el("p", "flock-ideal", `Best: ${W.ideal}.`));
+    rows.append(row);
+  }
 }
 flockBtn.addEventListener("click", () => { Sound.unlock(); if (!started) begin(); openFlock(); });
 $("flockShop").addEventListener("click", () => { marketTab = "birds"; openMarket(); });
 
-// ---------- Genetics: what will the chick look like? ----------
-// Some crosses are famous! These real chicken "recipes" always make
-// the same kind of chick.
-const CROSSES = [
-  { dad: "rir", mom: "barred", kid: "blackStar" },
-  { dad: "rir", mom: "leghorn", kid: "goldenComet" },
-  { dad: "rir", mom: "wyandotte", kid: "cinnamonQueen" },
-  { dad: "australorp", mom: "leghorn", kid: "austraWhite" },
-  { dad: "easter", mom: "marans", kid: "olive" },
-  { dad: "marans", mom: "easter", kid: "olive" },
-];
-
-// A parent, remembered on its egg: its breed, genes, and name
+// ---------- A parent, remembered on its egg ----------
 function parentRec(c) {
-  return { breed: c.breed, genes: c.genes || null, sex: c.sex, name: c.name, id: c.id };
+  return { breed: c.breed, geno: JSON.parse(JSON.stringify(genoOf(c))), sex: c.sex, name: c.name, id: c.id, cross: c.cross || null };
 }
-function recLook(p) {
-  if (p.genes) return p.genes;
-  const B = BREEDS[p.breed];
-  return B.boy && p.sex === "rooster" ? Object.assign({}, B, B.boy) : B;
-}
-const recName = (p) => recLook(p).name;
-
-// Mom + Dad = baby! Returns the chick's breed (and its genes, if it's a mix)
-function hatchResult(mom, dad) {
-  const sex = Math.random() < 0.5 ? "rooster" : "hen";
-  if (!dad) return { breed: mom.breed, genes: mom.genes, sex };
-  if (!mom.genes && !dad.genes) {
-    if (mom.breed === dad.breed && !BREEDS[mom.breed].cross) return { breed: mom.breed, genes: null, sex };   // purebred
-    const x = CROSSES.find((r) => r.dad === dad.breed && r.mom === mom.breed);
-    if (x) return { breed: x.kid, genes: null, sex };
-  }
-  return { breed: "mix", genes: mixGenes(recLook(dad), recLook(mom)), sex };
-}
-
-// Egg colors: how brown the shell is (0 = white, 3 = chocolate), and
-// whether the blue-egg gene is there. Blue + brown = green!
-const EGG_GENES = {
-  White: [0, 0], Cream: [0.5, 0], Tan: [1, 0], "Light brown": [1, 0], Brown: [2, 0], Chocolate: [3, 0], "Dark brown": [3, 0],
-  Blue: [0, 1], Mint: [1, 1], Green: [1.7, 1], Olive: [2.6, 1],
-};
-const EGG_RESULTS = [
-  [{ name: "White", color: "#F8F4EA" }, { name: "Tan", color: "#E2C497" }, { name: "Brown", color: "#C1905F" }, { name: "Dark brown", color: "#7A4A2C" }],
-  [{ name: "Blue", color: "#9FD3CE" }, { name: "Mint", color: "#BFE0C4" }, { name: "Green", color: "#A9BF7E" }, { name: "Olive", color: "#8E9A5C" }],
-];
-function mixEgg(a, b) {
-  const [la, ba] = EGG_GENES[a.name] || [1.5, 0], [lb, bb] = EGG_GENES[b.name] || [1.5, 0];
-  const blue = (ba || bb) && Math.random() < (ba && bb ? 0.85 : 0.5) ? 1 : 0;
-  const lv = clamp(Math.round((la + lb) / 2 + rand(-0.6, 0.6)), 0, 3);
-  const e = Object.assign({}, EGG_RESULTS[blue][lv]);
-  if ((a.speckle || b.speckle) && Math.random() < 0.5) e.speckle = true;
-  return e;
-}
-
-// The colors a chicken is painted with
-const PALETTE = ["body", "shade", "light", "wing", "neck", "tail", "tail2", "hackle"];
-function colorOf(L, k) {
-  if (L[k]) return L[k];
-  if (k === "neck") return L.body;
-  if (k === "hackle") return L.neck || L.body;
-  if (k === "tail2") return L.tail || L.shade;
-  return L.shade || L.body;   // wing, tail
-}
-// A brand-new one-of-a-kind chicken, a bit like Dad and a bit like Mom
-function mixGenes(D, M) {
-  const coin = (p = 0.5) => Math.random() < p;
-  const either = (k) => (coin() ? D : M)[k];
-  const base = coin() ? D : M, other = base === D ? M : D;
-  const blend = coin(0.35);               // sometimes the colors melt together
-  const g = { name: "Barnyard Mix", species: "chicken" };
-  for (const k of PALETTE) g[k] = blend ? mixHex(colorOf(base, k), colorOf(other, k), 0.5) : colorOf(base, k);
-  // A patchwork chicken: wings or tail from the other parent
-  if (!blend && coin(0.3)) g.wing = colorOf(other, "wing");
-  if (!blend && coin(0.3)) { g.tail = colorOf(other, "tail"); g.tail2 = colorOf(other, "tail2"); }
-  // Stripes ("barring") are a strong gene: they show up a lot
-  const barred = (L) => L.pattern === "barred" || L.pattern === "cuckoo";
-  if (barred(D) || barred(M)) { if (coin(barred(D) && barred(M) ? 0.9 : 0.6)) g.pattern = (barred(D) ? D : M).pattern; }
-  else { const p = either("pattern"); if (p && coin(0.7)) g.pattern = p; }
-  // Silkie fluff is a hidden (recessive) gene, so mixes come out only a little fluffy
-  const silk = !!(D.silkie || M.silkie);
-  if (D.silkie && M.silkie) { g.silkie = true; g.face = D.face || M.face; }
-  g.fluffy = Math.max(D.fluffy || 0, M.fluffy || 0) * rand(0.4, 0.9) + (silk ? 0.15 : 0);
-  if ((D.featherFeet || M.featherFeet || silk) && coin(0.65)) g.featherFeet = true;
-  if ((D.crest || M.crest || silk) && coin(0.5)) g.crest = D.crest || M.crest || g.light;
-  // Pea combs and rose combs are strong genes too
-  const has = (t) => D.combType === t || M.combType === t;
-  if (has("pea") && coin(0.75)) g.combType = "pea";
-  else if (has("rose") && coin(0.75)) g.combType = "rose";
-  else if (silk && coin(0.5)) g.combType = "rose";
-  else { const t = either("combType"); if (t === "big" || t === "tiny") g.combType = t; }
-  g.comb = D.silkie && !M.silkie ? M.comb : M.silkie && !D.silkie ? D.comb : either("comb");
-  if ((D.muffs || M.muffs) && coin(0.6)) g.muffs = D.muffs || M.muffs;
-  const lobe = either("earlobe");
-  if (lobe) g.earlobe = lobe;
-  g.beak = either("beak");
-  g.legs = either("legs");
-  g.tailK = ((D.tailK || 1) + (M.tailK || 1)) / 2;
-  g.chick = blend ? mixHex(D.chick, M.chick, 0.5) : base.chick;
-  const stripe = base.chickStripe || (coin() ? other.chickStripe : null);
-  const spot = base.chickSpot || (coin(0.3) ? other.chickSpot : null);
-  if (stripe) g.chickStripe = stripe; else if (spot) g.chickSpot = spot;
-  g.pitch = ((D.pitch || 1) + (M.pitch || 1)) / 2;
-  g.layBoost = (((D.layBoost || 1) + (M.layBoost || 1)) / 2) * 1.05;   // mixed chickens are often extra healthy
-  g.egg = mixEgg(D.egg, M.egg);
-  return g;
-}
-
-// Checking genes loaded from a save, so a broken save can't break the game
-const HEX6 = /^#[0-9a-fA-F]{6}$/;
-const GENE_COLORS = [...PALETTE, "comb", "beak", "legs", "chick", "chickStripe", "chickSpot", "crest", "muffs", "earlobe", "face"];
-function cleanEgg(e) {
-  if (!e || typeof e !== "object" || typeof e.color !== "string" || !HEX6.test(e.color)) return null;
-  return { name: typeof e.name === "string" ? e.name.slice(0, 20) : "Brown", color: e.color, speckle: e.speckle === true };
-}
-function cleanGenes(g) {
-  if (!g || typeof g !== "object") return null;
-  const out = { name: "Barnyard Mix", species: "chicken" };
-  for (const k of GENE_COLORS) if (typeof g[k] === "string" && HEX6.test(g[k])) out[k] = g[k];
-  if (!out.body) return null;
-  for (const k of PALETTE) if (!out[k]) out[k] = out.body;
-  out.chick = out.chick || "#F4D98A";
-  out.comb = out.comb || "#E03A2F";
-  out.beak = out.beak || "#E8B84A";
-  out.legs = out.legs || "#E8C06A";
-  if (["barred", "cuckoo", "speckle", "laced", "dots", "flecks"].includes(g.pattern)) out.pattern = g.pattern;
-  if (["pea", "rose", "big", "tiny"].includes(g.combType)) out.combType = g.combType;
-  out.fluffy = num(g.fluffy, 0, 0, 0.5);
-  out.tailK = num(g.tailK, 1, 0.4, 1.4);
-  out.pitch = num(g.pitch, 1, 0.7, 1.3);
-  out.layBoost = num(g.layBoost, 1, 0.5, 1.5);
-  if (g.silkie === true) out.silkie = true;
-  if (g.featherFeet === true) out.featherFeet = true;
-  out.egg = cleanEgg(g.egg) || { name: "Brown", color: "#C1905F" };
-  return out;
-}
+const recName = (p) => p.cross || BREEDS[p.breed].name;
 function cleanRec(p) {
   if (!p || typeof p !== "object" || !BREEDS[p.breed]) return null;
+  const sex = p.sex === "rooster" ? "rooster" : "hen";
   return {
-    breed: p.breed, genes: cleanGenes(p.genes), sex: p.sex === "rooster" ? "rooster" : "hen",
+    breed: p.breed, sex, geno: p.geno ? cleanGeno(kindOfBreed(p.breed), p.geno, sex) : null,
     name: typeof p.name === "string" ? p.name.slice(0, 16) : "", id: num(p.id, -1),
+    cross: typeof p.cross === "string" ? p.cross.slice(0, 40) : null,
   };
 }
+const HEX6 = /^#[0-9a-fA-F]{6}$/;
+function cleanEgg(e) {
+  if (!e || typeof e !== "object" || typeof e.color !== "string" || !HEX6.test(e.color)) return null;
+  return { name: typeof e.name === "string" ? e.name.slice(0, 20) : "Brown", color: e.color, speckle: e.speckle === true, blotch: e.blotch === true };
+}
 
-// ---------- Rooster sounds ----------
+// ---------- Boy and girl sounds ----------
 Object.assign(Sound, {
   crow(pitch = 1, pan = 0, v = 1) {   // "cock-a-doodle-DOOOO!"
     const syl = (t, f0, f1, dur, gain) => {
@@ -6598,40 +7518,65 @@ Object.assign(Sound, {
     this.bawk(0.14, 420, 0.1, 0.18, pan);
     this.tone({ type: "sawtooth", t: 0.3, f0: 640, f1: 980, dur: 0.22, gain: 0.2, filter: "bandpass", ff: 1700, q: 1.8, pan });
   },
+  rasp(pan = 0, v = 1) {               // drakes can't really quack! They make a quiet raspy "rhaeb"
+    this.tone({ type: "sawtooth", f0: 220, f1: 190, dur: 0.18, gain: 0.07 * v, filter: "bandpass", ff: 700, q: 3, pan });
+    this.noise({ dur: 0.16, gain: 0.05 * v, type: "bandpass", f: 900, q: 2, pan });
+  },
+  buckwheat(pan = 0, v = 1) {          // only girl guineas say "buck-WHEAT!"
+    this.tone({ type: "square", f0: 900, f1: 820, dur: 0.1, gain: 0.07 * v, filter: "bandpass", ff: 1400, q: 3, pan });
+    this.tone({ type: "square", t: 0.16, f0: 1150, f1: 980, dur: 0.18, gain: 0.08 * v, filter: "bandpass", ff: 1500, q: 3, pan });
+  },
+  yelp(pan = 0, v = 1) {               // turkey hens: "yelp, yelp, yelp"
+    for (let i = 0; i < 3; i++) this.tone({ type: "triangle", t: i * 0.16, f0: 820, f1: 560, dur: 0.1, gain: 0.08 * v, pan });
+  },
+  peahen(pan = 0, v = 1) {             // peahens: a short "ah-ah!"
+    this.tone({ type: "sawtooth", f0: 700, f1: 620, dur: 0.14, gain: 0.08 * v, filter: "bandpass", ff: 1300, q: 2, pan });
+    this.tone({ type: "sawtooth", t: 0.2, f0: 720, f1: 600, dur: 0.14, gain: 0.07 * v, filter: "bandpass", ff: 1300, q: 2, pan });
+  },
 });
 const crowPitch = (c) => (lookOf(c).pitch || 1) * 0.9;
 
-// ---------- Rooster personality ----------
+// ---------- Boy personalities ----------
 const SHOW_OK = new Set(["idle", "walk", "peck", "scratch", "preen"]);
 const canShow = (c) => c.loc === "yard" && SHOW_OK.has(c.state) && (!c.goal || c.goal === "wander");
+const GUARD_KINDS = new Set(["chicken", "goose", "turkey", "guinea"]);   // these boys stand guard when a hawk flies over
 let crowQuiet = 0, squabbleT = rand(25, 45);
 
 function updateRoosters(dt) {
   crowQuiet -= dt;
-  if (!F.birds.some(isRooster)) return;
   const bed = isBedtime();
-  const roosters = F.birds.filter((c) => isRooster(c) && c.growth >= 1 && c.loc === "yard");
-  for (const c of roosters) {
+  const males = F.birds.filter((c) => isRooster(c) && c.growth >= 1 && c.loc === "yard" && !KINDS[kindOf(c)].sterile);
+  if (!males.length) return;
+  for (const c of males) {
     c.crowT -= dt;
     if (c.crowT > 0 || bed) continue;
     if (crowQuiet <= 0 && canShow(c)) startCrow(c);
-    else c.crowT = rand(2, 6);   // someone else is crowing; wait a moment
+    else c.crowT = rand(2, 6);   // someone else is calling; wait a moment
   }
-  // Too many roosters? Now and then two of them puff up at each other
-  if (game.farm === "backyard" && !bed && flockInfo().key === "crowded" && roosters.length >= 2) {
+  // Too many boys? Now and then two of them puff up at each other
+  if (!bed) {
     squabbleT -= dt;
-    if (squabbleT <= 0) { squabbleT = rand(25, 50); startSquabble(roosters); }
+    if (squabbleT <= 0) {
+      squabbleT = rand(25, 50);
+      const st = flockStats(game.farm);
+      for (const k in st) {
+        if (st[k].key !== "crowded") continue;
+        const ms = males.filter((c) => kindOf(c) === k);
+        if (ms.length >= 2) { startSquabble(ms); break; }
+      }
+    }
   }
 }
+// Roosters crow; other boys make their own calls (gobble, honk, "may-AWE"...)
 function startCrow(c) {
-  c.state = "crow"; c.goal = null; c.t = 2.2; c.peckT = 0; c.crowed = false;
-  c.flapT = 0.45;                      // roosters flap their wings before they crow
-  c.crowT = rand(55, 120);
-  crowQuiet = 5;
+  c.state = "crow"; c.goal = null; c.t = isChicken(c) ? 2.2 : 1.6; c.peckT = 0; c.crowed = false;
+  c.flapT = 0.45;
+  c.crowT = isChicken(c) ? rand(55, 120) : rand(70, 150);
+  crowQuiet = isChicken(c) ? 5 : 3;
 }
 // The sun is up! Every rooster crows soon after leaving the coop.
 function dawnChorus() {
-  for (const c of F.birds) if (isRooster(c) && c.growth >= 1) c.crowT = rand(1, 8);
+  for (const c of F.birds) if (isRooster(c) && isChicken(c) && c.growth >= 1) c.crowT = rand(1, 8);
 }
 // "I found a snack!" The rooster bobs his head and calls the hens over.
 function startTidbit(c, callHens) {
@@ -6647,10 +7592,10 @@ function startTidbit(c, callHens) {
     walkTo(h, c.x + c.dir * rand(22, 40) * sc, c.y + rand(-10, 10), SETTINGS.runSpeed * 0.7, false);
   }
 }
-// Two roosters walk up, puff out their neck feathers, and hop at each other
-function startSquabble(roosters) {
+// Two boys walk up, puff out their feathers, and hop at each other
+function startSquabble(males) {
   let a = null, b = null, bd = 1e9;
-  for (const x of roosters) for (const y of roosters) {
+  for (const x of males) for (const y of males) {
     if (x === y || !canShow(x) || !canShow(y)) continue;
     const d = Math.hypot(x.x - y.x, x.y - y.y);
     if (d < bd) { bd = d; a = x; b = y; }
@@ -6667,14 +7612,16 @@ function puffUp(c, rival) {
   c.vz = 150 * scaleAt(c.y); c.flapT = 0.6;
   feathers(c, 2);
 }
-// What roosters do in each of their special states (called from the bird brain)
+// What boys do in their special states (called from the bird brain)
 function updateRoosterState(c, dt) {
   switch (c.state) {
     case "crow":
       c.t -= dt; c.peckT += dt;
-      if (!c.crowed && c.peckT > 0.45) {
+      if (!c.crowed && c.peckT > (isChicken(c) ? 0.45 : 0.2)) {
         c.crowed = true;
-        Sound.crow(crowPitch(c), panX(c.x), scene === "yard" ? 0.9 : 0.4);
+        const v = scene === "yard" ? 0.9 : 0.4;
+        if (isChicken(c)) Sound.crow(crowPitch(c), panX(c.x), v);
+        else Sound.call(c, panX(c.x), v);
         const sc = scaleAt(c.y);
         notes(c.x + c.dir * 16 * sc, c.y, headH(c) * sc + 6, 3, sc);
       }
@@ -6691,7 +7638,7 @@ function updateRoosterState(c, dt) {
       c.t -= dt;
       c.lookT -= dt;
       if (c.lookT <= 0) { c.lookT = rand(0.5, 1.2); c.dir *= -1; }
-      if (c.t <= 0) { startCrow(c); c.crowT = rand(55, 120); }   // "All clear!"
+      if (c.t <= 0) { startCrow(c); }   // "All clear!"
       return true;
     case "puff":
       c.t -= dt; c.peckT += dt;
@@ -6706,12 +7653,12 @@ function updateRoosterState(c, dt) {
 function isDark(hex) { const [r, g, b] = rgb(hex); return 0.3 * r + 0.59 * g + 0.11 * b < 80; }
 // Long curved "sickle" tail feathers (drawn where the tail starts)
 function drawSickles(g, B, R, now, c) {
-  const L = lerp(0.45, 1, R) * (B.tailK ? 0.6 + 0.4 * B.tailK : 1);
-  const sheen = B.sheen || (isDark(B.tail) ? "#3F8F72" : B.light);
+  const L = lerp(0.45, 1, R) * (B.longTail ? 2.3 : 1);
+  const sheen = isDark(B.tail) ? "#3F8F72" : B.light;
   g.save();
-  g.rotate(Math.sin(now * 1.3 + c.id) * 0.04);
+  g.rotate(Math.sin(now * 1.3 + c.id) * 0.04 - (B.longTail ? 0.35 : 0));
   const feather = (rot, len, col) => {
-    g.save(); g.rotate(rot); g.scale(len * L, len * L);
+    g.save(); g.rotate(rot); g.scale(len * L, len * lerp(1, L, B.longTail ? 0.45 : 1));
     g.beginPath();
     g.moveTo(3, -1);
     g.quadraticCurveTo(-8, -64, -50, -16);         // up and over...
@@ -6725,6 +7672,7 @@ function drawSickles(g, B, R, now, c) {
   feather(0.28, 0.72, B.tail2 || B.tail);
   feather(0.05, 0.9, B.tail);
   feather(-0.18, 1, B.tail2 || B.tail);
+  if (B.longTail) { feather(-0.35, 1.1, B.tail); feather(0.45, 0.8, B.tail2 || B.tail); }
   g.restore();
 }
 // Pointed, shiny neck feathers ("hackles") and back feathers ("saddle")
@@ -6752,32 +7700,169 @@ function drawHackles(g, B, R, headX, headY, by, flare) {
   }
   g.restore();
 }
-
-// ---------- Getting a rooster ----------
-// Older farms get one free rooster, so they can hatch chicks right away
-function giftRooster() {
-  if (game.roosterGift) return "";
-  const BY = farms.backyard;
-  const hens = BY.birds.filter((c) => isChicken(c) && c.growth >= 1);
-  game.roosterGift = true;
-  if (!hens.length || BY.birds.some(isRooster) || BY.birds.length >= capacityOf("backyard")) return "";
-  const c = addBirdToFarm("backyard", pick(hens).breed, 1, "rooster");
-  c.needsSpot = true;
-  c.crowT = rand(4, 10);
-  return `Meet ${c.name}, your new rooster! 🐓 Tap the rooster button to see how your flock is doing.`;
+// Frizzled feathers curl up and out, like a feather duster!
+function drawFrizzle(g, B, rx, ry, by, n, seed) {
+  const R = seeded(seed * 17 + 3), count = n === 2 ? 17 : 11, k = n === 2 ? 1.35 : 1;
+  for (let i = 0; i < count; i++) {
+    const a = Math.PI * (0.95 + (i / (count - 1)) * 1.1) + (R() - 0.5) * 0.15;
+    const x = -2 + Math.cos(a) * rx * 0.96, y = by + Math.sin(a) * ry * 0.96;
+    g.save(); g.translate(x, y); g.rotate(a + Math.PI / 2 + (R() - 0.5) * (n === 2 ? 0.9 : 0.4));
+    g.beginPath(); g.moveTo(-3.4 * k, 1); g.quadraticCurveTo(-1, -8 * k, 3.4 * k, 1); g.closePath();
+    g.fillStyle = i % 2 ? B.body : B.light; g.fill();
+    g.strokeStyle = rgba(B.shade, 0.45); g.lineWidth = 0.8; g.stroke();
+    g.restore();
+  }
 }
 
-// ---------- Stickers for roosters and crosses ----------
+// ---------- Getting boys ----------
+// Older farms get one free boy of each kind, so they can hatch babies right away
+function giftMales() {
+  game.maleGift = game.maleGift || {};
+  if (game.roosterGift) game.maleGift.chicken = true;
+  const met = [];
+  for (const id of FARM_ORDER) {
+    const st = farms[id];
+    if (!st.unlocked) continue;
+    const byKind = {};
+    for (const c of st.birds) { const k = kindOf(c); if (!KINDS[k].sterile) (byKind[k] = byKind[k] || []).push(c); }
+    for (const k in byKind) {
+      if (game.maleGift[k]) continue;
+      game.maleGift[k] = true;
+      const list = byKind[k], grown = list.filter((c) => c.growth >= 1);
+      if (list.some(isRooster) || !grown.length || st.birds.length >= capacityOf(id)) continue;
+      const m = addBirdToFarm(id, pick(grown).breed, 1, "rooster");
+      m.needsSpot = true; m.crowT = rand(4, 10);
+      met.push(`${m.name} the ${KINDS[k].male === "male" ? KIND_NOUN[k].toLowerCase() : KINDS[k].male}`);
+    }
+  }
+  if (!met.length) return "";
+  const list = met.length > 1 ? `${met.slice(0, -1).join(", ")} and ${met[met.length - 1]}` : met[0];
+  return `Say hello to ${list}! 💙 Now your birds can have babies.`;
+}
+
+// Things to remember about genes in the save
+game.crossesSeen = {};    // famous crosses you've hatched
+game.maleGift = {};       // kinds of birds that already got a free boy
+
+// Older saves: a few crosses used to be their own breeds
+const OLD_CROSS = {
+  blackStar: { name: "Black Star", dad: "rir", mom: "barred" }, goldenComet: { name: "Golden Comet", dad: "rir", mom: "leghorn" },
+  cinnamonQueen: { name: "Cinnamon Queen", dad: "rir", mom: "wyandotte" }, austraWhite: { name: "Austra White", dad: "australorp", mom: "leghorn" },
+};
+// Genes for a bird loaded from a save
+function genoFromSave(b, sex) {
+  const kind = kindOfBreed(b.breed);
+  if (b.geno) return cleanGeno(kind, b.geno, sex);
+  if (!BREEDS[b.breed].cross || kind === "mule") return null;        // made from its breed when needed
+  // an older mix: rebuild its genes from its parents' breeds
+  const find = (name) => Object.keys(BREEDS).find((k) => BREEDS[k].name === name && kindOfBreed(k) === kind);
+  const any = () => pick(Object.keys(BREEDS).filter((k) => kindOfBreed(k) === kind && !BREEDS[k].cross));
+  const M = (b.fromParents && b.fromParents.mom) || find(b.mom) || any(), D = (b.fromParents && b.fromParents.dad) || find(b.dad) || any();
+  return inheritGenes(kind, genesFor(kind, BREEDS[M].genes, "hen"), genesFor(kind, BREEDS[D].genes, "rooster"), sex);
+}
+
+// ---------- Sticker book: facts and stickers for all the new birds ----------
 Object.assign(FACTS, {
-  blackStar: "Black Stars are \"sex-links\": boy chicks hatch with a white spot on their heads, so you can tell boys from girls right away!",
-  goldenComet: "Golden Comet girls hatch red and the boys hatch yellow. The hens are some of the best egg layers around!",
-  cinnamonQueen: "Cinnamon Queens are friendly cinnamon-red hens. Their brothers grow up white with silver lace!",
-  austraWhite: "Austra Whites are half Australorp and half Leghorn: white with little black flecks, and they lay tons of eggs.",
-  mix: "Every Barnyard Mix is one of a kind! Chicks get some things from Mom and some from Dad, even the color of the eggs they'll lay.",
+  newHampshire: "New Hampshires came from Rhode Island Reds, but they grow faster and are a lighter red.",
+  whiteRock: "White Rocks secretly carry a silver gene. That's the key to making Golden Comets!",
+  delaware: "Delawares are white with a black-striped neck. They were America's favorite broiler in the 1940s.",
+  dominique: "The Dominique is America's oldest chicken breed. It's like a Barred Rock with a rose comb.",
+  brownLeghorn: "Brown Leghorns have the \"wild\" colors: that's what chickens looked like in the jungle long ago!",
+  goldWyandotte: "Gold Laced Wyandottes have gold feathers, each one outlined in black.",
+  blueLacedRed: "Blue Laced Red Wyandottes carry one blue gene, so their lacing is blue instead of black.",
+  lightSussex: "Light Sussex have the \"Columbian\" pattern: white body, black-striped neck, black tail.",
+  cochin: "Blue Cochins carry one blue gene. Two blues make chicks that are black, blue, or splash!",
+  buffCochin: "Cochins have so many fluffy feathers that they look like big pom-poms with feet.",
+  lightBrahma: "Brahmas are gentle giants. Their pea combs keep them safe from frostbite in the cold.",
+  jerseyGiant: "Jersey Giants are the biggest chicken breed from America. A rooster can weigh 13 pounds!",
+  bcMarans: "Black Copper Marans lay the darkest eggs of all, as dark as a chocolate bar.",
+  welsummer: "Welsummers lay dark eggs with speckles. The rooster on cereal boxes is a Welsummer!",
+  barnevelder: "Barnevelders have double-laced feathers: two rings of black on every feather.",
+  ameraucana: "Ameraucanas lay blue eggs and have beards and fluffy cheeks called muffs.",
+  creamLegbar: "Cream Legbars lay blue eggs and are \"autosexing\": boy chicks look different from girl chicks.",
+  blueAndalusian: "Blue Andalusians never breed true: blue × blue gives black, blue, AND splash chicks!",
+  lavenderOrp: "Lavender is a recessive gene. It takes two copies to make that soft purple-gray color.",
+  chocolateOrp: "The chocolate gene rides on the Z chromosome, so chocolate moms give it to all their sons.",
+  ancona: "Anconas are black with white tips on their feathers, like someone splashed them with paint.",
+  hamburg: "Silver Spangled Hamburgs have a round black spot at the tip of every feather.",
+  turken: "Naked Necks have half as many feathers, which keeps them cool when it's hot.",
+  frizzle: "Frizzle × Frizzle chicks can be frizzled, extra-curly \"frazzled,\" or smooth!",
+  faverolles: "Salmon Faverolles have beards, feathery feet, and FIVE toes on each foot.",
+  houdan: "Houdans have a crest, a beard, five toes, and a V-shaped comb like little horns.",
+  sultan: "Sultans came from Turkey, where they lived in the gardens of the sultan's palace.",
+  araucana: "Araucanas have no tail, little ear tufts, and lay blue eggs. They're from Chile!",
+  ayamCemani: "Ayam Cemanis are black all over: feathers, skin, comb, beak, and even their insides!",
+  sebright: "Sebright roosters are \"hen-feathered\": they don't grow long pointy rooster feathers.",
+  serama: "The Serama is the smallest chicken in the world. Some weigh less than a can of soda!",
+  phoenix: "Phoenix roosters can grow tails that are longer than a grown-up is tall.",
+  spitzhauben: "Spitzhauben means \"pointy hood\" in German, because of its little forward-pointing crest.",
+  rouen: "Rouens look like big Mallards. They're great to look at but lay fewer eggs.",
+  cayuga: "Cayuga eggs start out nearly black, then get lighter as the laying season goes on.",
+  khakiCampbell: "A Khaki Campbell can lay over 300 eggs a year, more than most chickens!",
+  crestedDuck: "Crested ducks always have one crest gene. The puff on their head is a little cushion of feathers.",
+  magpieDuck: "Magpie ducks are white with a black cap and a black back, like a magpie bird.",
+  welshHarlequin: "Welsh Harlequins have a frosty \"harlequin\" gene that makes their colors pale and pretty.",
+  appleyard: "Silver Appleyards were made by Reginald Appleyard in England to be pretty AND good layers.",
+  buffDuck: "Buff ducks get their color from two genes at once: brown and blue together make buff!",
+  muscovy: "Muscovies aren't related to Mallards. They hiss instead of quack and love to perch in trees.",
+  whiteMuscovy: "Muscovy drakes are almost twice as big as the hens.",
+  blueMuscovy: "Muscovies have red bumpy skin on their faces called caruncles.",
+  toulouse: "Toulouse geese are big and gray, with a floppy chin pouch called a dewlap.",
+  african: "African geese have a big knob on their bill and a dewlap under their chin.",
+  chinese: "Chinese geese are the best-laying geese, and they make great watch-geese!",
+  whiteChinese: "White Chinese geese have orange knobs instead of black ones.",
+  sebastopol: "Sebastopol geese have long curly feathers that look like ribbons.",
+  pilgrim: "Pilgrim ganders are white and the geese are gray, so you can tell them apart right away!",
+  americanBuff: "American Buff geese are the color of creamy caramel, with orange bills and feet.",
+  pomeranian: "Pomeranian geese have a gray \"saddle\" on their backs and a gray head.",
+  polishSwan: "Polish swans carry a gene that makes their babies white instead of gray.",
+  trumpeter: "Trumpeter swans are the biggest waterbirds in North America. Their call sounds like a trumpet!",
+  goldenQuail: "Golden quail have two golden genes. With just one, they're called Italian quail.",
+  englishWhite: "English White quail have a recessive white gene and dark eyes.",
+  tibetan: "Tibetan quail have two dark genes. With just one, they're a reddish color called Rosetta.",
+  tuxedoQuail: "Tuxedo quail have a white chest, like they're wearing a fancy suit.",
+  celadonQuail: "Celadon quail lay sky-blue eggs with no spots. It's a recessive gene!",
+  jumboQuail: "Jumbo quail are twice as big as regular Coturnix quail.",
+  bobwhite: "Bobwhites say their own name: \"bob-WHITE!\" Boys have a white throat, girls have a tan one.",
+  snowflake: "Snowflake Bobwhites are white with little black flecks, like snow with pepper.",
+  lavenderGuinea: "Lavender guineas carry two lavender genes, which make their gray soft and light.",
+  whiteGuinea: "White guineas are all white, even their babies (called keets).",
+  royalPurple: "Royal Purple guineas don't have polka dots. They shine purple in the sun.",
+  buffGuinea: "Buff guineas are a warm brown, with white polka dots.",
+  piedGuinea: "Pied guineas have a white chest. Two pied genes make them mostly white!",
+  blackneck: "English Blackneck pheasants don't have the white neck ring.",
+  melanistic: "Melanistic pheasants are so dark they look black, but they shine green and purple.",
+  whitePheasant: "White pheasants have two recessive white genes. Even the boys are all white!",
+  buffPheasant: "Buff pheasants are a soft golden color instead of copper.",
+  yellowGolden: "Yellow Golden pheasants have yellow where regular Goldens are red.",
+  darkThroated: "Dark-throated Golden pheasants have a dark throat, and their hens are darker too.",
+  ladyAmherst: "Lady Amherst pheasants have a white cape with black stripes and a very long tail.",
+  silverPh: "Silver pheasant roosters are white with black stripes and have bright red faces and legs.",
+  reeves: "Reeves's pheasants have the longest tail feathers of any bird, up to 7 feet long!",
+  blackSpanish: "Black Spanish turkeys are black all over and shine green in the sun.",
+  bourbonRed: "Bourbon Red turkeys come from Kentucky and are dark red with white wings and tail.",
+  narragansett: "Narragansett turkeys are steel gray, black, and white. They're one of the oldest American breeds.",
+  royalPalm: "Royal Palm turkeys are white with black stripes on every feather.",
+  blueSlate: "Blue Slate turkeys carry one slate gene. They're a soft blue-gray.",
+  whiteHolland: "White Holland turkeys have two recessive white genes. Only the tom's beard stays black!",
+  midgetWhite: "Midget White turkeys are a smaller white turkey, about half the size of other turkeys.",
+  chilean: "Chilean flamingos have gray legs with pink \"knees\" (really their ankles!).",
+  greater: "Greater flamingos are the biggest and palest flamingos.",
+  lesser: "Lesser flamingos are the smallest flamingos, but there are more of them than any other kind.",
+  andean: "Andean flamingos have yellow legs and live high in the mountains of South America.",
+  james: "James's flamingos were thought to be gone forever until they were found again in 1956!",
+  greenPeafowl: "Green peafowl are a different species from India Blues. Even the hens are colorful!",
+  piedPeacock: "Pied peafowl have one white gene. They have white patches all over.",
+  cameoPeacock: "Cameo is brown, and it rides on the Z chromosome, like chocolate in chickens.",
+  purplePeacock: "Purple peafowl shine purple instead of blue. It's a Z-chromosome gene too.",
+  blackShoulder: "Black Shoulder peacocks have black wings. Their hens are almost white!",
+  opalPeacock: "Opal peafowl are a soft gray-blue, like a stormy sky.",
 });
 SPECIAL_STICKERS.push(
-  { id: "rooster", emoji: "🐓", name: "Cock-a-doodle-doo!", how: "Get a rooster for your flock", done: () => flockInfo(true).roosters >= 1 },
-  { id: "perfectFlock", emoji: "💚", name: "Perfect Flock", how: "Have about 1 rooster for every 10 hens", done: () => flockInfo(true).key === "good" },
+  { id: "rooster", emoji: "🐓", name: "Cock-a-doodle-doo!", how: "Get a rooster for your flock", done: () => farms.backyard.birds.some((c) => isChicken(c) && isRooster(c)) },
+  { id: "perfectFlock", emoji: "💚", name: "Perfect Flock", how: "Get the boy-girl balance just right", done: () => FARM_ORDER.some((id) => farms[id].unlocked && Object.values(flockStats(id)).some((s) => s.key === "good")) },
+  ...GENE_STICKERS,
+  ...NAMED_CROSSES.map((x) => ({ id: "x_" + x.name, emoji: x.emoji, name: x.name, how: x.hint, fact: x.fact, done: () => !!game.crossesSeen[x.name] })),
 );
 
 
@@ -6799,7 +7884,7 @@ function serializeFarm(id) {
     birds: st.birds.map((c) => ({
       breed: c.breed, name: c.name, x: c.x, y: c.y, growth: c.growth, food: c.food, water: c.water,
       joy: c.joy, laid: c.laid, eggClock: c.eggClock, loc: c.loc === "yard" ? "yard" : "coop", needsSpot: c.needsSpot, hat: c.hat || null,
-      sex: c.sex, known: c.sexKnown, genes: c.genes || undefined, mom: c.mom || undefined, dad: c.dad || undefined, kids: c.kids || undefined,
+      sex: c.sex, known: c.sexKnown, geno: genoOf(c), cross: c.cross || undefined, mom: c.mom || undefined, dad: c.dad || undefined, kids: c.kids || undefined,
     })),
     yardEggs: st.yardEggs.map((e) => ({ x: e.x, y: e.y, breed: e.breed, egg: e.egg, golden: e.golden })),
     nestEggs: st.nestEggs.map((e) => ({ box: e.box, breed: e.breed, egg: e.egg, golden: e.golden })),
@@ -6812,6 +7897,7 @@ function serialize() {
     v: 5, savedAt: Date.now(), eggs: game.eggs, farm: game.farm, time: game.time, day: game.day,
     totalEggs: game.totalEggs, hints: game.hints, muted: game.muted, farms: {},
     stickers: game.stickers, special: game.special, stats: game.stats, bookNew: game.bookNew, roosterGift: game.roosterGift,
+    crossesSeen: game.crossesSeen, maleGift: game.maleGift,
     weather: { kind: weather.kind, left: weather.left, next: weather.next },
   };
   for (const id of FARM_ORDER) out.farms[id] = serializeFarm(id);
@@ -6859,8 +7945,10 @@ function applyFarm(id, s) {
   }
   st.feeder = num(s.feeder, 1, 0, 1);
   st.water = num(s.water, 1, 0, 1);
-  for (const b of arr(s.birds)) {
+  for (let b of arr(s.birds)) {
     if (st.birds.length >= capacityOf(id)) break;
+    const old = b && OLD_CROSS[b.breed];     // crosses that used to be breeds
+    if (old) b = Object.assign({}, b, { breed: "mix", cross: old.name, fromParents: old });
     if (!b || !BREEDS[b.breed] || farmOfBreed(b.breed) !== id) continue;
     const c = makeBird({
       breed: b.breed,
@@ -6868,7 +7956,8 @@ function applyFarm(id, s) {
       x: clampX(num(b.x, view.W * 0.5)), y: clampY(num(b.y, view.H * 0.7)),
       growth: num(b.growth, 1, 0.1, 1), food: num(b.food, 0.8, 0, 1), water: num(b.water, 0.8, 0, 1),
       joy: num(b.joy, 0.5, 0, 1), laid: Math.floor(num(b.laid, 0, 0, 1e6)), eggClock: num(b.eggClock, 30, 0, 600),
-      sex: b.sex, sexKnown: b.known !== false, genes: b.breed === "mix" ? cleanGenes(b.genes) : null,
+      sex: b.sex, sexKnown: b.known !== false, geno: genoFromSave(b, b.sex === "rooster" ? "rooster" : "hen"),
+      cross: typeof b.cross === "string" ? b.cross.slice(0, 40) : null,
       mom: typeof b.mom === "string" ? b.mom.slice(0, 30) : null, dad: typeof b.dad === "string" ? b.dad.slice(0, 30) : null,
       kids: Math.floor(num(b.kids, 0, 0, 1e5)),
     });
@@ -6910,6 +7999,8 @@ function applySave(d) {
   game.stats.seasons = obj(game.stats.seasons);
   game.bookNew = !!d.bookNew;
   game.roosterGift = !!d.roosterGift;
+  game.crossesSeen = obj(d.crossesSeen);
+  game.maleGift = obj(d.maleGift);
   if (d.weather && (d.weather.kind === "rain" || d.weather.kind === "snow" || d.weather.kind === "clear")) {
     weather.kind = d.weather.kind;
     weather.left = num(d.weather.left, 0, 0, 200);
@@ -6926,7 +8017,7 @@ function applySave(d) {
   buildBackground();
   buildRoomBg();
   if (!farms.backyard.birds.length && game.farm === "backyard") starterFlock();
-  const gift = giftRooster();
+  const gift = giftMales();
 
   // While you were away, time kept going on every farm
   const away = (Date.now() - num(d.savedAt, Date.now())) / 1000;
@@ -6945,6 +8036,7 @@ function starterFlock() {
   // A surprise egg hidden by the tree, so there's something to find right away
   farms.backyard.yardEggs.push({ id: nextId++, x: clampX(places.tree.x - 70 * scaleAt(places.tree.y)), y: clampY(view.horizon + g * 0.3), breed: "buff", golden: false, glint: 0 });
   game.roosterGift = true;
+  game.maleGift = { chicken: true };
 }
 
 
@@ -6959,7 +8051,7 @@ let frameNo = 0, lastFrame = performance.now(), acc = 0, saveT = 4, awayT = 0, h
 
 function update(dt) {
   clock += dt;
-  flockCache = null;          // recount roosters and hens this frame
+  flockCache = {};            // recount boys and girls this frame
   const prev = game.time;
   game.time += dt / SETTINGS.dayLengthSeconds;
   if (game.time >= 1) { game.time -= 1; game.day++; onNewDay(); }

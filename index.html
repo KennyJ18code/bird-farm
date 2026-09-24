@@ -82,7 +82,7 @@
   </button>
 
   <!-- Roosters and hens in the Backyard. The dot turns green when it's just right. -->
-  <button id="flockBtn" class="glass pill flock-btn" type="button" aria-label="Your flock" hidden>
+  <button id="flockBtn" class="glass pill flock-btn" type="button" aria-label="Your flock: boys and girls" hidden>
     <i id="flockDot" class="flock-dot" aria-hidden="true"></i>
     <span id="flockText">🐓 0 : 0 🐔</span>
   </button>
@@ -208,22 +208,9 @@
     </button>
   </div>
   <div class="sheet-scroll">
-    <div id="flockCounts" class="flock-counts"></div>
-    <p id="flockStatus" class="flock-status"></p>
-    <!-- The gauge: how many hens there are for every rooster -->
-    <div class="gauge" aria-hidden="true">
-      <div class="gauge-bar">
-        <span class="zone red" style="flex: 3"></span>
-        <span class="zone amber" style="flex: 3"></span>
-        <span class="zone green" style="flex: 6"></span>
-        <span class="zone amber" style="flex: 4"></span>
-      </div>
-      <i id="gaugeMarker" class="gauge-marker"></i>
-      <div class="gauge-labels"><span>Too many roosters</span><span>Just right</span><span>Lots of hens</span></div>
-    </div>
-    <p id="flockSay" class="flock-say"></p>
-    <p class="sheet-note">Chicken keepers say about <b>1 rooster for every 10 hens</b> is best. Roosters are the dads, too: pick one in the incubator and see what the chicks look like!</p>
-    <button id="flockShop" class="slot-btn flock-shop" type="button">Get hens or roosters at the Market</button>
+    <div id="flockRows" class="flock-rows"></div>
+    <p class="sheet-note">Girls lay the eggs and boys are the dads. Every kind of bird has its own best number of boys and girls. Pick a mom and a dad in the incubator to see what their babies might look like!</p>
+    <button id="flockShop" class="slot-btn flock-shop" type="button">Get girls or boys at the Market</button>
   </div>
 </section>
 
@@ -260,6 +247,11 @@
       <p id="cardMood" class="card-mood"></p>
       <p id="cardStats" class="card-stats"></p>
       <div id="growBar" class="grow-bar" hidden><span id="growFill"></span></div>
+      <!-- The genes this bird shows (solid) and secretly carries (dotted) -->
+      <div class="genes">
+        <span class="field-label">Genes</span>
+        <div id="cardGenes" class="gene-row"></div>
+      </div>
       <div class="dress">
         <span class="field-label">Dress up</span>
         <div id="dressRow" class="dress-row"></div>

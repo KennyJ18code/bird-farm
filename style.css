@@ -951,3 +951,51 @@ button:focus-visible { outline: 3px solid var(--straw); outline-offset: 3px; }
   .market-btn { padding: 0 14px; }
   .farm-btn { max-width: 28vw; }
 }
+
+/* ---------- Genes: flock rows, the incubator's odds, gene chips ---------- */
+.flock-rows { display: flex; flex-direction: column; gap: 18px; }
+.flock-row { padding: 14px 16px; border-radius: 18px; background: var(--paper); box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 4px 14px rgba(70, 50, 20, .07); }
+.flock-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.flock-kind { font-size: 19px; font-weight: 900; letter-spacing: -.01em; }
+.flock-row .flock-status { margin: 0; font-size: 17px; }
+.flock-row .flock-count { box-shadow: none; background: var(--fill); padding: 6px 12px; }
+.flock-row .gauge { margin-top: 12px; }
+.flock-row .flock-say { margin-top: 10px; font-size: 15px; }
+.flock-ideal { margin: 4px 0 0; font-size: 13px; font-weight: 800; color: var(--ink-soft); }
+.grid-sub {
+  grid-column: 1 / -1;
+  padding: 6px 4px 0;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.chip-list { display: flex; flex-wrap: wrap; gap: 8px; max-height: 136px; overflow-y: auto; flex: 1 1 300px; padding: 2px; }
+.dad-row { align-items: flex-start; }
+.dad-row .dad-label { width: 38px; padding-top: 10px; }
+.odds { flex-basis: 100%; padding: 12px 14px; border-radius: 16px; background: var(--fill); }
+.odds-head { font-size: 16px; font-weight: 900; margin-bottom: 8px; }
+.odds-row { display: grid; grid-template-columns: 44px 90px 1fr; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; padding: 2px 0; }
+.odds-pct { text-align: right; font-weight: 900; }
+.odds-bar { height: 10px; border-radius: 5px; background: rgba(255, 255, 255, .8); overflow: hidden; }
+.odds-bar i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #F2C14E, #F28A2E); }
+.odds-label { color: var(--ink); }
+.odds-note { margin: 8px 0 0; font-size: 14px; font-weight: 800; color: var(--ink-soft); }
+.pick-egg.go { flex-basis: 100%; justify-content: center; height: 54px; font-size: 17px; background: var(--straw); }
+.pick-egg.go:disabled { background: var(--disabled); }
+.genes { margin-top: 10px; }
+.gene-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.gene-chip {
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #E9F2E0;
+  color: #2F5A22;
+  font-size: 13px;
+  font-weight: 800;
+}
+.gene-chip.carried { background: transparent; color: var(--ink-soft); box-shadow: inset 0 0 0 1.5px rgba(120, 104, 84, .35); border: 0; }
+.gene-chip.plain { background: var(--fill); color: var(--ink-soft); }
+@media (max-height: 560px) {
+  .card.editing .genes { display: none; }
+}
