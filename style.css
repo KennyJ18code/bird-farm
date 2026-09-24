@@ -693,3 +693,182 @@ button:focus-visible { outline: 3px solid var(--straw); outline-offset: 3px; }
 .farm-card .buy { margin-top: 4px; }
 .buy.visit { background: #3E8E4A; }
 .buy.here-btn:disabled { background: var(--straw); color: var(--ink); }
+
+/* ---------- Sticker book button (a red dot when there's a new sticker) ---------- */
+.book-btn { position: relative; }
+.book-btn.new::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--barn);
+  box-shadow: 0 0 0 2px #FFFFFF;
+}
+.book-btn.wiggle { animation: wiggle .7s var(--spring); }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-12deg) scale(1.1); }
+  60% { transform: rotate(9deg) scale(1.08); }
+}
+
+/* a scrolling area inside a sheet */
+.sheet-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  min-height: 0;
+  padding: 2px 2px 6px;
+}
+
+/* ---------- Incubator ---------- */
+.hatch-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+}
+.slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 10px 12px;
+  border-radius: 24px;
+  background: linear-gradient(#FFF7EA, #FFFFFF);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 6px 18px rgba(70, 50, 20, .08);
+}
+.slot.empty { background: var(--fill); box-shadow: none; }
+.slot.ready { box-shadow: 0 0 0 3px var(--straw), 0 6px 22px rgba(242, 193, 78, .45); }
+.slot-egg { width: 150px; height: 120px; max-width: 100%; display: block; cursor: pointer; touch-action: manipulation; }
+.slot-label { font-size: 15px; font-weight: 900; text-align: center; min-height: 1.3em; }
+.slot-bar { width: 100%; height: 8px; border-radius: 4px; background: var(--fill); overflow: hidden; }
+.slot-bar span { display: block; height: 100%; width: 0%; border-radius: 4px; background: linear-gradient(90deg, #F2C14E, #F28A2E); transition: width .4s ease; }
+.slot.empty .slot-bar { visibility: hidden; }
+.slot-btn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: #3E3A36;
+  color: #FFF4D6;
+  font-size: 15px;
+  font-weight: 800;
+}
+.hatch-pick { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 14px; }
+.pick-head { flex-basis: 100%; font-size: 18px; font-weight: 900; }
+.pick-empty { flex-basis: 100%; margin: 0; font-size: 15px; font-weight: 700; color: var(--ink-soft); }
+.pick-egg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 14px 0 10px;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 4px 12px rgba(70, 50, 20, .08);
+  font-size: 15px;
+  font-weight: 800;
+}
+.pick-egg:disabled { opacity: .45; }
+.pick-egg .egg-dot { width: 18px; height: 23px; }
+.pick-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+  padding: 3px 9px;
+  border-radius: 10px;
+  background: var(--barn);
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 900;
+}
+.pick-cost .egg-dot { width: 10px; height: 13px; background: #FFF6E6; }
+
+/* ---------- Candling (dark room, glowing egg) ---------- */
+.candle {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  background: radial-gradient(circle at 50% 55%, #3A2616 0%, #120B06 70%);
+  color: #FFE9C2;
+  text-align: center;
+}
+#candleCanvas { width: 240px; height: 280px; max-height: 55vh; max-width: 100%; }
+.candle-text { margin: 0; max-width: 34ch; font-size: 19px; font-weight: 800; line-height: 1.35; text-wrap: balance; }
+.candle-done {
+  height: 46px;
+  padding: 0 28px;
+  border-radius: 16px;
+  background: #FFE9C2;
+  color: #3A2616;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+/* ---------- Sticker book ---------- */
+.book-count {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--straw);
+  font-size: 14px;
+  font-weight: 900;
+}
+.book-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.sticker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 10px 12px;
+  border-radius: 22px;
+  background: var(--paper);
+  border: 4px solid #FFFFFF;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, .05), 0 8px 18px rgba(70, 50, 20, .12);
+  text-align: center;
+  transform: rotate(-1.5deg);
+}
+.sticker:nth-child(3n) { transform: rotate(1.2deg); }
+.sticker:nth-child(4n) { transform: rotate(-.6deg); }
+.sticker.missing {
+  background: transparent;
+  border: 3px dashed rgba(120, 104, 84, .35);
+  box-shadow: none;
+  transform: none;
+}
+.sticker-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 50px;
+  line-height: 76px;
+  height: 76px;
+}
+.sticker.missing .sticker-emoji, .sticker.missing canvas { filter: grayscale(1); opacity: .35; }
+.sticker-name { font-size: 15px; font-weight: 900; text-wrap: balance; }
+.sticker-fact { font-size: 13px; font-weight: 700; line-height: 1.3; color: var(--ink-soft); text-wrap: pretty; }
+.sticker.missing .sticker-name { color: var(--ink-soft); }
+
+/* ---------- Dress-up buttons on the bird card ---------- */
+.dress { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.dress-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.dress-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--fill);
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 24px;
+  display: grid;
+  place-items: center;
+}
+.dress-btn.none { font-family: var(--font); font-size: 13px; font-weight: 900; color: var(--ink-soft); }
+.dress-btn.on { background: var(--paper); box-shadow: 0 0 0 3px var(--straw); }
+@media (max-height: 560px) {
+  .card.editing .dress { display: none; }
+}

@@ -70,6 +70,7 @@ const SETTINGS = {
   nestBoxHolds: 3,           // eggs that fit in one nest box
   maxDecor: 40,              // decorations allowed in the coop
   maxYardEggs: 14,           // hidden eggs allowed on one farm's ground
+  secondsPerIncubationDay: 7, // how long one "day" in the incubator takes
 };
 
 
@@ -770,7 +771,14 @@ const game = {
   totalEggs: 0,         // every egg ever laid on your farms
   hints: {},            // which tips you've already seen
   muted: false,
+  stickers: {},         // sticker book: which birds you've raised
+  special: {},          // sticker book: special stickers
+  stats: freshStats(),  // things we count for the special stickers
+  bookNew: false,       // a new sticker you haven't looked at yet
 };
+function freshStats() {
+  return { collected: 0, hatched: 0, golden: 0, dressed: 0, rainbows: 0, visitors: 0, seasons: {} };
+}
 
 // Each farm remembers its own birds, eggs, feeder and waterer.
 function newFarmState(id) {
@@ -784,6 +792,7 @@ function newFarmState(id) {
     birds: [],
     yardEggs: [],         // eggs hidden in the grass { id, x, y, breed, golden, glint }
     nestEggs: [],         // eggs in the nest boxes { id, box, breed, golden }
+    incubator: [],        // eggs keeping warm until they hatch { breed, startedAt, crack }
   };
 }
 const farms = {};
@@ -794,7 +803,7 @@ let nextId = 1;
 // Things that only matter while the game is open (never saved)
 const fx = {
   particles: [], grains: [], butterflies: [], fireflies: [], clouds: [],
-  stars: [], flyers: [], crates: [], blades: [], cloudSprites: [],
+  stars: [], flyers: [], crates: [], blades: [], cloudSprites: [], weather: [],
 };
 const shown = { feeder: 1, water: 1 };   // what the troughs LOOK like (they fill up smoothly)
 let scene = "yard";     // "yard" (outside on a farm) or "coop" (inside the Backyard coop)
@@ -886,6 +895,9 @@ function remapWorld(o) {
   for (const b of fx.butterflies) { b.x = mx(b.x); b.y = my(b.y); }
   fx.fireflies = [];
   fx.particles = [];
+  fx.weather = [];
+  hawk = null;
+  if (visitor) { visitor.x = mx(visitor.x); visitor.y = my(visitor.y); visitor.tx = mx(visitor.tx); visitor.ty = my(visitor.ty); }
   // a bird you were carrying gets set down gently
   for (const c of F.birds) if (c.state === "carried") { c.state = "fall"; c.vz = 0; }
 }
@@ -900,11 +912,13 @@ function computePlaces(id) {
     P.tree = { x: W * 0.9, y: hz + g * 0.16, kind: "oak" };
     P.dust = { x: W * 0.8, y: hz + g * 0.26 };
     P.fountain = { x: W * 0.43, y: hz + g * 0.22 };
+    P.incubator = { x: W * 0.36, y: hz + g * 0.54 };
   } else if (id === "pond") {
     P.coop = { x: W * 0.17, y: hz + g * 0.32 };
     P.feeder = { x: W * 0.2, y: hz + g * 0.8 };
     P.water = { x: W * 0.6, y: hz + g * 0.56, rx: W * 0.27, ry: g * 0.24 };
     P.tree = { x: W * 0.93, y: hz + g * 0.12, kind: "willow" };
+    P.incubator = { x: W * 0.08, y: hz + g * 0.58 };
   } else if (id === "meadow") {
     P.coop = { x: W * 0.2, y: hz + g * 0.34 };
     P.feeder = { x: W * 0.55, y: hz + g * 0.76 };
@@ -912,12 +926,14 @@ function computePlaces(id) {
     P.tree = { x: W * 0.9, y: hz + g * 0.15, kind: "apple" };
     P.dust = { x: W * 0.6, y: hz + g * 0.3 };
     P.windmill = { x: W * 0.7, y: hz - 30 };
+    P.incubator = { x: W * 0.37, y: hz + g * 0.56 };
   } else {
     P.coop = { x: W * 0.19, y: hz + g * 0.3 };
     P.feeder = { x: W * 0.22, y: hz + g * 0.8 };
     P.water = { x: W * 0.62, y: hz + g * 0.55, rx: W * 0.28, ry: g * 0.22 };
     P.tree = { x: W * 0.93, y: hz + g * 0.22, kind: "palm" };
     P.tree2 = { x: W * 0.36, y: hz + g * 0.1, kind: "palm" };
+    P.incubator = { x: W * 0.08, y: hz + g * 0.6 };
   }
   return P;
 }
@@ -1013,6 +1029,10 @@ function avoidSpots(x, y, allowWater = false) {
     const s = scaleAt(p.y);
     if (Math.abs(x - p.x) < 44 * s && Math.abs(y - p.y) < 14 * s) y = p.y + 20 * s;
   }
+  if (places.incubator) {
+    const p = places.incubator, s = scaleAt(p.y);
+    if (Math.abs(x - p.x) < 40 * s && Math.abs(y - p.y) < 16 * s) y = p.y + 22 * s;
+  }
   if (!allowWater && inWaterPt(x, y, 1.12)) { const s = shorePoint(x, y); x = s.x; y = s.y; }
   return [clampX(x), clampY(y)];
 }
@@ -1098,6 +1118,7 @@ function makeBird(o = {}) {
     wet: 0, tip: 0, preen: 0, fan: 0, oneLeg: 0,   // swimming, bottoms-up, preening, tail fan, one leg
     enterT: 0, ex0: 0, ey0: 0, pendingYardLay: false, needsSpot: false,
     pile: null, bfly: null, tagRect: null,
+    hat: o.hat || null,               // dress-up: "bow", "tophat", "crown"...
   };
 }
 
@@ -1147,6 +1168,7 @@ function updateNeeds(c, dt) {
   if (naturalWater()) c.water = 1;                     // ponds and lagoons never run dry
   else c.water = clamp(c.water - (dt / SETTINGS.thirstSeconds) * rate);
   c.joy = clamp(c.joy - dt / 300);
+  if (SP(c).swim && isRaining()) c.joy = clamp(c.joy + dt * 0.02);   // ducks LOVE rain
   if (c.growth < 1 && c.food > 0.15 && c.water > 0.15) {
     c.growth = Math.min(1, c.growth + dt / SETTINGS.growUpSeconds);
     if (c.growth >= 1) grewUp(c);
@@ -1194,6 +1216,13 @@ function think(c) {
     return;
   }
   if (c.growth >= 1 && c.eggClock <= 0) { startLaying(c); return; }
+  // Most birds don't like rain, so they go stand under the house or the tree
+  if (isRaining() && dislikesRain(c) && Math.random() < 0.75) {
+    const s = shelterSpot(c);
+    c.goal = "shelter";
+    walkTo(c, s.x, s.y, speedOf(c) * 1.2, false);
+    return;
+  }
   if (!naturalWater() && places.waterer && c.water < 0.45 && F.water > 0.02) { goToTrough(c, "drink"); return; }
   if (c.food < 0.45 && F.feeder > 0.02) { goToTrough(c, "eat"); return; }
   if (isBaby(c) && Math.random() < 0.55) {      // babies love to follow a grown-up around
@@ -1319,6 +1348,8 @@ function arrive(c) {
     case "bed": startEnter(c); return;
     case "layYard": c.state = "layYard"; c.t = rand(4, 6); return;
     case "dust": c.state = "dust"; c.t = rand(4, 7); return;
+    case "hide":
+    case "shelter": c.goal = null; c.state = "idle"; c.t = rand(3, 6); c.flapT = 0.3; return;
     default: {
       const r = Math.random();
       c.goal = null;
@@ -2112,7 +2143,7 @@ function paintWater(g, w, colors) {
 
 // The farm's ground, hills, fence and grass — painted once into bgCanvas
 function buildBackground() {
-  const id = game.farm, SC = SCENERY[id], P = places;
+  const id = game.farm, SC = seasonalScenery(id), P = places;
   const W = view.W, H = view.H, hz = view.horizon;
   bgCanvas.width = worldCanvas.width;
   bgCanvas.height = worldCanvas.height;
@@ -2324,6 +2355,7 @@ function drawSky() {
   gr.addColorStop(1, bot);
   g.fillStyle = gr;
   g.fillRect(0, 0, W, H);
+  if (weather.amount > 0.01) { g.fillStyle = `rgba(120,130,145,${0.5 * weather.amount})`; g.fillRect(0, 0, W, H); }   // gray rainy sky
 
   if (d > 0.05) {
     for (const s of fx.stars) {
@@ -2358,6 +2390,7 @@ function drawSky() {
     g.drawImage(fx.cloudSprites[c.sprite], c.x, c.y, c.w, c.h);
   }
   g.globalAlpha = 1;
+  drawRainbow(g);
 }
 
 
@@ -2367,6 +2400,7 @@ function drawYard(g) {
   if (places.water) drawWaterFx(g);
   if (places.windmill) drawAt(g, places.windmill, drawWindmill);
   drawShadows(g);
+  drawHawkShadow(g);
 
   // Everything is drawn back-to-front, so closer things cover farther things
   const list = [];
@@ -2375,6 +2409,8 @@ function drawYard(g) {
   if (places.waterer) list.push({ y: places.waterer.y, f: () => drawAt(g, places.waterer, drawWaterer, shown.water) });
   for (const t of [places.tree, places.tree2]) if (t) list.push({ y: t.y, f: () => drawAt(g, t, drawTreeKind, t.kind) });
   if (game.farm === "backyard" && F.tier >= 3) list.push({ y: places.fountain.y, f: () => drawAt(g, places.fountain, drawFountain) });
+  list.push({ y: places.incubator.y, f: () => drawAt(g, places.incubator, drawIncubator) });
+  if (visitor) list.push({ y: visitor.y, f: () => drawVisitor(g, visitor) });
   for (const p of fx.grains) list.push({ y: p.y - 1, f: () => drawGrain(g, p) });
   for (const e of F.yardEggs) list.push({ y: e.y, f: () => drawYardEgg(g, e) });
   for (const cr of fx.crates) list.push({ y: cr.y, f: () => drawCrate(g, cr) });
@@ -2384,6 +2420,7 @@ function drawYard(g) {
   for (const it of list) it.f(g);
 
   drawParticles(g);
+  drawWeather(g);
   drawForeground(g);
   lightYard(g);
   drawYardUI(g);
@@ -2783,10 +2820,28 @@ function drawTree(g, apples) {
     g.fillStyle = col;
     for (const [x, y, r] of clusters) { circle(g, x + dx + sway * (y / -240), y + dy, r * k); g.fill(); }
   };
-  layer("#4C8A37", 0, 0, 1);
-  layer("#5FA244", -6, -7, 0.82);
-  layer("#7DBB55", -14, -16, 0.45);
-  if (apples) {
+  const season = seasonOf();
+  if (season === "winter") {        // bare branches with snow on top
+    g.strokeStyle = "#7A5334"; g.lineWidth = 5;
+    g.beginPath();
+    for (const [x0, y0, x1, y1] of [[-44, -150, -80, -190], [-44, -150, -30, -205], [40, -160, 76, -200], [40, -160, 20, -225], [-2, -118, 4, -240]]) { g.moveTo(x0, y0); g.lineTo(x1, y1); }
+    g.stroke();
+    g.fillStyle = "#FFFFFF";
+    for (const [x, y, r] of [[-80, -192, 9], [-30, -207, 8], [76, -202, 9], [20, -227, 8], [4, -242, 9], [-44, -152, 10], [40, -162, 10]]) { ellipse(g, x, y, r, r * 0.5); g.fill(); }
+    return;
+  }
+  const leaves = season === "fall" ? ["#B8561E", "#D9822B", "#F2B84A"] : season === "spring" ? ["#5FA244", "#7DBB55", "#A6D67A"] : ["#4C8A37", "#5FA244", "#7DBB55"];
+  layer(leaves[0], 0, 0, 1);
+  layer(leaves[1], -6, -7, 0.82);
+  layer(leaves[2], -14, -16, 0.45);
+  if (season === "spring") {        // pink blossoms
+    const R = seeded(9);
+    for (let i = 0; i < 26; i++) {
+      const [x, y, r] = clusters[i % clusters.length], a = R() * TAU, d = R() * r * 0.85;
+      g.fillStyle = i % 3 ? "#F7B8CF" : "#FFFFFF"; circle(g, x + Math.cos(a) * d + sway * (y / -240), y + Math.sin(a) * d, 4.5); g.fill();
+    }
+  }
+  if (apples && season !== "spring") {
     const R = seeded(5);
     for (let i = 0; i < 16; i++) {
       const [x, y, r] = clusters[i % clusters.length], a = R() * TAU, d = R() * r * 0.8;
@@ -2799,16 +2854,20 @@ function drawWillow(g) {
   const sway = Math.sin(clock * 0.6) * 3;
   g.fillStyle = "#6E5034";
   g.beginPath(); g.moveTo(-16, 0); g.quadraticCurveTo(-4, -80, -20, -150); g.lineTo(4, -150); g.quadraticCurveTo(12, -80, 18, 0); g.closePath(); g.fill();
-  g.fillStyle = "#6AA34C";
-  for (const [x, y, r] of [[-60, -170, 60], [10, -200, 70], [70, -165, 56], [-10, -150, 60]]) { circle(g, x, y, r); g.fill(); }
-  g.fillStyle = "#86BD5E";
-  for (const [x, y, r] of [[-66, -180, 30], [2, -218, 36], [60, -178, 28]]) { circle(g, x, y, r); g.fill(); }
+  const season = seasonOf(), bare = season === "winter";
+  const pal = season === "fall" ? ["#C9A43A", "#E6C45A", "#D8B448", "#B8902E"] : season === "spring" ? ["#7DBB55", "#A6D67A", "#95CC68", "#7DB35A"] : ["#6AA34C", "#86BD5E", "#7DB35A", "#5E9A44"];
+  if (!bare) {
+    g.fillStyle = pal[0];
+    for (const [x, y, r] of [[-60, -170, 60], [10, -200, 70], [70, -165, 56], [-10, -150, 60]]) { circle(g, x, y, r); g.fill(); }
+    g.fillStyle = pal[1];
+    for (const [x, y, r] of [[-66, -180, 30], [2, -218, 36], [60, -178, 28]]) { circle(g, x, y, r); g.fill(); }
+  }
   // long drooping branches that sway in the breeze
   g.lineCap = "round";
   for (let i = 0; i < 34; i++) {
     const x = -120 + i * 7.3, top = -180 + Math.pow((x - 5) / 120, 2) * 70, len = 90 + ((i * 37) % 40);
     const s = sway * (0.6 + (i % 3) * 0.2);
-    g.strokeStyle = i % 2 ? "#7DB35A" : "#5E9A44"; g.lineWidth = 3.2;
+    g.strokeStyle = bare ? "#9C8C70" : i % 2 ? pal[2] : pal[3]; g.lineWidth = bare ? 1.6 : 3.2;
     g.beginPath(); g.moveTo(x, top); g.quadraticCurveTo(x + s * 0.5, top + len * 0.5, x + s, top + len); g.stroke();
   }
 }
@@ -3117,6 +3176,7 @@ function drawHen(g, c, now) {
     for (const [x, y, r] of [[-6, -12, 8], [1, -15, 8.5], [7, -12, 6], [-11, -6, 6], [-2, -8, 6.5]]) { circle(g, x + w, y, r * combK); g.fill(); }
     g.fillStyle = "rgba(0,0,0,.06)"; circle(g, -2 + w, -9, 5 * combK); g.fill();
   }
+  drawAccessory(g, c, 11.5, 4.6, -3);
   g.restore();
   g.restore();
 }
@@ -3246,6 +3306,7 @@ function drawBaby(g, c, now) {
     g.beginPath(); g.moveTo(hx + 6, hy - 1.5); g.lineTo(hx + 11.5, hy + 0.5 - (c.beakOpen || 0)); g.lineTo(hx + 6, hy + 2.5); g.closePath(); g.fill();
   }
   drawEye(g, c, hx + 3.5, hy - 2, 0.8);
+  g.save(); g.translate(hx, hy); drawAccessory(g, c, 8.2, 3.5, -2); g.restore();
   g.restore();
 }
 
@@ -3293,6 +3354,7 @@ function drawDuck(g, c, B, now) {
   g.beginPath(); g.moveTo(6, -3.5); g.quadraticCurveTo(20, -3.5, 21.5, 1); g.quadraticCurveTo(20, 4.2 + c.beakOpen * 3, 6.5, 3.8); g.closePath(); g.fill();
   g.fillStyle = "rgba(0,0,0,.3)"; circle(g, 19, -0.6, 1.1); g.fill();
   drawEye(g, c, 3, -3, 0.9);
+  drawAccessory(g, c, 10, 3, -3);
   g.restore();
   g.restore();
 }
@@ -3337,6 +3399,7 @@ function drawGoose(g, c, B, now) {
   if (B.knob) { g.fillStyle = B.knob; circle(g, 6, -3.5, 3.2); g.fill(); ellipse(g, 5, 0.5, 2.5, 3.2); g.fill(); }
   if (B.band) { g.fillStyle = B.band; g.fillRect(14.5, -1.5, 2, 4.5); }
   drawEye(g, c, 1.5, -2.5, 0.85);
+  drawAccessory(g, c, 8.5, 1.5, -2.5);
   g.restore();
   g.restore();
 }
@@ -3394,6 +3457,7 @@ function drawQuail(g, c, B, now) {
   g.fillStyle = "#3A3230";
   g.beginPath(); g.moveTo(5, -1.2); g.lineTo(10.5, 0.6 - c.beakOpen); g.lineTo(5, 2.4); g.closePath(); g.fill();
   drawEye(g, c, 3, -1.4, 0.62);
+  drawAccessory(g, c, 6.8, 3, -1.4);
   g.restore();
   g.restore();
 }
@@ -3429,6 +3493,7 @@ function drawGuinea(g, c, B, now) {
   g.fillStyle = B.wattle; ellipse(g, 4, 6.5, 1.8, 3); g.fill();
   g.fillStyle = B.beak; g.beginPath(); g.moveTo(4.5, -1.5); g.lineTo(10, 0.5 - c.beakOpen); g.lineTo(4.5, 2.5); g.closePath(); g.fill();
   drawEye(g, c, 2, -1.5, 0.7);
+  drawAccessory(g, c, 6.2, 2, -1.5);
   g.restore();
   g.restore();
 }
@@ -3480,6 +3545,7 @@ function drawPheasant(g, c, B, now) {
   if (B.wattle) { g.fillStyle = B.wattle; ellipse(g, 3.5, 0, 4.5, 4.4); g.fill(); }
   g.fillStyle = B.beak; g.beginPath(); g.moveTo(5.5, -1); g.lineTo(11.5, 1 - c.beakOpen); g.lineTo(5.5, 3); g.closePath(); g.fill();
   drawEye(g, c, 3.2, -1.2, 0.7);
+  drawAccessory(g, c, 7.5, 3.2, -1.2);
   g.restore();
   g.restore();
 }
@@ -3537,6 +3603,7 @@ function drawTurkey(g, c, B, now) {
   ellipse(g, 1, 7, 3.2, 5.5 * lerp(1, 1.3, fan)); g.fill();
   g.fillStyle = B.beak; g.beginPath(); g.moveTo(4.5, -1); g.lineTo(9.5, 1 - c.beakOpen); g.lineTo(4.5, 3); g.closePath(); g.fill();
   drawEye(g, c, 1.5, -2, 0.62);
+  drawAccessory(g, c, 6.5, 1.5, -2);
   g.restore();
   g.restore();
 }
@@ -3573,6 +3640,7 @@ function drawFlamingo(g, c, B, now) {
   g.beginPath(); g.moveTo(13, 4); g.quadraticCurveTo(13.5, 7, 11, 10); g.lineTo(9, 9.5); g.quadraticCurveTo(10.5, 7, 10.5, 4.5); g.closePath(); g.fill();
   if (c.sleep > 0.5 || c.blink > 0) drawEye(g, c, 1.5, -1.5, 0.6);
   else { g.fillStyle = B.eye; circle(g, 1.5, -1.5, 1.8); g.fill(); g.fillStyle = "#1E1E22"; circle(g, 1.7, -1.5, 0.9); g.fill(); }
+  drawAccessory(g, c, 6.5, 1.5, -1.5);
   g.restore();
   g.restore();
 }
@@ -3646,6 +3714,7 @@ function drawPeacock(g, c, B, now) {
   }
   g.fillStyle = "#C9BBA8"; g.beginPath(); g.moveTo(5, -1); g.lineTo(10.5, 0.8 - c.beakOpen); g.lineTo(5, 2.6); g.closePath(); g.fill();
   drawEye(g, c, 2.2, -1.2, 0.65);
+  drawAccessory(g, c, 6.8, 2.2, -1.2);
   g.restore();
   g.restore();
 }
@@ -3722,6 +3791,7 @@ function lightYard(g) {
   const d = darkness(), w = warmth();
   g.save();
   if (w > 0.01) { g.globalCompositeOperation = "source-atop"; g.fillStyle = `rgba(255,150,80,${0.16 * w})`; g.fillRect(-100, -100, view.W + 200, view.H + 200); }
+  if (weather.amount > 0.01) { g.globalCompositeOperation = "source-atop"; g.fillStyle = `rgba(70,80,100,${0.24 * weather.amount})`; g.fillRect(-100, -100, view.W + 200, view.H + 200); }
   if (d > 0.01) { g.globalCompositeOperation = "source-atop"; g.fillStyle = `rgba(16,24,62,${0.6 * d})`; g.fillRect(-100, -100, view.W + 200, view.H + 200); }
   g.globalCompositeOperation = "lighter";
   if (d > 0.05) {
@@ -3761,6 +3831,7 @@ function drawYardUI(g) {
     g.fillText(label, p.x + 11, p.y - h / 2 + 1);
     badgeRect = { x: p.x - w / 2 - 8, y: p.y - h - 8, w: w + 16, h: h + 18 };
   }
+  if (F.incubator.some((e) => eggReady(e) && !e.baby)) bubble(g, places.incubator, 72, 0, "🐣");
   bubble(g, places.feeder, 108, F.feeder, "🌽");
   if (places.waterer) bubble(g, places.waterer, 108, F.water, "💧");
 }
@@ -4242,6 +4313,8 @@ function hitYard(p) {
     const sc = scaleAt(place.y);
     return Math.abs(p.x - place.x) < halfW * sc && p.y < place.y + 12 * sc && p.y > place.y - (up + extraUp) * sc;
   };
+  if (visitorHit(p)) return { kind: "visitor" };
+  if (inBox(places.incubator, 38, 64, F.incubator.some((e) => eggReady(e) && !e.baby) ? 50 : 0)) return { kind: "incubator" };
   if (inBox(places.feeder, 44, 92, F.feeder < 0.25 ? 50 : 0)) return { kind: "feeder" };
   if (places.waterer && inBox(places.waterer, 40, 92, F.water < 0.25 ? 50 : 0)) return { kind: "waterer" };
   const geo = houseGeo(), f = rampFoot();
@@ -4268,6 +4341,8 @@ function tapYard(hit, p) {
     case "feeder": fillFeeder(); break;
     case "waterer": fillWaterer(); break;
     case "house": tapHouse(); break;
+    case "incubator": openIncubator(); break;
+    case "visitor": tapVisitor(visitor); break;
     default: tapGround(p);
   }
 }
@@ -4458,6 +4533,8 @@ function sendEggToBasket(from, breed, golden, delay = 0, wx, wy) {
   const r = basketEgg.getBoundingClientRect();
   const value = eggValueOf(breed, golden);
   game.eggs += value;
+  game.stats.collected++;
+  if (golden) game.stats.golden++;
   fx.flyers.push({ sx: from.x, sy: from.y, ex: r.left + r.width / 2, ey: r.top + r.height / 2, t: delay, dur: 0.72, breed, golden, value, done: false });
   Sound.pop(-delay);
   if (value > 1 && wx != null) {
@@ -4508,7 +4585,8 @@ function updateHud() {
 }
 function updateFarmBtn() {
   farmNameEl.textContent = FARMS[game.farm].name;
-  const waiting = FARM_ORDER.some((id) => id !== game.farm && farms[id].unlocked && farms[id].nestEggs.length + farms[id].yardEggs.length > 0);
+  const waiting = FARM_ORDER.some((id) => id !== game.farm && farms[id].unlocked &&
+    (farms[id].nestEggs.length + farms[id].yardEggs.length > 0 || farms[id].incubator.some(eggReady)));
   farmBtn.classList.toggle("has-eggs", waiting);
 }
 function bumpBasket() {
@@ -4564,7 +4642,7 @@ window.addEventListener("keydown", (e) => {
   if (!started && (e.key === "Enter" || e.key === " ")) begin();
 });
 // Pull a sheet down to close it, like on an iPhone
-for (const sheet of [marketSheet, mapSheet, cardSheet]) {
+for (const sheet of document.querySelectorAll(".sheet")) {
   let startY = null, dy = 0;
   const grab = (e) => {
     if (e.target.closest("button, input")) return;
@@ -4799,7 +4877,8 @@ function leaveFarm() {
     c.state = "idle"; c.t = rand(0.3, 1.5);
   }
   for (const cr of fx.crates) if (!cr.opened) addBirdToFarm(game.farm, cr.breed, 0.12).needsSpot = true;
-  fx.crates = []; fx.grains = []; fx.butterflies = []; fx.fireflies = []; fx.particles = []; fx.flyers.forEach((f) => { f.t = f.dur; });
+  fx.crates = []; fx.grains = []; fx.butterflies = []; fx.fireflies = []; fx.particles = []; fx.weather = [];
+  visitor = null; hawk = null; fx.flyers.forEach((f) => { f.t = f.dur; });
   Music.radioOn = false; Music.discoOn = false;
 }
 // Wake up the birds on the farm we've arrived at
@@ -4825,6 +4904,7 @@ let cardBird = null, cardTimer = 0;
 function openCard(c) {
   cardBird = c;
   nameInput.value = c.name;
+  renderDress();
   nameClear.hidden = true;
   nameDone.hidden = true;
   updateCardText();
@@ -4935,6 +5015,8 @@ function pickCoach() {
     if (!H.feeder && F.feeder < 0.25) return showCoach("feeder", "The feeder is almost empty. Tap it to fill it up", at(places.feeder.x, places.feeder.y - 150 * scaleAt(places.feeder.y)), false, () => F.feeder < 0.25);
     if (!H.water && places.waterer && F.water < 0.25) return showCoach("water", "The waterer is almost empty. Tap it to fill it up", at(places.waterer.x, places.waterer.y - 150 * scaleAt(places.waterer.y)), false, () => F.water < 0.25);
     if (!H.map && !farms.pond.unlocked && game.eggs >= FARMS.pond.price) return showCoach("map", "You can unlock the Duck Pond! Tap here", below(farmBtn), true, () => !farms.pond.unlocked);
+    if (!H.incubator && H.treat && game.totalEggs >= 3 && F.birds.some((c) => c.growth >= 1) && game.eggs >= 1 && !isBedtime())
+      return showCoach("incubator", "Try hatching an egg! Tap the incubator", at(places.incubator.x, places.incubator.y - 70 * scaleAt(places.incubator.y)));
     if (!H.market && game.eggs >= 8 && F.birds.length < capacity()) return showCoach("market", "You have enough eggs for a new baby bird!", below(marketBtn, -110), true);
     if (!H.door && game.farm === "backyard" && isBedtime() && allInside() && !F.doorClosed) return showCoach("door", "Everyone's inside. Tap the coop to close the door", () => { const p = badgePos(); return w2s(p.x, p.y - (F.nestEggs.length ? 44 : 0)); }, false, () => isBedtime() && !F.doorClosed);
     const someone = F.birds.find((o) => o.loc === "yard" && !isBaby(o) && o.state !== "enter" && o.state !== "exit");
@@ -5052,11 +5134,995 @@ for (const type of ["pointerup", "touchend", "click", "keydown"]) {
   window.addEventListener(type, () => { if (!Sound.ctx || Sound.ctx.state !== "running") Sound.unlock(); }, { capture: true, passive: true });
 }
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") { if (started) { keepAwake(); Sound.unlock(); } lastFrame = performance.now(); }
-  else save();
+  if (document.visibilityState === "visible") {
+    if (started) { keepAwake(); Sound.unlock(); }
+    lastFrame = performance.now();
+    catchUpAfterBackground();
+  } else {
+    hiddenAt = Date.now();
+    save();
+  }
 });
 window.addEventListener("pagehide", () => save());
 
+
+// How many days each kind of egg really takes to hatch
+const INCUBATION_DAYS = { chicken: 21, duck: 28, goose: 30, quail: 17, guinea: 27, pheasant: 24, turkey: 28, flamingo: 28, peafowl: 28 };
+for (const k in INCUBATION_DAYS) SPECIES[k].incubate = INCUBATION_DAYS[k];
+BREEDS.muteSwan.incubate = 36; BREEDS.blackSwan.incubate = 36; BREEDS.california.incubate = 22; BREEDS.goldenPh.incubate = 23;
+window.addEventListener("keydown", (e) => { if (e.key === "Escape" && candleEgg) closeCandle(); });
+let stickerT = 1;
+
+/* ================================================================
+   19. HATCHING EGGS (the incubator)
+   ================================================================
+   Every farm has a little incubator: a warm box that keeps eggs cozy
+   until they hatch. Put in an egg from one of your grown-up birds,
+   wait for it to grow (each kind of egg takes its real number of
+   days: 21 for chickens, 28 for ducks...), peek inside with a light
+   ("candling"), then tap the egg to help the baby hatch!
+*/
+const INCUBATOR_SLOTS = 3;
+const hatchSheet = $("hatch");
+const hatchSlotsEl = $("hatchSlots");
+const hatchPickEl = $("hatchPick");
+const hatchNote = $("hatchNote");
+const candleEl = $("candle");
+const candleCanvas = $("candleCanvas");
+const candleText = $("candleText");
+
+const incubateDays = (breed) => BREEDS[breed].incubate || SPECIES[BREEDS[breed].species].incubate || 21;
+const incubateSeconds = (breed) => incubateDays(breed) * SETTINGS.secondsPerIncubationDay;
+const eggProgress = (e) => clamp((Date.now() - e.startedAt) / 1000 / incubateSeconds(e.breed));
+const eggDay = (e) => Math.min(incubateDays(e.breed), Math.floor(eggProgress(e) * incubateDays(e.breed)) + 1);
+const eggReady = (e) => eggProgress(e) >= 1;
+const roomToHatch = () => capacity() - birdCount(game.farm) - F.incubator.filter((e) => !e.baby).length;
+
+let slotViews = [];    // the picture + words for each incubator slot
+let candleEgg = null;  // the egg you're peeking into
+
+function openIncubator() {
+  renderHatch();
+  showSheet(hatchSheet);
+  dismissCoach("incubator");
+  Sound.tick();
+}
+function renderHatch() {
+  const kinds = [...new Set(F.birds.filter((c) => c.growth >= 1).map((c) => c.breed))];
+  // e.g. "Chicks take 21 days and ducklings take 28" (just like on a real farm)
+  const seen = new Set(), parts = [];
+  for (const k of kinds) {
+    const words = `${babyWord(k)}s take ${incubateDays(k)} days`;
+    if (!seen.has(words)) { seen.add(words); parts.push(words); }
+  }
+  const list = parts.slice(0, 3);
+  const said = list.length > 1 ? `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}` : list[0] || "";
+  hatchNote.textContent = `Eggs have to stay warm until they hatch.${said ? " " + said.charAt(0).toUpperCase() + said.slice(1) + "." : ""} Each day goes by in just a few seconds here.`;
+  hatchSlotsEl.textContent = "";
+  slotViews = [];
+  for (let i = 0; i < INCUBATOR_SLOTS; i++) {
+    const e = F.incubator[i];
+    const card = el("div", "slot" + (e ? "" : " empty"));
+    const cv = el("canvas", "slot-egg");
+    const label = el("div", "slot-label");
+    const bar = el("div", "slot-bar"), fill = el("span");
+    bar.append(fill);
+    const row = el("div", "slot-actions");
+    card.append(cv, label, bar, row);
+    if (e) {
+      cv.addEventListener("click", () => tapSlotEgg(e));
+      const look = el("button", "slot-btn", "🔦 Look inside");
+      look.type = "button";
+      look.addEventListener("click", () => openCandle(e));
+      row.append(look);
+    }
+    hatchSlotsEl.append(card);
+    slotViews.push({ e, cv, card, label, fill, row, idx: i });
+  }
+  renderPick();
+  updateSlotText();
+}
+function updateSlotText() {
+  for (const v of slotViews) {
+    const e = v.e;
+    if (!e) { v.label.textContent = "Empty"; continue; }
+    const ready = eggReady(e) || e.baby;
+    v.card.classList.toggle("ready", !!ready);
+    v.fill.style.width = `${Math.round(eggProgress(e) * 100)}%`;
+    if (e.baby) v.label.textContent = `Welcome, ${e.baby.name}! 🐣`;
+    else if (ready) v.label.textContent = e.crack ? "Keep tapping!" : "Ready! Tap the egg to help";
+    else v.label.textContent = `Day ${eggDay(e)} of ${incubateDays(e.breed)}`;
+    v.row.hidden = !!ready;
+  }
+}
+function renderPick() {
+  hatchPickEl.textContent = "";
+  const free = F.incubator.length < INCUBATOR_SLOTS, room = roomToHatch();
+  const kinds = [...new Set(F.birds.filter((c) => c.growth >= 1).map((c) => c.breed))];
+  hatchPickEl.append(el("div", "pick-head", free ? "Choose an egg to keep warm" : "All three spots are full"));
+  if (!kinds.length) { hatchPickEl.append(el("p", "pick-empty", "When your birds grow up, you can hatch their eggs here.")); return; }
+  if (room <= 0) hatchPickEl.append(el("p", "pick-empty", `There's no room in the ${houseName()} for another baby right now.`));
+  for (const k of kinds) {
+    const B = BREEDS[k], cost = eggValueOf(k, false);
+    const b = el("button", "pick-egg");
+    b.type = "button";
+    const dot = el("i", "egg-dot");
+    dot.style.background = B.egg.color;
+    const price = el("span", "pick-cost");
+    price.append(el("i", "egg-dot"), document.createTextNode(String(cost)));
+    b.append(dot, el("span", "pick-name", B.name), price);
+    b.setAttribute("aria-label", `Put a ${B.name} egg in the incubator for ${cost} ${cost === 1 ? "egg" : "eggs"}`);
+    b.disabled = !free || room <= 0 || game.eggs < cost;
+    b.addEventListener("click", () => addToIncubator(k));
+    hatchPickEl.append(b);
+  }
+}
+function addToIncubator(k) {
+  const cost = eggValueOf(k, false);
+  if (F.incubator.length >= INCUBATOR_SLOTS || roomToHatch() <= 0 || game.eggs < cost) return;
+  spend(cost);
+  F.incubator.push({ breed: k, startedAt: Date.now(), crack: 0, wobble: 0.8 });
+  Sound.chime();
+  renderHatch();
+  save();
+}
+// Tapping an egg: a gentle wiggle, or (when it's ready) a crack!
+function tapSlotEgg(e) {
+  if (e.baby) return;
+  if (!eggReady(e)) { e.wobble = 0.7; Sound.tick(); return; }
+  e.crack = (e.crack || 0) + 1;
+  e.wobble = 1;
+  Sound.crack(e.crack);
+  if (e.crack >= 3) hatchBaby(e);
+  updateSlotText();
+}
+function hatchBaby(e) {
+  const P = places.incubator, sc = scaleAt(P.y), B = BREEDS[e.breed];
+  const c = makeBird({ breed: e.breed, growth: 0.12, food: 0.95, water: 0.95, joy: 0.95, x: clampX(P.x + rand(40, 80) * sc), y: clampY(P.y + rand(16, 44) * sc) });
+  c.tagT = 5; c.vz = 170 * sc; c.state = "idle"; c.t = 1.5;
+  F.birds.push(c);
+  e.baby = c;
+  e.popAt = clock;
+  game.stats.hatched++;
+  Sound.call(c, panX(P.x));
+  Sound.fanfare();
+  confetti(P.x, P.y, 50 * sc, 24, sc);
+  toast(`Welcome, ${c.name}! A brand-new ${B.name} ${babyWord(e.breed)} 🐣`, 3200);
+  save();
+  const farm = F;   // remember which farm, in case you travel in the next second
+  setTimeout(() => {
+    farm.incubator = farm.incubator.filter((x) => x !== e);
+    if (openSheet === hatchSheet && farm === F) renderHatch();
+    save();
+  }, 1800);
+}
+function updateIncubators(dt) {
+  for (const e of F.incubator) if (e.wobble > 0) e.wobble = Math.max(0, e.wobble - dt * 1.5);
+}
+
+// ---------- Drawing an egg in its incubator spot ----------
+function drawHatchSlots() {
+  for (const v of slotViews) drawSlotEgg(v);
+}
+function drawSlotEgg(v) {
+  const { g, dpr } = prepCanvas(v.cv, 150, 120);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const e = v.e;
+  if (e) glow(g, 75, 78, 80, "rgba(255,180,90,.5)");            // the warm lamp
+  g.fillStyle = "#E9C872"; ellipse(g, 75, 106, 50, 11); g.fill();  // straw
+  g.strokeStyle = "#D4AC4E"; g.lineWidth = 1.6; g.lineCap = "round";
+  for (let i = 0; i < 12; i++) { const x = 32 + i * 7.5; g.beginPath(); g.moveTo(x, 106); g.lineTo(x + (i % 2 ? 6 : -6), 99 - (i % 3) * 2); g.stroke(); }
+  if (!e) {       // an empty spot: a dotted outline of an egg
+    g.save(); g.translate(75, 104); g.setLineDash([5, 5]); eggPath(g, 22, 30);
+    g.strokeStyle = "rgba(120,100,70,.4)"; g.lineWidth = 2; g.stroke(); g.restore();
+    return;
+  }
+  const sz = SPECIES[BREEDS[e.breed].species].egg, k = 30 / sz[1];
+  if (e.baby) {   // POP! The shell falls apart and the baby appears
+    const t = clock - e.popAt;
+    g.save(); g.translate(75, 104);
+    for (const side of [-1, 1]) {
+      g.save(); g.translate(side * (8 + t * 60), -30 + t * t * 140); g.rotate(side * t * 3);
+      g.fillStyle = BREEDS[e.breed].egg.color;
+      g.beginPath(); g.moveTo(-sz[0] * k * 0.5 * side, 0); g.lineTo(sz[0] * k * side * 0.5, -6); g.lineTo(sz[0] * k * side * 0.5, 8); g.closePath(); g.fill();
+      g.restore();
+    }
+    const pop = easeOut(clamp(t / 0.4));
+    g.scale(2.2 * pop, 2.2 * pop);
+    drawBaby(g, Object.assign({}, e.baby, { dir: 1, z: 0, moving: false, headUp: 0.4 }), clock);
+    g.restore();
+    return;
+  }
+  const ready = eggReady(e);
+  const rock = ready ? Math.sin(clock * 9) * 0.1 * (Math.sin(clock * 1.7) > 0.2 ? 1 : 0) : Math.sin(clock * 0.8 + v.idx) * 0.05;
+  const wob = e.wobble > 0 ? Math.sin(clock * 34) * 0.16 * e.wobble : 0;
+  g.save();
+  g.translate(75, 104);
+  g.rotate(rock + wob);
+  drawEgg(g, e.breed, false, k);
+  const rx = sz[0] * k, ry = sz[1] * k;
+  // cracks
+  g.strokeStyle = "rgba(60,40,20,.8)"; g.lineWidth = 1.6; g.lineJoin = "round";
+  if (e.crack >= 1) { g.beginPath(); g.moveTo(-rx * 0.8, -ry * 1.15); g.lineTo(-rx * 0.4, -ry * 1.25); g.lineTo(-rx * 0.1, -ry * 1.1); g.lineTo(rx * 0.25, -ry * 1.28); g.stroke(); }
+  if (e.crack >= 2) {
+    g.beginPath(); g.moveTo(rx * 0.25, -ry * 1.28); g.lineTo(rx * 0.55, -ry * 1.12); g.lineTo(rx * 0.85, -ry * 1.22); g.stroke();
+    g.fillStyle = "#2A1D16"; ellipse(g, rx * 0.1, -ry * 1.3, rx * 0.22, ry * 0.12); g.fill();       // a little hole...
+    g.fillStyle = "#F2B24A"; g.beginPath(); g.moveTo(rx * 0.02, -ry * 1.34); g.lineTo(rx * 0.28, -ry * 1.3); g.lineTo(rx * 0.04, -ry * 1.24); g.closePath(); g.fill(); // ...and a tiny beak!
+  }
+  g.restore();
+  if (ready && !e.crack) { g.fillStyle = `rgba(255,236,160,${0.6 + 0.4 * Math.sin(clock * 5)})`; drawStar(g, 108, 36, 8); drawStar(g, 44, 50, 5); }
+}
+
+// ---------- Candling: shine a light through the egg to see inside ----------
+const CANDLE_WORDS = [
+  "Tiny red veins are spreading out. The heart is already beating!",
+  "See the dark spot? That's the baby, and its little eye!",
+  "The baby fills most of the egg now. Watch it wiggle!",
+  "Almost ready! The baby is getting set to peck its way out.",
+];
+function candleStage(p) { return p < 0.25 ? 0 : p < 0.55 ? 1 : p < 0.85 ? 2 : 3; }
+function openCandle(e) {
+  candleEgg = e;
+  candleEl.hidden = false;
+  updateCandleText();
+  Sound.tick();
+}
+function closeCandle() { candleEgg = null; candleEl.hidden = true; }
+function updateCandleText() {
+  if (!candleEgg) return;
+  const e = candleEgg;
+  candleText.textContent = `Day ${eggDay(e)} of ${incubateDays(e.breed)}. ${CANDLE_WORDS[candleStage(eggProgress(e))]}`;
+}
+$("candleDone").addEventListener("click", closeCandle);
+candleEl.addEventListener("click", (ev) => { if (ev.target === candleEl) closeCandle(); });
+function drawCandle() {
+  if (!candleEgg) return;
+  const { g, dpr } = prepCanvas(candleCanvas, 240, 280);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const e = candleEgg, p = eggProgress(e), st = candleStage(p);
+  const sz = SPECIES[BREEDS[e.breed].species].egg, k = 108 / sz[1], rx = sz[0] * k, ry = sz[1] * k;
+  const beat = 1 + 0.18 * Math.max(0, Math.sin(clock * 8));
+  glow(g, 120, 262, 170, "rgba(255,170,70,.4)");
+  g.save();
+  g.translate(120, 262);
+  eggPath(g, rx, ry);
+  g.save();
+  g.clip();
+  const gr = g.createRadialGradient(0, -ry * 0.7, 6, 0, -ry * 0.9, ry * 1.3);
+  gr.addColorStop(0, "#FFE9B8"); gr.addColorStop(0.55, "#F7A94A"); gr.addColorStop(1, "#B8581C");
+  g.fillStyle = gr; g.fillRect(-rx - 4, -ry * 2 - 4, rx * 2 + 8, ry * 2 + 8);
+  g.fillStyle = "rgba(255,248,225,.55)";                     // the air pocket at the top
+  ellipse(g, 0, -ry * 1.86, rx * 0.72, ry * 0.2); g.fill();
+  const cx = 0, cy = -ry * 0.95;
+  g.strokeStyle = `rgba(170,30,25,${st === 3 ? 0.25 : 0.55})`; g.lineWidth = 2; g.lineCap = "round";
+  const R = seeded(7);
+  for (let i = 0; i < 10; i++) {                             // veins
+    const a = (i / 10) * TAU + R() * 0.3, len = ry * (0.5 + R() * 0.35) * clamp(0.4 + p * 2);
+    g.beginPath(); g.moveTo(cx, cy);
+    g.quadraticCurveTo(cx + Math.cos(a + 0.5) * len * 0.5, cy + Math.sin(a + 0.5) * len * 0.5, cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+    g.stroke();
+  }
+  g.fillStyle = "rgba(60,25,10,.85)";                        // the baby
+  if (st === 0) { g.fillStyle = "#C8261E"; circle(g, cx, cy, 5 * beat); g.fill(); }
+  else if (st === 1) { circle(g, cx, cy, 18); g.fill(); g.fillStyle = "rgba(20,8,4,.9)"; circle(g, cx + 6, cy - 4, 4); g.fill(); }
+  else if (st === 2) { ellipse(g, cx, cy, rx * 0.5, ry * 0.5, 0.4); g.fill(); g.fillStyle = "rgba(20,8,4,.9)"; circle(g, cx + rx * 0.2, cy - ry * 0.2, 6); g.fill(); }
+  else {
+    ellipse(g, cx, cy + ry * 0.05, rx * 0.8, ry * 0.78, 0.3); g.fill();
+    g.fillStyle = "rgba(20,8,4,.9)"; circle(g, cx + rx * 0.25, cy - ry * 0.35, 7); g.fill();
+    g.beginPath(); g.moveTo(cx + rx * 0.45, cy - ry * 0.4); g.lineTo(cx + rx * 0.62, cy - ry * 0.34); g.lineTo(cx + rx * 0.45, cy - ry * 0.28); g.closePath(); g.fill();
+  }
+  if (st >= 1) { g.fillStyle = `rgba(200,30,25,${0.7 * (beat - 1) / 0.18})`; circle(g, cx - 4, cy + 10, 4); g.fill(); }  // heartbeat
+  g.restore();
+  g.lineWidth = 3; g.strokeStyle = "rgba(255,236,190,.7)"; eggPath(g, rx, ry); g.stroke();
+  g.restore();
+}
+
+// ---------- The incubator out on the farm ----------
+function drawIncubator(g) {
+  const eggs = F.incubator, warm = eggs.length > 0;
+  g.fillStyle = "#8A5A36"; roundRect(g, -30, -20, 60, 20, 5); g.fill();                 // wooden base
+  g.fillStyle = "#A87447"; roundRect(g, -30, -20, 60, 6, 3); g.fill();
+  g.fillStyle = "#E9C872"; ellipse(g, 0, -20, 26, 5); g.fill();                         // straw
+  eggs.slice(0, 3).forEach((e, i) => {
+    const sz = SPECIES[BREEDS[e.breed].species].egg[1];
+    g.save(); g.translate((i - 1) * 14, -18);
+    g.rotate(eggReady(e) ? Math.sin(clock * 9 + i) * 0.12 : Math.sin(clock * 0.8 + i) * 0.06);
+    drawEgg(g, e.breed, false, 8 / sz); g.restore();
+  });
+  // glass dome
+  g.fillStyle = warm ? "rgba(255,214,150,.3)" : "rgba(220,238,250,.35)";
+  g.beginPath(); g.ellipse(0, -20, 28, 30, 0, Math.PI, 0); g.closePath(); g.fill();
+  g.strokeStyle = "rgba(255,255,255,.85)"; g.lineWidth = 2;
+  g.beginPath(); g.ellipse(0, -20, 28, 30, 0, Math.PI, 0); g.stroke();
+  g.strokeStyle = "rgba(255,255,255,.7)"; g.lineWidth = 2.5;
+  g.beginPath(); g.arc(0, -20, 20, Math.PI * 1.15, Math.PI * 1.45); g.stroke();
+  // the little heat lamp on top
+  g.fillStyle = "#6E6A66"; g.fillRect(-2, -56, 4, 8);
+  g.fillStyle = warm ? "#FF7A3A" : "#B9B2AA"; ellipse(g, 0, -58, 8, 5); g.fill();
+  if (warm) { g.save(); g.globalCompositeOperation = "lighter"; glow(g, 0, -30, 34, "rgba(255,150,70,.35)"); g.restore(); }
+}
+
+
+/* ================================================================
+   20. THE STICKER BOOK
+   ================================================================
+   Every kind of bird you raise earns a sticker with a true fact about
+   it. There are special stickers too, for things like your first
+   hatch or spotting a rainbow.
+*/
+const FACTS = {
+  rir: "The Rhode Island Red is the official state bird of Rhode Island!",
+  buff: "Buff Orpingtons are so gentle, people call them the golden retrievers of chickens.",
+  barred: "Barred Rock chicks are black with a little white spot on top of their heads.",
+  leghorn: "A White Leghorn can lay about 280 eggs in a year. That's almost one a day!",
+  australorp: "A Black Australorp once laid 364 eggs in 365 days!",
+  wyandotte: "Every Wyandotte feather is outlined in black, like someone drew it with a pen.",
+  sussex: "Speckled Sussex get MORE white speckles every time they grow new feathers.",
+  cochin: "Cochins have fluffy feathers all the way down their feet, like fuzzy slippers.",
+  easter: "Easter Eggers lay blue or green eggs, and the color goes all the way through the shell!",
+  polish: "Polish chickens have such big pom-poms that they can't see very well above them.",
+  marans: "Marans lay some of the darkest eggs of any chicken, as brown as chocolate.",
+  olive: "Olive Eggers get their green eggs from a blue-egg parent and a dark-brown-egg parent.",
+  silkie: "Silkies have black skin, fur-like feathers, and five toes instead of four!",
+  pekin: "Pekin ducks came from China, and they're the most common farm duck in America.",
+  mallard: "Almost every farm duck in the world comes from wild Mallards.",
+  runner: "Indian Runners can't fly, so they run everywhere standing straight up!",
+  swedish: "Swedish Blue ducks wear a white bib on their chest.",
+  call: "Call ducks are tiny but LOUD. Hunters used them to call wild ducks.",
+  embden: "Geese make great guards. They honk loudly when strangers come near!",
+  muteSwan: "Mute swans aren't really quiet. They hiss, snort and grunt!",
+  blackSwan: "Black swans come from Australia, and their babies are fluffy and gray.",
+  coturnix: "Quail eggs are so small that five of them weigh about the same as one chicken egg.",
+  california: "The California Quail is the state bird of California. Look at that bouncy topknot!",
+  guinea: "Guinea fowl love eating bugs and ticks, and they shout when anything surprises them.",
+  ringneck: "Boy pheasants are colorful, but girl pheasants are brown so they can hide in the grass.",
+  goldenPh: "Golden Pheasants come from the mountain forests of China.",
+  turkey: "A turkey's head can turn red, white or blue when it gets excited!",
+  flamingo: "Flamingos are pink from the shrimp and algae they eat. Their babies are gray!",
+  peacock: "Only the boys are peacocks. Girls are peahens, and the babies are peachicks!",
+  whitePeacock: "White peacocks aren't albinos. Their feathers just have no color at all.",
+};
+
+const SPECIAL_STICKERS = [
+  { id: "firstEgg", emoji: "🥚", name: "First Egg", how: "Collect your very first egg", done: () => game.stats.collected >= 1 },
+  { id: "hatch", emoji: "🐣", name: "First Hatch", how: "Hatch an egg in the incubator", done: () => game.stats.hatched >= 1 },
+  { id: "golden", emoji: "✨", name: "Golden Egg", how: "Find a golden egg", done: () => game.stats.golden >= 1 },
+  { id: "fashion", emoji: "🎀", name: "Fashion Show", how: "Dress up one of your birds", done: () => game.stats.dressed >= 1 },
+  { id: "rainbow", emoji: "🌈", name: "Rainbow Chaser", how: "See a rainbow after the rain", done: () => game.stats.rainbows >= 1 },
+  { id: "friend", emoji: "🐈", name: "Farm Friend", how: "Say hi to a visiting animal", done: () => game.stats.visitors >= 1 },
+  { id: "eggs100", emoji: "💯", name: "Egg Champion", how: "Collect 100 eggs", done: () => game.stats.collected >= 100 },
+  { id: "seasons", emoji: "❄️", name: "All Year Round", how: "Play through all four seasons", done: () => Object.keys(game.stats.seasons).length >= 4 },
+  { id: "explorer", emoji: "🗺️", name: "Explorer", how: "Unlock all four farms", done: () => FARM_ORDER.every((id) => farms[id].unlocked) },
+  { id: "palace", emoji: "👑", name: "Palace Builder", how: "Build the Chicken Palace", done: () => farms.backyard.tier >= 3 },
+];
+
+const bookSheet = $("book");
+const bookGrid = $("bookGrid");
+const bookCount = $("bookCount");
+const bookBtn = $("bookBtn");
+
+// Award any stickers you've earned. The first time the game loads, it
+// quietly gives you stickers for the birds you already have.
+function checkStickers(quiet) {
+  let fresh = null;
+  for (const id of FARM_ORDER) for (const c of farms[id].birds) {
+    if (!game.stickers[c.breed]) { game.stickers[c.breed] = true; fresh = fresh || BREEDS[c.breed].name; }
+  }
+  for (const s of SPECIAL_STICKERS) {
+    if (!game.special[s.id] && s.done()) { game.special[s.id] = true; fresh = fresh || s.name; }
+  }
+  if (fresh && !quiet) {
+    game.bookNew = true;
+    bookBtn.classList.add("new");
+    bookBtn.classList.remove("wiggle"); void bookBtn.offsetWidth; bookBtn.classList.add("wiggle");
+    Sound.sparkle();
+    toast(`🌟 New sticker: ${fresh}! Look in your Sticker Book`, 2800);
+    save();
+  }
+}
+function openBook() {
+  renderBook();
+  showSheet(bookSheet);
+  bookGrid.scrollTop = 0;
+  game.bookNew = false;
+  bookBtn.classList.remove("new");
+  Sound.tick();
+}
+function renderBook() {
+  bookGrid.textContent = "";
+  const keys = Object.keys(BREEDS);
+  const got = keys.filter((k) => game.stickers[k]).length + SPECIAL_STICKERS.filter((s) => game.special[s.id]).length;
+  bookCount.textContent = `${got} of ${keys.length + SPECIAL_STICKERS.length}`;
+  const head = (text, sub) => { const h = el("div", "grid-head", text); if (sub) h.append(el("span", null, sub)); bookGrid.append(h); };
+  head("Special stickers", `${SPECIAL_STICKERS.filter((s) => game.special[s.id]).length} of ${SPECIAL_STICKERS.length}`);
+  for (const s of SPECIAL_STICKERS) {
+    const have = !!game.special[s.id];
+    const t = el("div", "sticker" + (have ? "" : " missing"));
+    t.append(el("div", "sticker-emoji", s.emoji), el("div", "sticker-name", s.name), el("div", "sticker-fact", s.how));
+    bookGrid.append(t);
+  }
+  for (const id of FARM_ORDER) {
+    const breeds = keys.filter((k) => farmOfBreed(k) === id);
+    head(`${FARMS[id].emoji} ${FARMS[id].name}`, `${breeds.filter((k) => game.stickers[k]).length} of ${breeds.length}`);
+    for (const k of breeds) {
+      const have = !!game.stickers[k];
+      const t = el("div", "sticker" + (have ? "" : " missing"));
+      const cv = el("canvas", "portrait-sm");
+      drawPortrait(cv, portraitBird(k), 120, 96);
+      t.append(cv, el("div", "sticker-name", BREEDS[k].name), el("div", "sticker-fact", have ? FACTS[k] : "Raise one to earn this sticker"));
+      bookGrid.append(t);
+    }
+  }
+}
+bookBtn.addEventListener("click", () => { Sound.unlock(); if (!started) begin(); openBook(); });
+
+
+/* ================================================================
+   21. DRESS-UP
+   ================================================================
+   Hats, bows and sunglasses! Each bird's drawing calls drawAccessory
+   while it's drawing the head, so the hat moves along when the bird
+   pecks, sings or looks around.
+*/
+const HATS = [
+  { id: null, label: "No hat", text: "None" },
+  { id: "bow", label: "Bow", emoji: "🎀" },
+  { id: "tophat", label: "Top hat", emoji: "🎩" },
+  { id: "crown", label: "Crown", emoji: "👑" },
+  { id: "flower", label: "Flower", emoji: "🌸" },
+  { id: "party", label: "Party hat", emoji: "🎉" },
+  { id: "shades", label: "Sunglasses", emoji: "🕶️" },
+];
+const dressRow = $("dressRow");
+
+// r = the head's size; (ex, ey) = where the eye is, in the head's own measurements
+function drawAccessory(g, c, r, ex, ey) {
+  const h = c.hat;
+  if (!h) return;
+  const put = (emoji, x, y, size, rot) => {
+    const s = emojiSprite(emoji, size * 3);
+    g.save(); g.translate(x, y); if (rot) g.rotate(rot);
+    g.drawImage(s, -size * 0.625, -size * 0.625, size * 1.25, size * 1.25);
+    g.restore();
+  };
+  switch (h) {
+    case "tophat": put("🎩", 0, -r * 1.3, r * 2.1, -0.08); break;
+    case "crown": put("👑", 0, -r * 1.2, r * 1.8, 0); break;
+    case "bow": put("🎀", -r * 0.55, -r * 0.8, r * 1.4, -0.3); break;
+    case "flower": put("🌸", -r * 0.45, -r * 0.9, r * 1.25, 0); break;
+    case "shades": put("🕶️", ex + r * 0.12, ey + r * 0.05, r * 1.35, 0); break;
+    case "party": {       // a striped paper party hat with a pom-pom
+      g.save(); g.translate(0, -r * 0.85); g.rotate(-0.15);
+      g.beginPath(); g.moveTo(-r * 0.62, 0); g.lineTo(0, -r * 1.9); g.lineTo(r * 0.62, 0); g.closePath();
+      g.fillStyle = "#7FB8FF"; g.fill();
+      g.save(); g.clip();
+      g.fillStyle = "#FF7EB6";
+      for (let y = -r * 0.35; y > -r * 1.9; y -= r * 0.55) g.fillRect(-r, y, r * 2, r * 0.22);
+      g.restore();
+      g.fillStyle = "#F2C14E"; circle(g, 0, -r * 1.9, r * 0.3); g.fill();
+      g.restore();
+      break;
+    }
+  }
+}
+function renderDress() {
+  dressRow.textContent = "";
+  if (!cardBird) return;
+  for (const h of HATS) {
+    const b = el("button", "dress-btn" + (h.id ? "" : " none") + (cardBird.hat === h.id || (!cardBird.hat && !h.id) ? " on" : ""), h.emoji || h.text);
+    b.type = "button";
+    b.setAttribute("aria-label", h.label);
+    b.setAttribute("aria-pressed", String(cardBird.hat === h.id));
+    b.addEventListener("click", () => {
+      const c = cardBird;
+      if (!c) return;
+      c.hat = h.id;
+      if (h.id) {
+        game.stats.dressed++;
+        Sound.sparkle();
+        if (c.loc === "yard" && scene === "yard") { const sc = scaleAt(c.y); sparkles(c.x, c.y, headH(c) * sc, 6, sc); }
+      } else Sound.tick();
+      renderDress();
+      save();
+    });
+    dressRow.append(b);
+  }
+}
+
+
+/* ================================================================
+   22. SEASONS & WEATHER
+   ================================================================
+   Every few game days the season changes: spring blossoms, summer,
+   fall leaves, and winter snow. (It's always summer at the lagoon!)
+   Sometimes it rains: chickens run for cover, ducks love it, and when
+   the rain stops there might be a rainbow.
+*/
+const SEASONS = [
+  { id: "spring", name: "Spring", msg: "🌸 Spring is here! Everything is blooming" },
+  { id: "summer", name: "Summer", msg: "☀️ Summer is here! Long sunny days" },
+  { id: "fall",   name: "Fall",   msg: "🍂 Fall is here! The leaves are changing" },
+  { id: "winter", name: "Winter", msg: "❄️ Winter is here! Bundle up, birds" },
+];
+const DAYS_PER_SEASON = 3;
+const seasonIndex = (day = game.day) => Math.floor((day - 1) / DAYS_PER_SEASON) % 4;
+const seasonOf = (id = game.farm) => (id === "lagoon" ? "summer" : SEASONS[seasonIndex()].id);
+
+function mixHex(a, b, t) {
+  const A = rgb(a), B = rgb(b), h = (v) => Math.round(v).toString(16).padStart(2, "0");
+  return "#" + h(lerp(A[0], B[0], t)) + h(lerp(A[1], B[1], t)) + h(lerp(A[2], B[2], t));
+}
+// The farm's colors, changed a little for the season
+function seasonalScenery(id) {
+  const base = SCENERY[id], s = seasonOf(id), out = Object.assign({}, base);
+  const tint = (list, to, t) => list.map((c, i) => mixHex(c, Array.isArray(to) ? to[i % to.length] : to, t));
+  if (s === "spring") {
+    out.g = tint(base.g, "#B8E07A", 0.18);
+    out.flowers = ["#FFFFFF", "#FFD1E3", "#F7A8C4", "#FFF3A6"];
+    out.flowerCount = Math.round(base.flowerCount * 1.6);
+  } else if (s === "fall") {
+    out.g = tint(base.g, ["#D9C063", "#C9A64A", "#A8863A"], 0.42);
+    out.tuft = tint(base.tuft, "#B89A4A", 0.4);
+    out.hill1 = mixHex(base.hill1, "#D8B070", 0.35);
+    out.hill2 = mixHex(base.hill2, "#C99A58", 0.35);
+    out.trees = mixHex(base.trees, "#D9822B", 0.6);
+    out.treeHi = mixHex(base.treeHi, "#F2B84A", 0.6);
+    out.flowers = ["#F28A2E", "#E0B040", "#C8452D"];
+    out.flowerCount = Math.round(base.flowerCount * 0.4);
+  } else if (s === "winter") {
+    out.g = tint(base.g, ["#F4F7FA", "#E6EEF3", "#D5E0E8"], 0.85);
+    out.tuft = tint(base.tuft, "#C8D4DC", 0.65);
+    out.hill1 = mixHex(base.hill1, "#EEF3F7", 0.78);
+    out.hill2 = mixHex(base.hill2, "#E4ECF2", 0.72);
+    out.trees = mixHex(base.trees, "#DDE6EC", 0.6);
+    out.treeHi = "#FFFFFF";
+    out.dirt = mixHex(base.dirt, "#E2E9EE", 0.6);
+    out.flowerCount = 0;
+    if (base.water) out.water = Object.assign({}, base.water, { shallow: mixHex(base.water.shallow, "#DCEBF4", 0.45) });
+  }
+  return out;
+}
+
+// ---------- Weather ----------
+const weather = { kind: "clear", left: 0, next: rand(80, 160), amount: 0, rainbow: 0 };
+const weatherNow = () => {
+  if (weather.left <= 0) return "clear";
+  if (weather.kind === "snow" && seasonOf() !== "winter") return "rain";   // no snow at the lagoon
+  return weather.kind;
+};
+const isRaining = () => weatherNow() === "rain" && weather.amount > 0.4;
+function updateWeather(dt) {
+  const w = weather;
+  if (w.left > 0) {
+    w.left -= dt;
+    if (w.left <= 0 && w.kind === "rain" && darkness() < 0.3 && scene === "yard") {
+      w.rainbow = 45;
+      game.stats.rainbows++;
+      if (started) toast("🌈 Look, a rainbow!", 2600);
+    }
+  } else {
+    w.next -= dt;
+    if (w.next <= 0) {
+      w.next = rand(110, 240);
+      if (Math.random() < 0.35) {
+        w.kind = seasonIndex() === 3 ? "snow" : "rain";
+        w.left = rand(45, 100);
+        if (started) toast(w.kind === "snow" ? "❄️ It's snowing!" : "🌧️ Here comes the rain!", 2200);
+      }
+    }
+  }
+  const now = weatherNow();
+  w.amount += ((now === "clear" ? 0 : 1) - w.amount) * Math.min(1, dt * 0.5);
+  if (w.rainbow > 0) w.rainbow -= dt;
+  Sound.setRain(now === "rain" && scene === "yard" ? w.amount : scene === "coop" && now === "rain" ? w.amount * 0.4 : 0);
+  if (scene !== "yard" || reduceMotion) return;
+  spawnWeather(now, dt);
+  for (const p of fx.weather) {
+    p.life -= dt;
+    if (p.landed) continue;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    if (p.kind === "leaf" || p.kind === "petal" || p.kind === "snow") { p.vx += Math.sin(clock * 2 + p.ph) * 12 * dt; p.rot += p.vr * dt; }
+    if (p.y >= p.ground) {
+      p.y = p.ground;
+      if (p.kind === "rain") { p.life = 0; if (inWaterPt(p.x, p.y)) fx.weather.push({ kind: "ripple", x: p.x, y: p.y, life: 0.8, max: 0.8 }); }
+      else { p.landed = true; p.life = Math.min(p.life, p.kind === "snow" ? 2.5 : 4); }
+    }
+  }
+  fx.weather = fx.weather.filter((p) => p.life > 0);
+}
+function spawnWeather(kind, dt) {
+  if (fx.weather.length > 220) return;
+  const drop = (k, extra) => {
+    const ground = rand(groundTop(), view.H + 10);
+    fx.weather.push(Object.assign({ kind: k, x: rand(-40, view.W + 40), y: rand(-40, view.horizon), vx: 0, vy: 0, life: 12, ground, rot: rand(TAU), vr: rand(-3, 3), ph: rand(TAU), landed: false }, extra));
+  };
+  if (kind === "rain") { const n = Math.floor(weather.amount * 110 * dt + Math.random()); for (let i = 0; i < n; i++) drop("rain", { vx: -60, vy: rand(820, 980) }); }
+  if (kind === "snow") { const n = Math.floor(weather.amount * 22 * dt + Math.random()); for (let i = 0; i < n; i++) drop("snow", { vx: rand(-10, 10), vy: rand(38, 70), size: rand(1.6, 3.4) }); }
+  const s = seasonOf();
+  const tree = places.tree;
+  if (s === "fall" && Math.random() < dt * 1.4) {
+    const st = scaleAt(tree.y);
+    fx.weather.push({ kind: "leaf", x: tree.x + rand(-110, 110) * st, y: tree.y - rand(120, 240) * st, vx: rand(-20, 10), vy: rand(30, 50), life: 14, ground: tree.y + rand(0, 90), rot: rand(TAU), vr: rand(-3, 3), ph: rand(TAU), color: pick(["#E0782A", "#C8452D", "#E8B040", "#B8642E"]), size: st, landed: false });
+  }
+  if (s === "spring" && Math.random() < dt * 1.1) drop("petal", { vx: rand(-15, 15), vy: rand(24, 40), size: rand(2.2, 3.6), color: pick(["#F7A8C4", "#FFD1E3", "#FFFFFF"]) });
+}
+function drawWeather(g) {
+  for (const p of fx.weather) {
+    const fade = clamp(p.life / 1.2);
+    switch (p.kind) {
+      case "rain":
+        g.strokeStyle = "rgba(210,228,245,.55)"; g.lineWidth = 1.3;
+        g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x + 1.1, p.y - 16); g.stroke(); break;
+      case "ripple": {
+        const t = 1 - p.life / p.max, sc = scaleAt(p.y);
+        g.strokeStyle = `rgba(255,255,255,${0.5 * (1 - t)})`; g.lineWidth = 1;
+        ellipse(g, p.x, p.y, (2 + t * 10) * sc, (0.8 + t * 3) * sc); g.stroke(); break;
+      }
+      case "snow":
+        g.fillStyle = `rgba(255,255,255,${0.9 * fade})`; circle(g, p.x, p.y, p.size); g.fill(); break;
+      case "leaf":
+        g.save(); g.translate(p.x, p.y); g.rotate(p.rot); g.globalAlpha = fade;
+        g.fillStyle = p.color; ellipse(g, 0, 0, 5 * p.size + 1, 2.6 * p.size + 0.6); g.fill(); g.restore(); break;
+      case "petal":
+        g.save(); g.translate(p.x, p.y); g.rotate(p.rot); g.globalAlpha = fade;
+        g.fillStyle = p.color; ellipse(g, 0, 0, p.size, p.size * 0.6); g.fill(); g.restore(); break;
+    }
+  }
+  g.globalAlpha = 1;
+}
+// A rainbow across the sky after the rain
+function drawRainbow(g) {
+  if (weather.rainbow <= 0) return;
+  const a = clamp(weather.rainbow / 6) * clamp((45 - weather.rainbow) / 6) * 0.42;
+  const cx = view.W * 0.62, cy = view.horizon + 70, cols = ["#FF4D4D", "#FF9A3C", "#FFE14D", "#5CD65C", "#4DA6FF", "#7A5CFF"];
+  g.save();
+  g.lineWidth = 12;
+  cols.forEach((c, i) => { g.strokeStyle = rgba(c, a); g.beginPath(); g.arc(cx, cy, 330 - i * 12, Math.PI, 0); g.stroke(); });
+  g.restore();
+}
+// Birds that don't like getting wet head for the house or the tree
+function shelterSpot(c) {
+  const opts = [];
+  const h = places.coop, hs = scaleAt(h.y), geo = houseGeo();
+  opts.push({ x: h.x + rand(-geo.halfW, geo.halfW) * hs * 0.8, y: h.y + (geo.rampLen + rand(8, 26)) * hs });
+  if (places.tree && places.tree.kind !== "palm") { const t = places.tree, ts = scaleAt(t.y); opts.push({ x: t.x + rand(-90, 90) * ts, y: t.y + rand(4, 26) * ts }); }
+  let best = opts[0], bd = 1e9;
+  for (const o of opts) { const d = Math.hypot(o.x - c.x, o.y - c.y); if (d < bd) { bd = d; best = o; } }
+  return best;
+}
+const dislikesRain = (c) => !SP(c).swim && !SP(c).wade;
+
+
+/* ================================================================
+   23. VISITORS
+   ================================================================
+   Now and then a friendly animal drops by: a barn cat or a dog in the
+   Backyard, a frog at the pond, a bunny in the meadow, a crab at the
+   lagoon. Tap them to say hi! And sometimes a hawk's shadow sweeps
+   across the ground, and the chickens run for cover (real chickens
+   do this too). The hawk never catches anyone.
+*/
+const VISITORS = { backyard: ["cat", "dog"], pond: ["frog"], meadow: ["bunny"], lagoon: ["crab"] };
+const VISITOR_SPEED = { cat: 40, dog: 70, frog: 44, bunny: 60, crab: 42 };
+let visitor = null, visitorT = rand(30, 60), hawk = null, hawkT = rand(160, 280);
+
+// Extra sounds for the visitors (added onto the Sound toolbox)
+Object.assign(Sound, {
+  meow(pan = 0) { this.tone({ type: "triangle", f0: 620, f1: 820, dur: 0.18, gain: 0.08, pan }); this.tone({ type: "triangle", t: 0.18, f0: 820, f1: 480, dur: 0.3, gain: 0.08, pan }); },
+  woof(pan = 0) { [0, 0.22].forEach((t) => { this.tone({ type: "sawtooth", t, f0: 330, f1: 180, dur: 0.14, gain: 0.14, filter: "lowpass", ff: 900, pan }); this.noise({ t, dur: 0.08, gain: 0.08, type: "bandpass", f: 700, pan }); }); },
+  ribbit(pan = 0) { for (let i = 0; i < 4; i++) this.tone({ type: "square", t: i * 0.035, f0: 220, f1: 170, dur: 0.03, gain: 0.07, filter: "lowpass", ff: 800, pan }); this.tone({ type: "square", t: 0.2, f0: 260, f1: 190, dur: 0.12, gain: 0.07, filter: "lowpass", ff: 800, pan }); },
+  thump(pan = 0) { this.tone({ f0: 140, f1: 70, dur: 0.12, gain: 0.14, pan }); },
+  click(pan = 0) { for (let i = 0; i < 3; i++) this.noise({ t: i * 0.09, dur: 0.02, gain: 0.1, type: "highpass", f: 3000, pan }); },
+  hawk() { this.tone({ f0: 2300, f1: 1500, dur: 0.9, gain: 0.07, filter: "bandpass", ff: 2000, q: 2 }); this.tone({ type: "triangle", f0: 2350, f1: 1550, dur: 0.9, gain: 0.03 }); },
+  crack(n) { this.noise({ dur: 0.07, gain: 0.16 + n * 0.04, type: "highpass", f: 2500 - n * 400 }); this.tone({ f0: 900 + n * 120, f1: 500, dur: 0.05, gain: 0.05 }); },
+  // Soft, steady rain. Turned up and down as the rain comes and goes.
+  setRain(v) {
+    if (!this.ctx || !this.noiseBuf) return;
+    if (!this.rainGain) {
+      if (v < 0.01 || this.ctx.state !== "running") return;
+      const src = this.ctx.createBufferSource();
+      src.buffer = this.noiseBuf; src.loop = true;
+      const f = this.ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 1400; f.Q.value = 0.6;
+      this.rainGain = this.ctx.createGain(); this.rainGain.gain.value = 0;
+      src.connect(f); f.connect(this.rainGain); this.rainGain.connect(this.master);
+      src.start();
+    }
+    this.rainGain.gain.setTargetAtTime(v * 0.1, this.ctx.currentTime, 0.4);
+  },
+});
+
+function updateVisitors(dt) {
+  if (scene !== "yard") return;
+  const nice = darkness() < 0.3 && !isRaining();
+  if (!visitor) {
+    visitorT -= dt;
+    if (visitorT <= 0 && nice && started) { visitorT = rand(70, 140); spawnVisitor(pick(VISITORS[game.farm])); }
+  } else updateVisitor(visitor, dt);
+  if (!hawk) {
+    hawkT -= dt;
+    if (hawkT <= 0 && nice && started && game.farm !== "lagoon") { hawkT = rand(220, 380); startHawk(); }
+  } else {
+    hawk.t += dt;
+    if (hawk.t >= hawk.dur) hawk = null;
+  }
+}
+// Pick a nice spot for a visitor to sit (on land, away from the house)
+function visitorSpot(kind) {
+  if (kind === "frog" && places.water) { const w = places.water, a = rand(0.2, 0.8) * Math.PI; return { x: w.x + Math.cos(a) * w.rx * 1.02, y: w.y + Math.sin(a) * w.ry * 1.02 }; }
+  if (kind === "crab" && places.water) { const w = places.water, a = rand(0.15, 0.85) * Math.PI; return { x: w.x + Math.cos(a) * w.rx * 1.2, y: w.y + Math.sin(a) * w.ry * 1.2 }; }
+  for (let i = 0; i < 10; i++) {
+    const [x, y] = avoidSpots(rand(view.W * 0.3, view.W * 0.9), rand(groundTop() + 40, groundBottom() - 30), false);
+    if (Math.hypot(x - places.coop.x, y - places.coop.y) > 160) return { x, y };
+  }
+  return { x: view.W * 0.6, y: groundTop() + (groundBottom() - groundTop()) * 0.6 };
+}
+function spawnVisitor(kind) {
+  const spot = visitorSpot(kind), fromLeft = spot.x > view.W / 2 ? Math.random() < 0.3 : Math.random() < 0.7;
+  visitor = {
+    kind, x: fromLeft ? -50 : view.W + 50, y: spot.y, tx: spot.x, ty: spot.y, z: 0, vz: 0,
+    state: "in", t: 0, dir: fromLeft ? 1 : -1, phase: 0, wag: 0, tapT: 0, id: nextId++,
+  };
+}
+function updateVisitor(v, dt) {
+  v.t += dt;
+  if (v.tapT > 0) v.tapT -= dt;
+  if (v.z > 0 || v.vz > 0) { v.vz -= 700 * dt; v.z = Math.max(0, v.z + v.vz * dt); if (v.z === 0) v.vz = 0; }
+  const speed = VISITOR_SPEED[v.kind] * lerp(0.62, 1.08, depth(v.y));
+  const walkTo = (tx, ty) => {
+    const dx = tx - v.x, dy = ty - v.y, d = Math.hypot(dx, dy);
+    if (d < 4) return true;
+    const step = Math.min(d, speed * dt);
+    v.x += (dx / d) * step; v.y += (dy / d) * step;
+    if (v.kind !== "crab" && Math.abs(dx) > 1) v.dir = dx > 0 ? 1 : -1;
+    v.phase += step * 0.25;
+    if ((v.kind === "bunny" || v.kind === "frog") && v.z <= 0) v.vz = v.kind === "bunny" ? 150 : 120;   // hop, hop!
+    return false;
+  };
+  if (v.kind === "cat" && v.state === "rest" && v.tapT <= 0 && Math.random() < dt * 0.5) {   // a sleepy cat snores
+    const sc = scaleAt(v.y); emit("zzz", v.x + 12 * sc * v.dir, v.y, 26 * sc, { vz: 16 * sc, life: 2, size: 0.8 * sc });
+  }
+  if (v.state === "in") { if (walkTo(v.tx, v.ty)) { v.state = "rest"; v.t = 0; v.rest = rand(22, 38); } }
+  else if (v.state === "rest") { if (v.t > v.rest) { v.state = "out"; v.tx = v.x < view.W / 2 ? -60 : view.W + 60; } }
+  else if (walkTo(v.tx, v.ty)) visitor = null;
+}
+function tapVisitor(v) {
+  const sc = scaleAt(v.y), pan = panX(v.x);
+  v.tapT = 1.2;
+  hearts(v.x, v.y, 30 * sc, sc);
+  game.stats.visitors++;
+  switch (v.kind) {
+    case "cat": Sound.meow(pan); Sound.purr(pan); break;
+    case "dog": Sound.woof(pan); v.vz = 120; break;
+    case "frog": Sound.ribbit(pan); v.vz = 220; if (v.state === "rest" && v.t > 3) { v.state = "out"; v.tx = v.x < view.W / 2 ? -60 : view.W + 60; } break;
+    case "bunny": Sound.thump(pan); v.vz = 200; break;
+    case "crab": Sound.click(pan); break;
+  }
+}
+function visitorHit(p) {
+  const v = visitor;
+  if (!v) return false;
+  const sc = scaleAt(v.y);
+  return Math.hypot(p.x - v.x, p.y - (v.y - v.z - 14 * sc)) < Math.max(30, 34 * sc);
+}
+
+// ---------- The hawk's shadow ----------
+function startHawk() {
+  const y0 = groundTop() + rand(30, 120), y1 = groundBottom() - rand(40, 160);
+  hawk = { t: 0, dur: 4.6, x0: -220, y0, x1: view.W + 220, y1 };
+  Sound.hawk();
+  let called = false;
+  for (const c of F.birds) {
+    if (c.loc !== "yard" || !INTERRUPTIBLE.has(c.state) || c.goal === "lay" || c.goal === "bed") continue;
+    const S = SP(c);
+    if (S.swim || S.wade) { c.flapT = 0.6; continue; }   // ducks and flamingos just flap
+    const s = shelterSpot(c);
+    c.goal = "hide"; c.flapT = 0.8;
+    walkTo(c, s.x, s.y, SETTINGS.runSpeed * 1.2, false);
+    if (!called) { called = true; Sound.cluck(1.3, panX(c.x), 0.8); }
+  }
+}
+function drawHawkShadow(g) {
+  if (!hawk) return;
+  const t = hawk.t / hawk.dur, x = lerp(hawk.x0, hawk.x1, t), y = lerp(hawk.y0, hawk.y1, t), sc = scaleAt(y) * 1.4;
+  const flap = Math.sin(hawk.t * 5) * 0.15, fade = clamp(Math.min(t, 1 - t) * 6);
+  g.save();
+  g.translate(x, y); g.rotate(Math.atan2(hawk.y1 - hawk.y0, hawk.x1 - hawk.x0)); g.scale(sc, sc * 0.45);
+  g.fillStyle = `rgba(30,40,20,${0.26 * fade})`;
+  g.beginPath();
+  g.moveTo(30, 0); g.quadraticCurveTo(10, -6, 0, -8 - flap * 20);
+  g.lineTo(-18, -60 - flap * 40); g.lineTo(-30, -50); g.lineTo(-20, -8);
+  g.lineTo(-40, -6); g.lineTo(-52, 0); g.lineTo(-40, 6); g.lineTo(-20, 8);
+  g.lineTo(-30, 50); g.lineTo(-18, 60 + flap * 40); g.lineTo(0, 8 + flap * 20); g.quadraticCurveTo(10, 6, 30, 0);
+  g.fill();
+  g.restore();
+}
+
+// ---------- Drawing the visitors (facing right, feet at 0,0) ----------
+function drawVisitor(g, v) {
+  const sc = scaleAt(v.y);
+  g.fillStyle = "rgba(46,70,20,.2)"; ellipse(g, v.x, v.y + 1, 18 * sc, 5 * sc); g.fill();
+  g.save();
+  g.translate(v.x, v.y - v.z);
+  g.scale(sc * v.dir, sc);
+  const moving = v.state !== "rest", step = Math.sin(v.phase * 3);
+  switch (v.kind) {
+    case "cat": drawCat(g, v, moving, step); break;
+    case "dog": drawDog(g, v, moving, step); break;
+    case "frog": drawFrog(g, v); break;
+    case "bunny": drawBunny(g, v); break;
+    case "crab": drawCrab(g, v, moving, step); break;
+  }
+  g.restore();
+}
+function drawCat(g, v, moving, step) {
+  const fur = "#E89A4A", dark = "#C27428", napping = !moving && v.tapT <= 0;
+  if (napping) {       // curled up asleep in the sun
+    g.fillStyle = fur; ellipse(g, 0, -9, 19, 10); g.fill();
+    g.strokeStyle = dark; g.lineWidth = 2.2;
+    for (const x of [-8, -1, 6]) { g.beginPath(); g.moveTo(x, -18); g.quadraticCurveTo(x + 2, -12, x, -6); g.stroke(); }
+    g.strokeStyle = fur; g.lineWidth = 5; g.lineCap = "round";
+    g.beginPath(); g.moveTo(-17, -6); g.quadraticCurveTo(-4, 2, 12, -2); g.stroke();
+    g.fillStyle = fur; circle(g, 14, -12, 8); g.fill();
+    g.beginPath(); g.moveTo(9, -17); g.lineTo(11, -25); g.lineTo(15, -19); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(16, -19); g.lineTo(21, -24); g.lineTo(21, -15); g.closePath(); g.fill();
+    g.strokeStyle = "#5A3A20"; g.lineWidth = 1.3;
+    g.beginPath(); g.arc(15, -12, 2, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke();
+    return;
+  }
+  g.strokeStyle = fur; g.lineWidth = 4; g.lineCap = "round";
+  for (const [x, ph] of [[-11, 0], [-5, Math.PI], [8, Math.PI], [14, 0]]) { g.beginPath(); g.moveTo(x, -10); g.lineTo(x + (moving ? Math.sin(v.phase * 3 + ph) * 4 : 0), 0); g.stroke(); }
+  g.beginPath(); g.moveTo(-18, -14); g.quadraticCurveTo(-30, -20 + Math.sin(clock * 3) * 4, -26, -34); g.stroke();   // tail
+  g.fillStyle = fur; ellipse(g, 0, -14, 20, 8.5); g.fill();
+  g.strokeStyle = dark; g.lineWidth = 2;
+  for (const x of [-10, -3, 4]) { g.beginPath(); g.moveTo(x, -21); g.lineTo(x + 2, -14); g.stroke(); }
+  g.fillStyle = fur; circle(g, 19, -22, 8); g.fill();
+  g.beginPath(); g.moveTo(13, -27); g.lineTo(14, -36); g.lineTo(19, -29); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(20, -29); g.lineTo(26, -35); g.lineTo(26, -25); g.closePath(); g.fill();
+  g.fillStyle = "#2A1D16"; circle(g, 22, -23, 1.5); g.fill();
+  g.fillStyle = "#F28AB0"; circle(g, 26.5, -20, 1.2); g.fill();
+}
+function drawDog(g, v, moving, step) {
+  const fur = "#D9A45A", dark = "#B07E38", wag = Math.sin(clock * (v.tapT > 0 ? 26 : 12)) * 0.5;
+  g.strokeStyle = fur; g.lineWidth = 5; g.lineCap = "round";
+  if (moving) {
+    for (const [x, ph] of [[-14, 0], [-8, Math.PI], [10, Math.PI], [16, 0]]) { g.beginPath(); g.moveTo(x, -14); g.lineTo(x + Math.sin(v.phase * 3 + ph) * 5, 0); g.stroke(); }
+    g.save(); g.translate(-22, -22); g.rotate(-0.6 + wag); g.beginPath(); g.moveTo(0, 0); g.lineTo(-12, -8); g.stroke(); g.restore();
+    g.fillStyle = fur; ellipse(g, 0, -22, 24, 11); g.fill();
+    g.fillStyle = fur; circle(g, 24, -32, 10); g.fill();
+    ellipse(g, 32, -29, 7, 5); g.fill();
+    g.fillStyle = dark; ellipse(g, 19, -30, 4, 8, 0.3); g.fill();
+    g.fillStyle = "#2A1D16"; circle(g, 27, -35, 1.6); g.fill(); circle(g, 38, -30, 2); g.fill();
+    if (v.tapT > 0) { g.fillStyle = "#F28AB0"; ellipse(g, 34, -24, 2.5, 4); g.fill(); }
+  } else {             // sitting nicely, tail wagging
+    g.save(); g.translate(-10, -4); g.rotate(-1.2 + wag); g.beginPath(); g.moveTo(0, 0); g.lineTo(-14, -2); g.stroke(); g.restore();
+    g.fillStyle = fur; ellipse(g, 0, -20, 14, 18); g.fill();
+    g.strokeStyle = fur; g.lineWidth = 5;
+    g.beginPath(); g.moveTo(6, -12); g.lineTo(8, 0); g.moveTo(-2, -10); g.lineTo(-2, 0); g.stroke();
+    g.fillStyle = fur; circle(g, 8, -42, 10); g.fill();
+    ellipse(g, 16, -39, 7, 5); g.fill();
+    g.fillStyle = dark; ellipse(g, 3, -40, 4, 8, 0.3); g.fill();
+    g.fillStyle = "#2A1D16"; circle(g, 11, -45, 1.6); g.fill(); circle(g, 22, -40, 2); g.fill();
+    g.fillStyle = "#F28AB0"; ellipse(g, 18, -33, 2.5, 3.5 + Math.abs(Math.sin(clock * 6))); g.fill();   // panting
+  }
+}
+function drawFrog(g, v) {
+  const green = "#6DB84A", dark = "#4E8E34";
+  g.fillStyle = dark; ellipse(g, -8, -3, 7, 3.5); g.fill(); ellipse(g, 8, -3, 7, 3.5); g.fill();
+  g.fillStyle = green; ellipse(g, 0, -8, 12, 8); g.fill();
+  g.fillStyle = "#CFE8A0"; ellipse(g, 3, -5, 7, 4); g.fill();
+  for (const x of [-5, 5]) { g.fillStyle = green; circle(g, x, -15, 4.5); g.fill(); g.fillStyle = "#FFFFFF"; circle(g, x + 0.5, -15.5, 2.8); g.fill(); g.fillStyle = "#1E1E22"; circle(g, x + 1, -15.5, 1.5); g.fill(); }
+  g.strokeStyle = "#2E5A20"; g.lineWidth = 1.2;
+  const croak = v.tapT > 0.8 ? 1 : 0;
+  g.beginPath(); g.arc(3, -10, 5, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke();
+  if (croak) { g.fillStyle = "rgba(230,240,190,.9)"; circle(g, 6, -4, 5); g.fill(); }   // puffed-up throat
+}
+function drawBunny(g, v) {
+  const fur = "#B5A08A", light = "#E8DCCB", tw = Math.sin(clock * 9) > 0.7 ? 1 : 0;
+  g.fillStyle = light; circle(g, -12, -12, 5); g.fill();                       // cotton tail
+  g.fillStyle = fur; ellipse(g, 0, -11, 13, 10); g.fill();
+  ellipse(g, 6, -3, 7, 3); g.fill();                                            // back foot
+  g.save(); g.translate(8, -22); g.rotate(-0.2 + (v.tapT > 0 ? Math.sin(clock * 20) * 0.1 : 0));
+  g.fillStyle = fur; ellipse(g, -2, -12, 3.5, 10); g.fill(); ellipse(g, 3, -12, 3.5, 10, 0.25); g.fill();
+  g.fillStyle = "#F2C4C4"; ellipse(g, -2, -12, 1.6, 7); g.fill();
+  g.restore();
+  g.fillStyle = fur; circle(g, 11, -18, 7); g.fill();
+  g.fillStyle = "#2A1D16"; circle(g, 14, -20, 1.4); g.fill();
+  g.fillStyle = "#F28AB0"; circle(g, 17.5, -17 + tw * 0.5, 1.2); g.fill();
+}
+function drawCrab(g, v, moving, step) {
+  const red = "#E0503A", dark = "#B8382A", clack = v.tapT > 0 ? Math.abs(Math.sin(clock * 18)) : 0;
+  g.strokeStyle = dark; g.lineWidth = 2; g.lineCap = "round";
+  for (let i = 0; i < 3; i++) for (const s of [-1, 1]) {
+    const x = s * (7 + i * 3), lift = moving ? Math.sin(v.phase * 4 + i + (s > 0 ? 1 : 0)) * 2 : 0;
+    g.beginPath(); g.moveTo(x * 0.6, -6); g.lineTo(x * 1.2, -8 + lift); g.lineTo(x * 1.4, 0); g.stroke();
+  }
+  g.fillStyle = red; ellipse(g, 0, -8, 11, 6.5); g.fill();
+  for (const s of [-1, 1]) {           // claws, which clack when you tap!
+    g.save(); g.translate(s * 12, -14 - clack * 3); g.rotate(s * (0.4 + clack * 0.4));
+    g.fillStyle = red; ellipse(g, 0, -3, 4.5, 5); g.fill(); g.fillStyle = "#F6E7DC"; g.fillRect(-0.6, -8, 1.2, 5);
+    g.restore();
+  }
+  for (const s of [-1, 1]) { g.strokeStyle = dark; g.lineWidth = 1.4; g.beginPath(); g.moveTo(s * 3, -13); g.lineTo(s * 4, -18); g.stroke(); g.fillStyle = "#1E1E22"; circle(g, s * 4, -19, 1.7); g.fill(); }
+}
+
+// A new day! Maybe a new season, too.
+function onNewDay() {
+  if (seasonIndex(game.day) === seasonIndex(game.day - 1)) return;
+  const sn = SEASONS[seasonIndex()];
+  game.stats.seasons[sn.id] = true;
+  if (game.farm !== "lagoon") { buildBackground(); buildBlades(); }
+  if (started) toast(sn.msg, 3200);
+}
+
+/* ================================================================
+   24. TIME KEEPS GOING WHILE YOU'RE AWAY
+   ================================================================
+   When you close the game (or switch to another app), the farms don't
+   stop. When you come back, we replay the time you were gone, a few
+   seconds at a time: the sun goes around, seasons change, birds eat
+   from the feeders, grow up, and lay eggs in their nests. Incubator
+   eggs use the real clock, so they keep warming too.
+
+   Just like a real farm, if you're gone a long time the feeders run
+   empty and the nests fill up. Nothing bad happens to the birds; they
+   just stop laying until you fill the feeders again.
+*/
+const MAX_REPLAY_SECONDS = 24 * 3600;   // replay up to one day; any more just moves the clock
+
+function catchUpWhileAway(awaySeconds) {
+  const daysBefore = game.day, eggsBefore = game.totalEggs;
+  const babies = [];
+  for (const id of FARM_ORDER) for (const c of farms[id].birds) if (c.growth < 1) babies.push(c);
+  const replay = Math.min(awaySeconds, MAX_REPLAY_SECONDS);
+  const tick = (dt) => {
+    game.time += dt / SETTINGS.dayLengthSeconds;
+    while (game.time >= 1) {
+      game.time -= 1;
+      game.day++;
+      game.stats.seasons[SEASONS[seasonIndex()].id] = true;
+    }
+  };
+  for (let t = 0; t < replay; t += 5) {
+    const dt = Math.min(5, replay - t);
+    tick(dt);
+    for (const id of FARM_ORDER) if (farms[id].unlocked) simulateFarm(id, dt);
+  }
+  if (awaySeconds > replay) tick(awaySeconds - replay);
+  if (awaySeconds > 120) { weather.kind = "clear"; weather.left = 0; weather.amount = 0; weather.rainbow = 0; }
+  if (seasonIndex(daysBefore) !== seasonIndex()) { buildBackground(); buildBlades(); }
+
+  // Tell the player what happened
+  if (awaySeconds < 60) return "";
+  const days = game.day - daysBefore, laid = game.totalEggs - eggsBefore;
+  const grown = babies.filter((c) => c.growth >= 1).map((c) => c.name);
+  const bits = [];
+  if (days > 0) bits.push(`${days} ${days === 1 ? "day" : "days"} went by`);
+  if (laid > 0) bits.push(`your birds laid ${laid} ${laid === 1 ? "egg" : "eggs"} 🥚`);
+  if (grown.length) bits.push(grown.length === 1 ? `${grown[0]} grew up` : `${grown.length} babies grew up`);
+  const hungry = FARM_ORDER.some((id) => farms[id].unlocked && farms[id].birds.length && farms[id].feeder < 0.05);
+  // "a, b and c"
+  const list = bits.length > 1 ? `${bits.slice(0, -1).join(", ")} and ${bits[bits.length - 1]}` : bits[0];
+  let msg = bits.length ? `While you were away, ${list}!` : "Welcome back! The birds missed you 🐔";
+  if (seasonIndex(daysBefore) !== seasonIndex()) msg += ` It's ${SEASONS[seasonIndex()].name.toLowerCase()} now!`;
+  if (hungry) msg += " The feeders are empty, time to fill them!";
+  return msg;
+}
+
+// Switching to another app and back: catch up on the time you missed
+let hiddenAt = 0;
+function catchUpAfterBackground() {
+  if (!hiddenAt) return;
+  const away = (Date.now() - hiddenAt) / 1000;
+  hiddenAt = 0;
+  if (away < 3) return;
+  const msg = catchUpWhileAway(away);
+  arriveFarm();
+  shown.feeder = F.feeder; shown.water = F.water;
+  updateHud();
+  if (msg && started) toast(msg, 4200);
+  save();
+}
 
 /* ================================================================
    17. SAVING & LOADING
@@ -5075,17 +6141,20 @@ function serializeFarm(id) {
     decor: st.decor.map((d) => ({ id: d.id, x: d.x, y: d.y })),
     birds: st.birds.map((c) => ({
       breed: c.breed, name: c.name, x: c.x, y: c.y, growth: c.growth, food: c.food, water: c.water,
-      joy: c.joy, laid: c.laid, eggClock: c.eggClock, loc: c.loc === "yard" ? "yard" : "coop", needsSpot: c.needsSpot,
+      joy: c.joy, laid: c.laid, eggClock: c.eggClock, loc: c.loc === "yard" ? "yard" : "coop", needsSpot: c.needsSpot, hat: c.hat || null,
     })),
     yardEggs: st.yardEggs.map((e) => ({ x: e.x, y: e.y, breed: e.breed, golden: e.golden })),
     nestEggs: st.nestEggs.map((e) => ({ box: e.box, breed: e.breed, golden: e.golden })),
     crates: id === game.farm ? fx.crates.filter((cr) => !cr.opened).map((cr) => cr.breed) : [],
+    incubator: st.incubator.filter((e) => !e.baby).map((e) => ({ breed: e.breed, startedAt: e.startedAt, crack: e.crack || 0 })),
   };
 }
 function serialize() {
   const out = {
     v: 5, savedAt: Date.now(), eggs: game.eggs, farm: game.farm, time: game.time, day: game.day,
     totalEggs: game.totalEggs, hints: game.hints, muted: game.muted, farms: {},
+    stickers: game.stickers, special: game.special, stats: game.stats, bookNew: game.bookNew,
+    weather: { kind: weather.kind, left: weather.left, next: weather.next },
   };
   for (const id of FARM_ORDER) out.farms[id] = serializeFarm(id);
   return out;
@@ -5143,6 +6212,7 @@ function applyFarm(id, s) {
       joy: num(b.joy, 0.5, 0, 1), laid: Math.floor(num(b.laid, 0, 0, 1e6)), eggClock: num(b.eggClock, 30, 0, 600),
     });
     c.needsSpot = !!b.needsSpot;
+    c.hat = HATS.some((h) => h.id && h.id === b.hat) ? b.hat : null;
     c.loc = b.loc === "coop" && isBedtime() ? "coop" : "yard";
     st.birds.push(c);
   }
@@ -5155,6 +6225,8 @@ function applyFarm(id, s) {
   const boxes = nestCount(id);
   st.yardEggs = arr(s.yardEggs).filter((e) => e && BREEDS[e.breed]).slice(0, SETTINGS.maxYardEggs)
     .map((e) => ({ id: nextId++, x: clampX(num(e.x, view.W / 2)), y: clampY(num(e.y, view.H * 0.7)), breed: e.breed, golden: !!e.golden, glint: rand(0, 3) }));
+  st.incubator = arr(s.incubator).filter((e) => e && BREEDS[e.breed] && farmOfBreed(e.breed) === id).slice(0, INCUBATOR_SLOTS)
+    .map((e) => ({ breed: e.breed, startedAt: num(e.startedAt, Date.now(), 0, Date.now()), crack: Math.floor(num(e.crack, 0, 0, 2)), wobble: 0 }));
   st.nestEggs = arr(s.nestEggs).filter((e) => e && BREEDS[e.breed] && e.box >= 0 && e.box < boxes).slice(0, boxes * SETTINGS.nestBoxHolds)
     .map((e) => ({ id: nextId++, box: Math.floor(e.box), breed: e.breed, golden: !!e.golden }));
 }
@@ -5166,6 +6238,17 @@ function applySave(d) {
   game.totalEggs = Math.floor(num(d.totalEggs, 0, 0, 1e9));
   game.hints = d.hints && typeof d.hints === "object" ? d.hints : {};
   game.muted = !!d.muted;
+  const obj = (v) => (v && typeof v === "object" ? v : {});
+  game.stickers = obj(d.stickers);
+  game.special = obj(d.special);
+  game.stats = Object.assign(freshStats(), obj(d.stats));
+  game.stats.seasons = obj(game.stats.seasons);
+  game.bookNew = !!d.bookNew;
+  if (d.weather && (d.weather.kind === "rain" || d.weather.kind === "snow" || d.weather.kind === "clear")) {
+    weather.kind = d.weather.kind;
+    weather.left = num(d.weather.left, 0, 0, 200);
+    weather.next = num(d.weather.next, 120, 10, 400);
+  }
   const saved = d.farms && typeof d.farms === "object" ? d.farms : {};
   applyFarm("backyard", saved.backyard);    // first, so the coop size is known
   layoutInterior();
@@ -5178,26 +6261,9 @@ function applySave(d) {
   buildRoomBg();
   if (!farms.backyard.birds.length && game.farm === "backyard") starterFlock();
 
-  // While you were away...
+  // While you were away, time kept going on every farm
   const away = (Date.now() - num(d.savedAt, Date.now())) / 1000;
-  if (away > 90) {
-    const t = Math.min(away, 3 * 3600);
-    let laid = 0;
-    for (const id of FARM_ORDER) {
-      const st = farms[id];
-      if (!st.unlocked) continue;
-      const grown = st.birds.filter((c) => c.growth >= 1);
-      for (const c of grown) {
-        const n = Math.floor((t / 150) * 0.5 * layBoostOf(c));
-        for (let i = 0; i < n; i++) if (addNestEggTo(id, c.breed, rollGolden())) { laid++; c.laid++; game.totalEggs++; }
-      }
-      for (const c of st.birds) if (c.growth < 1) c.growth = Math.min(1, c.growth + (t / SETTINGS.growUpSeconds) * 0.5);
-      st.feeder = Math.max(Math.min(st.feeder, 0.15), st.feeder - t / 3600);
-      st.water = Math.max(Math.min(st.water, 0.15), st.water - t / 3600);
-    }
-    if (laid) welcomeMsg = `Welcome back! Your birds laid ${laid} ${laid === 1 ? "egg" : "eggs"} while you were away 🥚`;
-    else if (away > 600) welcomeMsg = "Welcome back! The birds missed you 🐔";
-  }
+  if (away > 5) welcomeMsg = catchUpWhileAway(away);
   arriveFarm();
 }
 function starterFlock() {
@@ -5225,7 +6291,7 @@ function update(dt) {
   clock += dt;
   const prev = game.time;
   game.time += dt / SETTINGS.dayLengthSeconds;
-  if (game.time >= 1) { game.time -= 1; game.day++; }
+  if (game.time >= 1) { game.time -= 1; game.day++; onNewDay(); }
   timeEvents(prev <= game.time ? prev : prev - 1, game.time);
   updateTransition(dt);
   for (const c of F.birds) {
@@ -5249,11 +6315,21 @@ function update(dt) {
   updateParticles(dt);
   updateFlyers(dt);
   updateCrates(dt);
+  updateIncubators(dt);
+  updateWeather(dt);
+  updateVisitors(dt);
   updateSceneFx(dt);
   updateAmbient(dt);
   Music.update();
   coachTimer -= dt;
   if (coachTimer <= 0) { coachTimer = 0.4; pickCoach(); }
+  stickerT -= dt;
+  if (stickerT <= 0) {
+    stickerT = 1;
+    checkStickers(false);
+    if (openSheet === hatchSheet) updateSlotText();
+    if (candleEgg) updateCandleText();
+  }
   hudT -= dt;
   if (hudT <= 0) {
     hudT = 0.5;
@@ -5289,6 +6365,8 @@ function render() {
     g.fillRect(0, 0, worldCanvas.width, worldCanvas.height);
   }
   drawFlyers(g);
+  if (openSheet === hatchSheet) drawHatchSlots();
+  if (candleEgg) drawCandle();
   if (cardBird) drawPortrait(portraitEl, Object.assign({}, cardBird, { dir: 1, z: 0, alpha: 1, popIn: 0, wet: 0 }), 190, 160);
   positionCoach();
 }
@@ -5330,6 +6408,9 @@ function start() {
   else { starterFlock(); arriveFarm(); }
   Sound.muted = game.muted;
   setMuteUI();
+  game.stats.seasons[SEASONS[seasonIndex()].id] = true;
+  checkStickers(true);                 // quietly give stickers for the birds you already have
+  if (game.bookNew) bookBtn.classList.add("new");
   setupOfflineHint();
   updateHud();
   updateFarmBtn();
