@@ -23,7 +23,6 @@ Plain HTML, CSS and JavaScript. No frameworks, no build step.
 - `style.css` — how the floating buttons and panels look
 - `game.js` — the game itself: the birds' brains, the drawings, the sounds
 - `sw.js` — keeps a copy on the device so it works offline
-
 - `download/BackyardBirdFarm.html` — the whole game in one file, for offline play
 - `tools/build_offline.py` — rebuilds that file (`python tools/build_offline.py`)
 
