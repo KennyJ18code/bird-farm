@@ -517,9 +517,15 @@ function inRect(p, r) { return !!r && p.x >= r.x && p.x <= r.x + r.w && p.y >= r
    Browsers only allow sound after the first tap, so unlock() runs then.
 */
 const Sound = {
-  ctx: null, master: null, noiseBuf: null, muted: false,
+  ctx: null, master: null, noiseBuf: null, muted: false, primed: false,
 
   unlock() {
+    try {
+      // iPhones mute web pages when the silent switch is on. Asking for
+      // "playback" sound (like a music app) lets the game be heard anyway.
+      // The game's own sound button still mutes it.
+      if (navigator.audioSession && navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback";
+    } catch (e) { /* older devices don't have this — that's okay */ }
     try {
       if (!this.ctx) {
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -534,7 +540,18 @@ const Sound = {
         const data = this.noiseBuf.getChannelData(0);
         for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
       }
-      if (this.ctx.state === "suspended") this.ctx.resume();
+      if (this.ctx.state !== "running") {
+        const p = this.ctx.resume();
+        if (p && p.catch) p.catch(() => {});
+      }
+      // Playing one silent blip during a tap fully wakes up sound on iPhones
+      if (!this.primed) {
+        const blip = this.ctx.createBufferSource();
+        blip.buffer = this.ctx.createBuffer(1, 1, 22050);
+        blip.connect(this.ctx.destination);
+        blip.start(0);
+        this.primed = true;
+      }
     } catch (e) { /* no sound on this device — the game still works */ }
   },
   setMuted(m) {
@@ -4958,8 +4975,11 @@ function begin() {
   keepAwake();
   if (welcomeMsg) setTimeout(() => toast(welcomeMsg, 3600), 400);
 }
+for (const type of ["pointerup", "touchend", "click", "keydown"]) {
+  window.addEventListener(type, () => { if (!Sound.ctx || Sound.ctx.state !== "running") Sound.unlock(); }, { capture: true, passive: true });
+}
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") { if (started) keepAwake(); lastFrame = performance.now(); }
+  if (document.visibilityState === "visible") { if (started) { keepAwake(); Sound.unlock(); } lastFrame = performance.now(); }
   else save();
 });
 window.addEventListener("pagehide", () => save());
