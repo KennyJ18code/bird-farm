@@ -1,0 +1,600 @@
+/*
+  ================================================================
+   BACKYARD BIRD FARM — style.css
+  ================================================================
+  The yard and the chickens are painted by game.js on a canvas.
+  This file only styles the things that FLOAT on top:
+  the glassy buttons, the hint bubble, and the pull-up sheets.
+
+  "Glass" = a see-through, blurry panel (like the controls on an
+  iPhone). It lets the farm show through behind it.
+  ================================================================
+*/
+
+/* ---------- Colors & shared values (change these to re-theme) ---------- */
+:root {
+  --sky:        #8FD3F4;
+  --meadow:     #7FB54A;
+  --barn:       #C8452D;
+  --barn-deep:  #A5361F;
+  --straw:      #F2C14E;
+  --ink:        #2F2A24;   /* main text: a warm, soft black */
+  --ink-soft:   #75695C;
+  --paper:      #FFFFFF;
+  --glass:      rgba(255, 251, 242, .74);
+  --glass-edge: rgba(255, 255, 255, .72);
+  --sheet:      rgba(253, 249, 240, .95);
+  --fill:       rgba(120, 104, 84, .12);
+  --disabled:   #E4DCCE;
+  --font: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --spring: cubic-bezier(.2, .9, .25, 1.06);
+  color-scheme: light;
+}
+
+[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--sky);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+/* ---------- The two drawing boards, stacked full-screen ---------- */
+#stage {
+  position: fixed;
+  inset: 0;
+  background: var(--sky);
+}
+#stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;          /* the game handles every touch itself */
+}
+.in-coop #sky { opacity: 0; }
+
+/* ---------- Glass: the frosted material every floating control uses ---------- */
+.glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  backdrop-filter: blur(22px) saturate(1.7);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    0 8px 28px rgba(46, 34, 14, .16),
+    inset 0 1px 0 rgba(255, 255, 255, .8);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .18s var(--spring), background-color .2s, opacity .2s;
+}
+button:active:not(:disabled) { transform: scale(.93); }
+button:focus-visible { outline: 3px solid var(--straw); outline-offset: 3px; }
+
+/* ---------- HUD ---------- */
+.hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + 14px)
+    calc(env(safe-area-inset-right, 0px) + 16px)
+    0
+    calc(env(safe-area-inset-left, 0px) + 16px);
+  pointer-events: none;        /* let taps pass through the empty space... */
+}
+.hud > * { pointer-events: auto; }   /* ...but not through the buttons */
+
+.pill {
+  height: 52px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px 0 14px;
+}
+.round {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+}
+.hud-right { margin-left: auto; display: flex; gap: 10px; }
+
+.count {
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+  min-width: 1.2ch;
+}
+.basket-egg { display: block; }
+.basket.bump { animation: bump .5s var(--spring); }
+@keyframes bump {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+
+.market-btn {
+  font-size: 18px;
+  font-weight: 800;
+  padding: 0 20px 0 14px;
+  color: var(--ink);
+}
+
+.back-btn {
+  font-size: 18px;
+  font-weight: 800;
+  padding: 0 20px 0 12px;
+  gap: 4px;
+}
+
+/* ---------- Title card ---------- */
+.title-card {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  top: calc(env(safe-area-inset-top, 0px) + 13vh);
+  z-index: 5;
+  text-align: center;
+  pointer-events: none;
+  transition: opacity .9s ease, transform .9s var(--spring);
+}
+.title-card.gone { opacity: 0; transform: translateY(-16px) scale(.98); }
+.wordmark {
+  margin: 0;
+  font-weight: 900;
+  font-size: clamp(46px, 8vw, 96px);
+  line-height: .9;
+  letter-spacing: -.045em;
+  color: #FFFFFF;
+  text-wrap: balance;
+  text-shadow:
+    0 2px 0 rgba(40, 80, 120, .12),
+    0 14px 44px rgba(40, 80, 130, .35);
+}
+.tap-hint {
+  margin: 22px 0 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: .01em;
+  color: #FFFFFF;
+  text-shadow: 0 2px 14px rgba(40, 80, 130, .4);
+  animation: breathe 2.6s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { opacity: .95; }
+  50%      { opacity: .55; }
+}
+
+/* ---------- Coach mark (hint bubble) ---------- */
+.coach {
+  position: fixed;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(320px, 78vw);
+  padding: 12px 18px 12px 14px;
+  border-radius: 22px;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.25;
+  transform: translate(-50%, calc(-100% - 14px));
+  pointer-events: none;
+  animation: float 2.4s ease-in-out infinite;
+}
+.coach.below { transform: translate(-50%, 14px); }
+.coach-dot {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--barn);
+  box-shadow: 0 0 0 0 rgba(200, 69, 45, .5);
+  animation: ping 1.6s ease-out infinite;
+}
+@keyframes ping {
+  0%   { box-shadow: 0 0 0 0 rgba(200, 69, 45, .55); }
+  100% { box-shadow: 0 0 0 12px rgba(200, 69, 45, 0); }
+}
+@keyframes float {
+  0%, 100% { margin-top: 0; }
+  50%      { margin-top: -5px; }
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 78px);
+  z-index: 15;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, -10px) scale(.96);
+  transition: opacity .3s ease, transform .45s var(--spring);
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+
+/* ---------- Sheets (iOS-style panels that slide up from the bottom) ---------- */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(34, 26, 14, .28);
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.scrim.show { opacity: 1; }
+
+.sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 21;
+  width: min(700px, 100%);
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 8px 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+  border-radius: 32px 32px 0 0;
+  background: var(--sheet);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  backdrop-filter: blur(30px) saturate(1.8);
+  box-shadow: 0 -12px 48px rgba(46, 34, 14, .22);
+  transform: translate(-50%, 105%);
+  transition: transform .55s var(--spring);
+  user-select: none;
+}
+.sheet.open { transform: translate(-50%, 0); }
+
+.grabber {
+  width: 40px;
+  height: 5px;
+  margin: 2px auto 10px;
+  border-radius: 3px;
+  background: rgba(60, 50, 40, .22);
+  flex: none;
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  flex: none;
+  touch-action: none;           /* dragging here pulls the sheet down */
+}
+.sheet-head h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -.03em;
+}
+.close {
+  margin-left: auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--fill);
+  color: var(--ink-soft);
+}
+.sheet-note {
+  margin: 10px 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  max-width: 60ch;
+  flex: none;
+}
+
+/* iOS segmented control */
+.segmented {
+  display: flex;
+  padding: 2px;
+  border-radius: 11px;
+  background: rgba(118, 104, 88, .14);
+}
+.seg {
+  height: 34px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+.seg.on {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .12), 0 0 0 .5px rgba(0, 0, 0, .04);
+}
+
+/* ---------- Market grid ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 12px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  padding: 2px 2px 6px;
+  min-height: 0;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 12px 12px;
+  border-radius: 24px;
+  background: var(--paper);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 6px 18px rgba(70, 50, 20, .08);
+  text-align: center;
+  min-width: 0;
+}
+.tile.wide {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  text-align: left;
+  gap: 16px;
+  padding: 14px 16px;
+}
+.tile.wide .tile-text { flex: 1; min-width: 0; }
+.tile.locked { opacity: .62; }
+.tile canvas { display: block; max-width: 100%; }
+.portrait-sm { width: 120px; height: 96px; }
+.coop-mini   { width: 132px; height: 104px; flex: none; }
+.tile-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 50px;
+  line-height: 70px;
+  height: 70px;
+}
+.tile-name {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -.01em;
+  text-wrap: balance;
+}
+.tile-sub {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.tile.wide .tile-sub { justify-content: flex-start; }
+.tile.wide .tile-name { font-size: 20px; }
+
+.egg-dot {
+  display: inline-block;
+  width: 11px;
+  height: 14px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 42% 42%;
+  box-shadow: inset -1.5px -2px 2px rgba(0, 0, 0, .14), 0 0 0 .5px rgba(0, 0, 0, .15);
+  vertical-align: -2px;
+}
+
+.buy {
+  margin-top: 8px;
+  width: 100%;
+  height: 42px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--barn);
+  color: #FFFFFF;
+  font-size: 17px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.tile.wide .buy { width: auto; min-width: 120px; padding: 0 18px; margin: 0; flex: none; }
+.buy:disabled {
+  background: var(--disabled);
+  color: #978B7A;
+  cursor: default;
+}
+.buy .egg-dot { background: #FFF6E6; }
+.buy:disabled .egg-dot { background: #F5EFE4; }
+
+/* ---------- Chicken card ---------- */
+.card { max-width: 560px; }
+.eyebrow {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.card-body {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+}
+.portrait-lg {
+  width: 190px;
+  height: 160px;
+  flex: none;
+  border-radius: 26px;
+  background: linear-gradient(#DDF2FB, #C9E7B0);
+}
+.card-info {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+#nameInput {
+  font: inherit;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -.02em;
+  color: var(--ink);
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--fill);
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: manipulation;
+}
+#nameInput:focus { outline: 3px solid var(--straw); outline-offset: 0; background: var(--paper); }
+.card-mood  { margin: 4px 0 0; font-size: 19px; font-weight: 800; }
+.card-stats { margin: 0; font-size: 15px; font-weight: 700; color: var(--ink-soft); }
+.grow-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--fill);
+  overflow: hidden;
+}
+.grow-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--straw), #F5A623);
+  transition: width .4s ease;
+}
+
+/* ---------- Narrow screens ---------- */
+@media (max-width: 520px) {
+  .sheet { padding-left: 16px; padding-right: 16px; }
+  .sheet-head h2 { font-size: 26px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+  .tile.wide { flex-direction: column; text-align: center; }
+  .tile.wide .tile-sub { justify-content: center; }
+  .tile.wide .buy { width: 100%; }
+}
+
+/* ---------- Respect "reduce motion" ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .tap-hint, .coach, .coach-dot { animation: none; }
+  .sheet, .toast, .title-card { transition-duration: .01s; }
+}
+
+/* ---------- Farm button (which farm you're on) ---------- */
+.farm-btn {
+  position: relative;
+  font-size: 18px;
+  font-weight: 800;
+  padding: 0 20px 0 14px;
+  color: var(--ink);
+  max-width: 42vw;
+}
+.farm-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* a little red dot when eggs are waiting at a farm you're NOT on */
+.farm-btn.has-eggs::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  right: 9px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--barn);
+  box-shadow: 0 0 0 2px #FFFFFF;
+}
+
+/* ---------- Market: a heading for each farm ---------- */
+.grid-head {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 4px 0;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+.grid-head:first-child { padding-top: 0; }
+.grid-head span { font-size: 14px; font-weight: 800; color: var(--ink-soft); letter-spacing: 0; }
+.buy.unlock { background: var(--ink); }
+
+/* ---------- Map of farms ---------- */
+.farm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  padding: 4px 4px 6px;
+  min-height: 0;
+}
+.farm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 10px 12px;
+  border-radius: 26px;
+  background: var(--paper);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 6px 18px rgba(70, 50, 20, .08);
+}
+.farm-card.here { box-shadow: 0 0 0 3px var(--straw), 0 6px 18px rgba(70, 50, 20, .1); }
+.farm-mini {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  border-radius: 18px;
+}
+.farm-card.locked .farm-mini { filter: saturate(.3) brightness(1.06); }
+.farm-name { padding: 2px 6px 0; font-size: 21px; font-weight: 900; letter-spacing: -.02em; }
+.farm-sub  { padding: 0 6px; font-size: 14px; font-weight: 700; color: var(--ink-soft); min-height: 1.4em; }
+.farm-card .buy { margin-top: 4px; }
+.buy.visit { background: #3E8E4A; }
+.buy.here-btn:disabled { background: var(--straw); color: var(--ink); }
