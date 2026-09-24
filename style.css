@@ -999,3 +999,60 @@ button:focus-visible { outline: 3px solid var(--straw); outline-offset: 3px; }
 @media (max-height: 560px) {
   .card.editing .genes { display: none; }
 }
+
+/* ---------- Family tree ---------- */
+.tree-view { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+.tree-kinds { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 10px; flex: none; -webkit-overflow-scrolling: touch; }
+.tree-kind {
+  flex: none; height: 38px; padding: 0 14px; border-radius: 19px; background: var(--fill);
+  font-size: 15px; font-weight: 800; color: var(--ink-soft); white-space: nowrap;
+}
+.tree-kind.on { background: var(--paper); color: var(--ink); box-shadow: 0 0 0 3px var(--straw); }
+.tree-body { overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; min-height: 0; padding: 2px 2px 8px; }
+.tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+.tree ul { margin-left: 30px; padding-left: 14px; border-left: 3px solid rgba(120, 104, 84, .22); }
+.tree li { position: relative; padding: 5px 0; }
+.tree ul > li::before {        /* the little branch into each bird */
+  content: ""; position: absolute; left: -14px; top: 38px; width: 14px; height: 3px; background: rgba(120, 104, 84, .22);
+}
+.tree-node {
+  display: flex; align-items: center; gap: 10px; width: 100%; max-width: 420px; padding: 6px 12px 6px 6px; border-radius: 18px;
+  background: var(--paper); box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 4px 12px rgba(70, 50, 20, .07); text-align: left;
+}
+.tree-node.wild { background: #EEF5E4; }
+.tree-node.cross { background: #FFF6DC; }
+.tree-node.locked .tree-pic, .tree-card.locked .tree-big { filter: grayscale(1) brightness(1.15); opacity: .45; }
+.tree-node.locked b { color: var(--ink-soft); }
+.tree-pic { width: 64px; height: 52px; flex: none; border-radius: 12px; background: rgba(120, 104, 84, .07); }
+.tree-text { display: flex; flex-direction: column; min-width: 0; }
+.tree-text b { font-size: 15px; font-weight: 900; line-height: 1.2; }
+.tree-text small { font-size: 12px; font-weight: 700; color: var(--ink-soft); line-height: 1.25; }
+.tree-back { align-self: flex-start; height: 36px; padding: 0 14px; border-radius: 18px; background: var(--fill); font-size: 15px; font-weight: 800; margin-bottom: 10px; }
+.tree-card { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+.tree-big { width: 200px; height: 160px; border-radius: 20px; background: var(--paper); flex: none; }
+.tree-info { flex: 1 1 260px; min-width: 0; }
+.tree-info h3 { margin: 2px 0 4px; font-size: 26px; font-weight: 900; letter-spacing: -.02em; }
+.tree-tag { display: inline-block; padding: 3px 10px; border-radius: 10px; background: var(--fill); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); }
+.tree-origin { margin: 0 0 8px; font-size: 15px; font-weight: 800; color: var(--ink-soft); }
+.tree-fact { margin: 0 0 10px; font-size: 16px; font-weight: 700; line-height: 1.4; }
+.tree-egg { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: 15px; font-weight: 800; }
+.tree-egg .egg-dot { width: 16px; height: 20px; }
+.tree-links { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0; }
+.tree-links .field-label { width: 100%; }
+.tree-link { height: 34px; padding: 0 12px; border-radius: 17px; background: var(--paper); box-shadow: 0 0 0 1.5px rgba(120, 104, 84, .25); font-size: 14px; font-weight: 800; }
+.tree-link.locked { color: var(--ink-soft); }
+.tree-how { margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: var(--fill); font-size: 14px; font-weight: 800; line-height: 1.35; }
+.odds-name { margin: -2px 0 8px; font-size: 15px; font-weight: 900; color: var(--ink); }
+
+/* ---------- Finding a bird a new home ---------- */
+.rehome-btn {
+  margin-top: 12px; height: 40px; padding: 0 16px; border-radius: 20px; background: var(--fill);
+  font-size: 15px; font-weight: 800; color: var(--ink-soft);
+}
+.rehome-btn.arm { background: #F7D9CF; color: #9A3A22; }
+.rehome-btn.small { height: 36px; font-size: 14px; margin-top: 10px; }
+@media (max-height: 560px) {
+  .card.editing .rehome-btn { display: none; }
+}
+.tree-kinds { scrollbar-width: none; }
+.tree-kinds::-webkit-scrollbar { display: none; }

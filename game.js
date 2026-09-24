@@ -4401,7 +4401,7 @@ function hitYard(p) {
     if (d < Math.max(28, 30 * sc) && d < bd) { bd = d; best = e; }
   }
   if (best) return { kind: "egg", e: best };
-  const list = F.birds.filter((c) => c.loc === "yard" && c.state !== "enter" && c.state !== "exit").sort((a, b) => b.y - a.y);
+  const list = F.birds.filter((c) => c.loc === "yard" && c.state !== "enter" && c.state !== "exit" && !c.leaving).sort((a, b) => b.y - a.y);
   for (const c of list) {
     const S = SP(c), sc = scaleAt(c.y), k = S.size * smallK(c);
     let r = Math.max(26, (isBaby(c) ? 24 : S.hitR * growK(c)) * k * sc);
@@ -5054,6 +5054,7 @@ function openCard(c) {
   nameInput.value = c.name;
   renderDress();
   renderGenes();
+  resetRehome();
   nameClear.hidden = true;
   nameDone.hidden = true;
   updateCardText();
@@ -5442,6 +5443,7 @@ function renderPick() {
   // What might hatch? We "pretend-hatch" 400 eggs to find out!
   const odds = hatchOdds(hatchMom, hatchDad), box = el("div", "odds");
   box.append(el("div", "odds-head", "What might hatch?"));
+  if (odds.names.length) box.append(el("p", "odds-name", `${odds.names.length > 1 ? "Names" : "Name"}: ${odds.names.join(" · ")}`));
   for (const o of odds.list) {
     const r = el("div", "odds-row"), bar = el("span", "odds-bar"), fill = el("i");
     fill.style.width = `${o.pct}%`;
@@ -5759,7 +5761,7 @@ function checkStickers(quiet) {
   }
 }
 function openBook() {
-  renderBook();
+  setBookTab(bookTab);
   showSheet(bookSheet);
   bookGrid.scrollTop = 0;
   game.bookNew = false;
@@ -6620,9 +6622,11 @@ function inheritGenes(kind, momG, dadG, sex) {
 function cleanGeno(kind, G, sex) {
   const out = {}, wildG = genesFor(kind, null, sex);
   for (const L of lociOf(kind)) {
-    const v = G && G[L.id], need = L.z && !isMaleSex(sex) ? 1 : 2;
-    const ok = Array.isArray(v) && v.length === need &&
+    let v = G && G[L.id];
+    const need = L.z && !isMaleSex(sex) ? 1 : 2;
+    const ok = Array.isArray(v) && v.length >= 1 && v.length <= 2 &&
       v.every((a) => (L.type === "num" ? typeof a === "number" && isFinite(a) : L.alleles.includes(a)));
+    if (ok && v.length !== need) v = need === 1 ? [v[0]] : [v[0], v[0]];
     out[L.id] = ok ? (L.type === "num" ? v.map((a) => clamp(a, 0, 5)) : v.slice()) : wildG[L.id];
   }
   return out;
@@ -6643,18 +6647,22 @@ const gAll = (G, id, a) => G[id].every((x) => x === a);
 // Kid-friendly list of a bird's special genes: what shows, and what it secretly carries
 function geneChips(c) {
   const kind = kindOf(c), G = genoOf(c), out = [];
+  // e.g. "Blue · Bl/bl⁺" (a girl's Z-chromosome genes show as "S/–")
+  const code = (L, v) => (L.sym && v.every((a) => L.sym[a]) ? ` · ${v.map((a) => L.sym[a]).join("/")}${v.length === 1 ? "/–" : ""}` : "");
   for (const L of lociOf(kind)) {
     if (L.type === "num" || L.type === "blend") continue;
     const v = G[L.id];
     if (L.type === "inc") {
       const n = gCount(kind, G, L.id);
-      if (n) out.push({ text: L.say[n] + (v.length > 1 ? ` (${n === 1 ? "1 copy" : "2 copies"})` : ""), shows: true });
+      if (n) out.push({ text: L.say[n] + code(L, v), shows: true });
       continue;
     }
     const shown = gDom(kind, G, L.id);
-    if (shown !== L.wild || L.always) { if (L.say[shown]) out.push({ text: L.say[shown], shows: true }); }
-    for (const a of new Set(v)) if (a !== shown && a !== L.wild && L.say[a]) out.push({ text: `carries ${L.say[a]}`, shows: false });
-    if (L.always && shown !== L.wild && v.includes(L.wild) && L.say[L.wild] && !out.some((x) => x.text === `carries ${L.say[L.wild]}`)) out.push({ text: `carries ${L.say[L.wild]}`, shows: false });
+    if ((shown !== L.wild || L.always) && L.say[shown]) out.push({ text: L.say[shown] + code(L, v), shows: true });
+    for (const a of new Set(v)) {
+      if (a === shown || !L.say[a] || (a === L.wild && !L.always)) continue;
+      out.push({ text: `carries ${L.say[a]}${L.sym && L.sym[a] ? ` · ${L.sym[a]}` : ""}`, shows: false });
+    }
   }
   const size = gNum(G, "size");
   if (size < 0.7) out.push({ text: "Bantam (tiny)", shows: true });
@@ -6791,7 +6799,7 @@ function chickenEgg(G) {
   const plain = [["White", "#F8F4EA"], ["Cream", "#F1E4CC"], ["Light brown", "#D8B58C"], ["Brown", "#B98256"], ["Chocolate", "#6B3E23"]];
   const blues = [["Blue", "#9FD3CE"], ["Mint", "#BFE0C4"], ["Green", "#A9BF7E"], ["Olive", "#8E9A5C"], ["Dark olive", "#6E7A44"]];
   // a little brown on a blue egg goes a long way toward green and olive
-  const i = blue ? (lv < 0.75 ? 0 : lv < 1.5 ? 1 : lv < 2.1 ? 2 : lv < 3.2 ? 3 : 4) : Math.round(lv);
+  const i = blue ? (lv < 0.6 ? 0 : lv < 1.3 ? 1 : lv < 1.9 ? 2 : lv < 3.1 ? 3 : 4) : Math.round(lv);
   const [name, color] = (blue ? blues : plain)[i];
   return { name, color, speckle: gHas(G, "speckEgg", "Sp") || (!blue && lv > 3.4) };
 }
@@ -7163,38 +7171,47 @@ const KIND_NOUN = {
 };
 const RED_DADS = ["rir", "newHampshire"];
 const NAMED_CROSSES = [
-  { name: "Black Star", kind: "chicken", emoji: "⭐", hint: "Rhode Island Red dad + Barred Rock mom", test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "barred",
-    fact: "A \"sex-link\": girl chicks hatch all black and boy chicks have a white spot on their heads." },
-  { name: "Golden Comet", kind: "chicken", emoji: "☄️", hint: "New Hampshire dad + White Rock mom", test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "whiteRock",
+  // Crosses named after their parents (dad first, like farmers write it)
+  { name: "Black Star", kind: "chicken", dad: "rir", mom: "barred", emoji: "⭐", hint: "Rhode Island Red dad + Barred Rock mom",
+    test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "barred",
+    fact: "A \"sex-link\": girl chicks hatch black and boy chicks have a white spot on their heads. Also called a Black Sex-Link." },
+  { name: "Golden Comet", kind: "chicken", dad: "newHampshire", mom: "whiteRock", emoji: "☄️", hint: "New Hampshire dad + White Rock mom",
+    test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "whiteRock",
     fact: "Girls hatch red and boys hatch yellow, because Mom's silver gene only goes to her sons." },
-  { name: "Red Star", kind: "chicken", emoji: "🌟", hint: "Rhode Island Red dad + Delaware mom", test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "delaware",
-    fact: "Red Stars are super layers. Girls are red and boys are white with a little black." },
-  { name: "Cinnamon Queen", kind: "chicken", emoji: "👸", hint: "Rhode Island Red dad + Silver Laced Wyandotte mom", test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "wyandotte",
+  { name: "Red Star", kind: "chicken", dad: "rir", mom: "delaware", emoji: "🌟", hint: "Rhode Island Red dad + Delaware mom",
+    test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "delaware",
+    fact: "Red Stars (Red Sex-Links) are super layers. Girls are red and boys are white." },
+  { name: "Cinnamon Queen", kind: "chicken", dad: "newHampshire", mom: "wyandotte", emoji: "👸", hint: "New Hampshire dad + Silver Laced Wyandotte mom",
+    test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "wyandotte",
     fact: "Cinnamon Queen girls are cinnamon red. Their brothers come out silver!" },
-  { name: "Austra White", kind: "chicken", emoji: "🤍", hint: "Black Australorp dad + White Leghorn mom", test: (m, d) => d.breed === "australorp" && m.breed === "leghorn",
+  { name: "Speckledy", kind: "chicken", dad: "rir", mom: "marans", emoji: "🟤", hint: "Rhode Island Red dad + Cuckoo Marans mom",
+    test: (m, d) => RED_DADS.includes(d.breed) && m.breed === "marans",
+    fact: "A favorite in Britain: speckled hens that lay lots of dark brown eggs." },
+  { name: "Austra White", kind: "chicken", dad: "australorp", mom: "leghorn", emoji: "🤍", hint: "Black Australorp dad + White Leghorn mom",
+    test: (m, d) => d.breed === "australorp" && m.breed === "leghorn",
     fact: "With just one dominant-white gene, the black shows through as little specks." },
-  { name: "Sizzle", kind: "chicken", emoji: "☁️", hint: "Silkie fluff + frizzle curls (takes two generations!)", test: (m, d, L) => L.silkie && L.frizzle > 0,
-    fact: "Silkie fluff is recessive, so it takes grandparents from both sides to make a Sizzle." },
-  { name: "Showgirl", kind: "chicken", emoji: "💃", hint: "Silkie fluff + a naked neck", test: (m, d, L) => L.silkie && L.naked > 0,
-    fact: "A fluffy Silkie with a bare neck, like it's wearing a feather boa!" },
-  { name: "Olive Egger", kind: "chicken", emoji: "🫒", hint: "A blue-egg bird + a dark-brown-egg bird", test: (m, d, L) => /Olive/.test(L.egg.name),
-    fact: "Blue on the inside, brown painted on the outside: together they look olive green!" },
-  { name: "Easter Egger", kind: "chicken", emoji: "🐣", hint: "A blue-egg bird + any other chicken", test: (m, d, L) => /Blue|Mint|Green/.test(L.egg.name),
-    fact: "Easter Eggers carry the blue-egg gene. Only one copy is needed for blue or green eggs." },
-  { name: "Red Sex-Link", kind: "chicken", auto: true, emoji: "❤️", hint: "A gold rooster + a silver hen", test: (m, d) => !gHas(genoOfRec(d), "silver", "S") && gHas(genoOfRec(m), "silver", "S"),
-    fact: "The silver gene rides on the Z chromosome, so only boys get it from Mom." },
-  { name: "Black Sex-Link", kind: "chicken", auto: true, emoji: "🖤", hint: "A plain rooster + a barred hen", test: (m, d) => !gHas(genoOfRec(d), "bar", "B") && gHas(genoOfRec(m), "bar", "B"),
-    fact: "Barring rides on the Z chromosome too: only the boys get Mom's stripes." },
-  { name: "Mulard", kind: "mule", emoji: "🦆", hint: "A duck + a Muscovy", test: () => true,
-    fact: "Muscovies aren't really the same kind of duck, so their babies (mules) can't have babies." },
-  { name: "Blute Swan", kind: "swan", emoji: "🦢", hint: "A Black Swan + a Mute Swan", test: (m, d) => [m.breed, d.breed].sort().join() === "blackSwan,muteSwan",
-    fact: "Half black, half white: blute swans come out a smoky gray-brown." },
-  { name: "Spalding", kind: "peafowl", emoji: "🦚", hint: "An India Blue + a Green peafowl", test: (m, d, L, G) => gCount("peafowl", G, "green") === 1,
+  { name: "Mulard", kind: "mule", dad: "muscovy", mom: "pekin", emoji: "🦆", hint: "A Muscovy dad + a Pekin mom", test: () => true,
+    fact: "Also called a mule duck. Muscovies aren't the same kind of duck, so Mulards can't have babies." },
+  { name: "Blute Swan", kind: "swan", dad: "blackSwan", mom: "muteSwan", emoji: "🦢", hint: "A Black Swan + a Mute Swan",
+    test: (m, d) => [m.breed, d.breed].sort().join() === "blackSwan,muteSwan",
+    fact: "\"Black\" + \"mute\" = blute! Blute swans come out a smoky gray-brown." },
+  { name: "Spalding", kind: "peafowl", dad: "greenPeafowl", mom: "peacock", emoji: "🦚", hint: "A Green peafowl + an India Blue",
+    test: (m, d, L, G) => gCount("peafowl", G, "green") === 1,
     fact: "Named after Mrs. Keith Spalding, who first raised them. Taller and shinier than India Blues!" },
-  { name: "Golden-Amherst", kind: "ruffed", emoji: "🌈", hint: "A Golden Pheasant + a Lady Amherst", test: (m, d, L, G) => gCount("ruffed", G, "amherst") === 1,
+  { name: "Golden-Amherst", kind: "ruffed", dad: "ladyAmherst", mom: "goldenPh", emoji: "🌈", hint: "A Lady Amherst + a Golden Pheasant",
+    test: (m, d, L, G) => gCount("ruffed", G, "amherst") === 1,
     fact: "Golden and Lady Amherst pheasants are close cousins, so their babies can have babies too." },
-  { name: "Hybrid Flamingo", kind: "flamingo", emoji: "🦩", hint: "Two different kinds of flamingo", test: (m, d) => m.breed !== d.breed,
-    fact: "Flamingo kinds can mix. Their chicks have legs and bills a bit like both parents." },
+  // Names that come from what the chick looks like (its genes)
+  { name: "Sizzle", kind: "chicken", dad: "silkie", mom: "frizzle", pheno: true, emoji: "☁️", hint: "Silkie fluff + frizzle curls (takes two generations!)",
+    test: (m, d, L) => L.silkie && L.frizzle > 0,
+    fact: "A real breed! Silkie fluff is recessive, so it takes Silkie genes from both sides to make a Sizzle." },
+  { name: "Showgirl", kind: "chicken", dad: "silkie", mom: "turken", pheno: true, emoji: "💃", hint: "Silkie fluff + a naked neck (takes two generations!)",
+    test: (m, d, L) => L.silkie && L.naked > 0,
+    fact: "A fluffy Silkie with a bare neck, like it's wearing a feather boa!" },
+  { name: "Olive Egger", kind: "chicken", breed: "olive", pheno: true, emoji: "🫒", hint: "A blue-egg bird + a dark-brown-egg bird",
+    test: (m, d, L) => /Olive/.test(L.egg.name) },
+  { name: "Easter Egger", kind: "chicken", breed: "easter", pheno: true, emoji: "🐣", hint: "A blue-egg bird + any other chicken",
+    test: (m, d, L) => /Blue|Mint|Green/.test(L.egg.name) },
 ];
 const genoOfRec = (p) => p.geno || genesFor(kindOfBreed(p.breed), BREEDS[p.breed].genes, p.sex);
 
@@ -7266,7 +7283,19 @@ function colorWords(kind, G, L) {
 // What to call a new baby, and which breed it counts as
 function nameChick(kind, mom, dad, G, sex, L) {
   if (kind === "mule") return { breed: "mulard", cross: null };
-  const mixKey = KINDS[kind].mix;
+  const W = KINDS[kind], mixKey = W.mix;
+  const named = (x) => (x.breed ? { breed: x.breed, cross: null } : { breed: mixKey, cross: x.name });
+  // 1. Famous crosses have their own names
+  for (const x of NAMED_CROSSES) if (x.kind === kind && !x.pheno && x.test(mom, dad, L, G)) return named(x);
+  // 2. Color varieties (quail, guineas, turkeys, peafowl...) are named by their color, like "Blue Slate"
+  const [color, trait] = colorWords(kind, G, L), look = [trait, color].filter(Boolean).join(" ");
+  if (W.varieties) {
+    const match = Object.keys(BREEDS).find((k) => kindOfBreed(k) === kind && !BREEDS[k].cross &&
+      colorWords(kind, genesFor(kind, BREEDS[k].genes, sex), null).filter(Boolean).reverse().join(" ") === look);
+    if (match) return { breed: match, cross: null };
+    return { breed: mom.breed === dad.breed ? mom.breed : mixKey, cross: `${look} ${KIND_NOUN[kind]}` };
+  }
+  // 3. Same breed: that breed (maybe a new color of it, like a "Splash Andalusian")
   if (mom.breed === dad.breed && !BREEDS[mom.breed].cross) {
     const B = BREEDS[mom.breed];
     if (mom.breed === "frizzle") {
@@ -7274,16 +7303,17 @@ function nameChick(kind, mom, dad, G, sex, L) {
       if (L.frizzle === 0) return { breed: mom.breed, cross: "Smooth Frizzle" };
     }
     const stdG = genesFor(kind, B.genes, sex);
-    const [was] = colorWords(kind, stdG, LOOKS[kind](stdG, isMaleSex(sex))), [now] = colorWords(kind, G, L);
-    return { breed: mom.breed, cross: was !== now && now ? `${now} ${B.short || B.name}` : null };
+    const [was] = colorWords(kind, stdG, LOOKS[kind](stdG, isMaleSex(sex)));
+    return { breed: mom.breed, cross: was !== color && color ? `${color} ${B.short || B.name}` : null };
   }
-  for (const x of NAMED_CROSSES) {
-    if (x.kind !== kind || !x.test(mom, dad, L, G)) continue;
-    if (x.auto && !isAutosexing(kind, genoOfRec(mom), genoOfRec(dad))) continue;   // only a "sex-link" if you can really tell
-    return { breed: mixKey, cross: x.name };
-  }
-  const [color, trait] = colorWords(kind, G, L);
-  return { breed: mixKey, cross: [trait, color, KIND_NOUN[kind]].filter(Boolean).join(" ") + " Mix" };
+  // 4. Names from genes: Sizzles, Showgirls, Olive Eggers, Easter Eggers
+  for (const x of NAMED_CROSSES) if (x.kind === kind && x.pheno && x.test(mom, dad, L, G)) return named(x);
+  // 5. Everything else is named after its parents, dad first: "Buff Orpington × Barred Rock"
+  const dn = recName(dad), mn = recName(mom);
+  if (/Mix|Mixed/.test(dn + mn)) return { breed: mixKey, cross: kind === "chicken" ? "Barnyard Mix" : `Mixed-breed ${KIND_NOUN[kind]}` };
+  if (dn === mn) return { breed: mixKey, cross: `${dn} (2nd generation)` };
+  const name = `${dn} × ${mn}`;
+  return { breed: mixKey, cross: name.length <= 46 ? name : kind === "chicken" ? "Barnyard Mix" : `Mixed-breed ${KIND_NOUN[kind]}` };
 }
 
 // Could Mom and Dad's chicks be told apart, boys from girls, on hatching day?
@@ -7301,9 +7331,9 @@ function isAutosexing(kind, momG, dadG) {
 // The chances of what the chicks will look like (we "pretend-hatch" lots of eggs!)
 function hatchOdds(mom, dad) {
   const kind = kindOf(mom), mode = canMate(kind, kindOf(dad));
-  if (mode === "mule") return { list: [{ label: "Mulard (mule duck)", pct: 100 }], autosex: false };
-  if (mode !== "yes") return { list: [], autosex: false };
-  const tally = new Map(), N = 400, momG = genoOf(mom), dadG = genoOf(dad);
+  if (mode === "mule") return { list: [{ label: "Mulard (mule duck)", pct: 100 }], autosex: false, names: ["Mulard"] };
+  if (mode !== "yes") return { list: [], autosex: false, names: [] };
+  const tally = new Map(), names = new Map(), N = 400, momG = genoOf(mom), dadG = genoOf(dad), momR = parentRec(mom), dadR = parentRec(dad);
   for (let i = 0; i < N; i++) {
     const sex = i % 2 ? "rooster" : "hen", G = inheritGenes(kind, momG, dadG, sex), L = LOOKS[kind](G, isMaleSex(sex));
     const [color, trait] = colorWords(kind, G, L);
@@ -7311,9 +7341,10 @@ function hatchOdds(mom, dad) {
     if (kind === "chicken" && !isMaleSex(sex)) label += ` · ${L.egg.name.toLowerCase()} eggs`;
     else if (kind === "chicken") label += " · rooster";
     tally.set(label, (tally.get(label) || 0) + 1);
+    if (i % 4 === 0) { const nm = nameChick(kind, momR, dadR, G, sex, L); const n = nm.cross || BREEDS[nm.breed].name; names.set(n, (names.get(n) || 0) + 1); }
   }
   const list = [...tally].map(([label, n]) => ({ label, pct: Math.max(1, Math.round((n / N) * 100)) })).sort((a, b) => b.pct - a.pct).slice(0, 6);
-  return { list, autosex: isAutosexing(kind, momG, dadG) };
+  return { list, autosex: isAutosexing(kind, momG, dadG), names: [...names].sort((a, b) => b[1] - a[1]).slice(0, 3).map((x) => x[0]) };
 }
 
 // Did a chick show a gene that neither parent showed? (It was hiding!)
@@ -7471,6 +7502,16 @@ function renderFlock() {
     marker.style.left = `${(Math.min(s.ratio, max) / max) * 100}%`;
     gauge.append(bar, marker);
     row.append(head, counts, gauge, el("p", "flock-say", s.say), el("p", "flock-ideal", `Best: ${W.ideal}.`));
+    const extraBoys = (s.key === "crowded" || s.key === "fewHens") && s.males > 1, extraGirls = s.key === "fewRoos" && W.pairs;
+    if (extraBoys || extraGirls) {
+      const word = extraBoys ? W.male : W.female, b = el("button", "rehome-btn small", `🏡 Find a home for one ${word}`);
+      b.type = "button";
+      b.addEventListener("click", () => {
+        const pickOne = F.birds.filter((c) => kindOf(c) === s.kind && c.growth >= 1 && isRooster(c) === extraBoys && !c.leaving);
+        if (pickOne.length) { rehomeBird(pickOne[pickOne.length - 1]); flockCache = {}; renderFlock(); }
+      });
+      row.append(b);
+    }
     rows.append(row);
   }
 }
@@ -7862,8 +7903,296 @@ SPECIAL_STICKERS.push(
   { id: "rooster", emoji: "🐓", name: "Cock-a-doodle-doo!", how: "Get a rooster for your flock", done: () => farms.backyard.birds.some((c) => isChicken(c) && isRooster(c)) },
   { id: "perfectFlock", emoji: "💚", name: "Perfect Flock", how: "Get the boy-girl balance just right", done: () => FARM_ORDER.some((id) => farms[id].unlocked && Object.values(flockStats(id)).some((s) => s.key === "good")) },
   ...GENE_STICKERS,
-  ...NAMED_CROSSES.map((x) => ({ id: "x_" + x.name, emoji: x.emoji, name: x.name, how: x.hint, fact: x.fact, done: () => !!game.crossesSeen[x.name] })),
+  ...NAMED_CROSSES.filter((x) => !x.breed).map((x) => ({ id: "x_" + x.name, emoji: x.emoji, name: x.name, how: x.hint, fact: x.fact, done: () => !!game.crossesSeen[x.name] })),
 );
+
+
+// ---------- Real gene names ----------
+// Scientists write genes with short symbols. A "⁺" means the ordinary wild
+// version. We only show symbols where the real ones match our genes.
+const SYMBOLS = {
+  chicken: {
+    base: { E: "E", ER: "Eᴿ", R: "eᵂʰ", p: "e⁺" }, silver: { S: "S", s: "s⁺" }, bar: { B: "B", b: "b⁺" },
+    domW: { I: "I", i: "i⁺" }, recW: { C: "C⁺", c: "c" }, blue: { Bl: "Bl", bl: "bl⁺" }, lav: { L: "Lav⁺", lav: "lav" },
+    choc: { Ch: "Choc⁺", ch: "choc" }, silkie: { H: "H⁺", h: "h" }, frizzle: { F: "F", f: "f⁺" }, naked: { Na: "Na", na: "na⁺" },
+    crest: { Cr: "Cr", cr: "cr⁺" }, beard: { Mb: "Mb", mb: "mb⁺" }, feet: { Pti: "Pti", pti: "pti⁺" }, toes: { Po: "Po", po: "po⁺" },
+    rose: { Rc: "R", rc: "r⁺" }, pea: { Pc: "P", pc: "p⁺" }, vcomb: { D: "Dᵛ", d: "d⁺" }, blueEgg: { O: "O", o: "o⁺" },
+    skin: { Fm: "Fm", fm: "fm⁺" }, skinY: { W: "W⁺", w: "w" }, rump: { Rp: "Rp", rp: "rp⁺" }, tufts: { Et: "Et", et: "et⁺" },
+    henny: { Hf: "Hf", hf: "hf⁺" }, longTail: { Gt: "Gt⁺", gt: "gt" },
+  },
+  duck: { base: { E: "E", M: "M⁺", md: "mᵈ" }, blue: { Bl: "Bl", bl: "bl⁺" }, brown: { D: "D⁺", d: "d" }, white: { C: "C⁺", c: "c" }, harl: { Hq: "H⁺", hq: "h" }, crest: { Cr: "Cr", cr: "cr⁺" } },
+  goose: { sd: { Sd: "Sd", sd: "sd⁺" }, buff: { G: "G⁺", g: "g" } },
+  turkey: { base: { B: "B", "b+": "b⁺", b: "b" }, narr: { N: "N⁺", n: "n" }, white: { C: "C⁺", c: "c" }, palm: { Cp: "C⁺", cp: "cᵖ" } },
+};
+for (const kind in SYMBOLS) for (const L of LOCI[kind]) if (SYMBOLS[kind][L.id]) L.sym = SYMBOLS[kind][L.id];
+// In ducks, the brown (khaki) gene rides on the Z chromosome, like silver in chickens
+locusOf("duck", "brown").z = true;
+// Breeds of these birds are color varieties, named by their color (like "Blue Slate")
+for (const k of ["quail", "bobwhite", "guinea", "pheasant", "ruffed", "turkey", "peafowl", "muscovy"]) KINDS[k].varieties = true;
+
+// ---------- Wild ancestors (they start the family trees) ----------
+Object.assign(BREEDS, {
+  junglefowl: { species: "chicken", name: "Red Junglefowl", price: 0, cross: true, wild: true, genes: { base: "p", size: 0.8, combSize: 0.9, brownEgg: 1 } },
+  greylag:    { species: "goose", name: "Greylag Goose", price: 0, cross: true, wild: true, genes: { size: 0.9 } },
+  swanGoose:  { species: "goose", name: "Swan Goose", price: 0, cross: true, wild: true, genes: { knob: ["K", "k"], size: 0.9 } },
+  wildTurkey: { species: "turkey", name: "Wild Turkey", price: 0, cross: true, wild: true, genes: { size: 0.95 } },
+});
+for (const k of ["junglefowl", "greylag", "swanGoose", "wildTurkey"]) BREEDS[k].egg = LOOKS[kindOfBreed(k)](genesFor(kindOfBreed(k), BREEDS[k].genes, "hen"), false).egg;
+Object.assign(FACTS, {
+  junglefowl: "Every chicken in the world comes from this wild jungle bird (plus a little Grey Junglefowl, which gave chickens their yellow legs!).",
+  greylag: "The wild ancestor of most farm geese. Greylags fly thousands of miles every year.",
+  swanGoose: "A wild goose from China and Mongolia. Chinese and African geese come from it.",
+  wildTurkey: "People in Mexico tamed wild turkeys about 2,000 years ago. All farm turkeys come from them.",
+});
+
+// Where each breed comes from, and when
+const ORIGINS = {
+  junglefowl: "Jungles of Southeast Asia · wild", rir: "Rhode Island, USA · 1800s", newHampshire: "New Hampshire, USA · 1910s", buff: "Orpington, England · 1894",
+  barred: "Massachusetts, USA · 1860s", whiteRock: "USA · 1870s", leghorn: "Tuscany, Italy · 1800s", australorp: "Australia · 1920s", wyandotte: "New York, USA · 1880s",
+  sussex: "Sussex, England · 1800s", easter: "USA · modern", delaware: "Delaware, USA · 1940", dominique: "USA · 1700s", brownLeghorn: "Tuscany, Italy",
+  goldWyandotte: "Wisconsin, USA · 1880", blueLacedRed: "A Wyandotte color", lightSussex: "Sussex, England", cochin: "Shanghai, China · 1840s", buffCochin: "Shanghai, China",
+  lightBrahma: "USA, from birds brought from China · 1850s", jerseyGiant: "New Jersey, USA · 1890s", marans: "Marans, France · 1920s", bcMarans: "Marans, France",
+  welsummer: "Welsum, Netherlands · 1920s", barnevelder: "Barneveld, Netherlands · 1900s", ameraucana: "USA · 1970s", creamLegbar: "Cambridge, England · 1940s",
+  blueAndalusian: "Andalusia, Spain · 1800s", olive: "USA · modern", lavenderOrp: "An Orpington color", chocolateOrp: "An Orpington color", ancona: "Ancona, Italy",
+  hamburg: "Netherlands & Germany · 1700s", turken: "Transylvania, Romania", polish: "Netherlands · 1600s", silkie: "China · 1200s or earlier", frizzle: "Southeast Asia",
+  faverolles: "Faverolles, France · 1860s", houdan: "Houdan, France", sultan: "Turkey · to England in 1854", araucana: "Chile", ayamCemani: "Java, Indonesia",
+  sebright: "England · 1810", serama: "Malaysia · 1990s", phoenix: "Germany · 1880s", spitzhauben: "Appenzell, Switzerland",
+  pekin: "China · to the USA in 1873", mallard: "Wild all over the northern world", rouen: "Rouen, France", runner: "Indonesia · 1800s", swedish: "Pomerania (Sweden & Germany)",
+  call: "Netherlands · 1600s", cayuga: "New York, USA · 1840s", khakiCampbell: "England · 1901", crestedDuck: "Asia & the Netherlands", magpieDuck: "Wales · 1920s",
+  welshHarlequin: "Wales · 1949", appleyard: "England · 1940s", buffDuck: "England · 1890s", muscovy: "Wild in Central & South America", whiteMuscovy: "A Muscovy color",
+  blueMuscovy: "A Muscovy color", greylag: "Wild in Europe & Asia", swanGoose: "Wild in China & Mongolia", embden: "Emden, Germany", toulouse: "Toulouse, France",
+  african: "Asia (not Africa!)", chinese: "China", whiteChinese: "China", sebastopol: "Around the Black Sea", pilgrim: "USA · 1930s", americanBuff: "USA · 1900s",
+  pomeranian: "Pomerania (Germany & Poland)", muteSwan: "Wild in Europe & Asia", polishSwan: "A Mute Swan color", blackSwan: "Wild in Australia", trumpeter: "Wild in North America",
+  coturnix: "Wild in Asia, Europe & Africa · tamed in Japan", goldenQuail: "A Coturnix color", englishWhite: "A Coturnix color", tibetan: "A Coturnix color",
+  tuxedoQuail: "A Coturnix color", celadonQuail: "A Coturnix egg color", jumboQuail: "Bred to be big", california: "Wild in California, USA", bobwhite: "Wild in the eastern USA",
+  snowflake: "A Bobwhite color", guinea: "Wild in Africa", lavenderGuinea: "A guinea color", whiteGuinea: "A guinea color", royalPurple: "A guinea color", buffGuinea: "A guinea color",
+  piedGuinea: "A guinea color", ringneck: "China · to the USA in 1881", blackneck: "Around the Caucasus Mountains", melanistic: "A pheasant color", whitePheasant: "A pheasant color",
+  buffPheasant: "A pheasant color", goldenPh: "Mountain forests of China", yellowGolden: "A Golden Pheasant color", darkThroated: "A Golden Pheasant color",
+  ladyAmherst: "China & Myanmar", silverPh: "Southeast Asia & China", reeves: "China", wildTurkey: "Wild in North America", turkey: "USA · 1700s", blackSpanish: "Spain & Europe",
+  bourbonRed: "Bourbon County, Kentucky · 1880s", narragansett: "Rhode Island, USA · 1700s", royalPalm: "Florida, USA · 1920s", blueSlate: "USA · 1800s",
+  whiteHolland: "USA (not Holland!)", midgetWhite: "Massachusetts, USA · 1960s", flamingo: "Caribbean", chilean: "South America", greater: "Africa, Europe & Asia",
+  lesser: "Africa & India", andean: "Andes Mountains", james: "Andes Mountains", peacock: "India & Sri Lanka", greenPeafowl: "Southeast Asia", whitePeacock: "An India Blue color",
+  piedPeacock: "An India Blue color", cameoPeacock: "USA · 1960s", purplePeacock: "An India Blue color", blackShoulder: "England · 1800s (Darwin wrote about it!)",
+  opalPeacock: "An India Blue color",
+};
+// Each breed's parents in the family tree (real history, simplified)
+const TREE_PARENTS = {
+  brownLeghorn: ["junglefowl"], leghorn: ["brownLeghorn"], ancona: ["junglefowl"], blueAndalusian: ["junglefowl"], hamburg: ["junglefowl"],
+  polish: ["junglefowl"], spitzhauben: ["junglefowl"], houdan: ["polish"], sultan: ["polish"], faverolles: ["houdan", "lightBrahma"],
+  cochin: ["junglefowl"], buffCochin: ["cochin"], frizzle: ["junglefowl"], lightBrahma: ["cochin"], silkie: ["junglefowl"], araucana: ["junglefowl"],
+  ameraucana: ["araucana"], easter: ["araucana"], creamLegbar: ["brownLeghorn", "barred", "araucana"], olive: ["bcMarans", "ameraucana"],
+  marans: ["junglefowl"], bcMarans: ["marans"], welsummer: ["junglefowl"], barnevelder: ["cochin"], sussex: ["junglefowl"], lightSussex: ["sussex", "lightBrahma"],
+  dominique: ["junglefowl"], barred: ["dominique"], whiteRock: ["barred"], rir: ["cochin", "brownLeghorn"], newHampshire: ["rir"], delaware: ["barred", "newHampshire"],
+  wyandotte: ["hamburg", "lightBrahma"], goldWyandotte: ["wyandotte"], blueLacedRed: ["goldWyandotte"], buff: ["hamburg", "buffCochin"], australorp: ["buff"],
+  lavenderOrp: ["buff"], chocolateOrp: ["buff"], jerseyGiant: ["lightBrahma"], turken: ["junglefowl"], ayamCemani: ["junglefowl"], sebright: ["hamburg", "polish"],
+  serama: ["junglefowl"], phoenix: ["junglefowl"],
+  pekin: ["mallard"], rouen: ["mallard"], runner: ["mallard"], call: ["mallard"], cayuga: ["mallard"], swedish: ["mallard"], crestedDuck: ["mallard"],
+  magpieDuck: ["mallard"], appleyard: ["rouen", "pekin"], khakiCampbell: ["runner", "rouen"], welshHarlequin: ["khakiCampbell"], buffDuck: ["runner", "rouen", "cayuga"],
+  whiteMuscovy: ["muscovy"], blueMuscovy: ["muscovy"],
+  embden: ["greylag"], toulouse: ["greylag"], pilgrim: ["greylag"], americanBuff: ["greylag"], pomeranian: ["greylag"], sebastopol: ["greylag"],
+  chinese: ["swanGoose"], whiteChinese: ["chinese"], african: ["swanGoose"], polishSwan: ["muteSwan"],
+  goldenQuail: ["coturnix"], englishWhite: ["coturnix"], tibetan: ["coturnix"], tuxedoQuail: ["tibetan"], celadonQuail: ["coturnix"], jumboQuail: ["coturnix"], snowflake: ["bobwhite"],
+  lavenderGuinea: ["guinea"], whiteGuinea: ["guinea"], royalPurple: ["guinea"], buffGuinea: ["guinea"], piedGuinea: ["guinea"],
+  blackneck: ["ringneck"], melanistic: ["ringneck"], whitePheasant: ["ringneck"], buffPheasant: ["ringneck"], yellowGolden: ["goldenPh"], darkThroated: ["goldenPh"],
+  turkey: ["wildTurkey"], blackSpanish: ["wildTurkey"], bourbonRed: ["turkey", "whiteHolland"], narragansett: ["wildTurkey", "blackSpanish"], royalPalm: ["turkey"],
+  blueSlate: ["blackSpanish"], whiteHolland: ["turkey"], midgetWhite: ["royalPalm", "whiteHolland"],
+  whitePeacock: ["peacock"], piedPeacock: ["peacock"], cameoPeacock: ["peacock"], purplePeacock: ["peacock"], blackShoulder: ["peacock"], opalPeacock: ["peacock"],
+};
+const TREE_GROUPS = [
+  { id: "chickens", title: "Chickens", icon: "🐔", kinds: ["chicken"] },
+  { id: "ducks", title: "Ducks", icon: "🦆", kinds: ["duck", "muscovy", "mule"] },
+  { id: "geese", title: "Geese & Swans", icon: "🦢", kinds: ["goose", "swan"] },
+  { id: "quail", title: "Quail", icon: "🐦", kinds: ["quail", "calQuail", "bobwhite"] },
+  { id: "guineas", title: "Guineas", icon: "🐦", kinds: ["guinea"] },
+  { id: "pheasants", title: "Pheasants", icon: "🐦", kinds: ["pheasant", "ruffed", "silverPh", "reeves"] },
+  { id: "turkeys", title: "Turkeys", icon: "🦃", kinds: ["turkey"] },
+  { id: "flamingos", title: "Flamingos", icon: "🦩", kinds: ["flamingo"] },
+  { id: "peafowl", title: "Peafowl", icon: "🦚", kinds: ["peafowl"] },
+];
+
+// ---------- The family tree ----------
+// Like the sticker book: every breed starts gray and gets its colors when
+// you raise one. Tap any bird to learn what makes it special.
+let bookTab = "stickers", treeGroup = "chickens", treeSel = null, treeScroll = 0;
+const crossGenoCache = {};
+function treeNodes(group) {
+  const nodes = new Map();
+  for (const k in BREEDS) {
+    const B = BREEDS[k];
+    if (!group.kinds.includes(kindOfBreed(k)) || (B.cross && !B.wild)) continue;
+    nodes.set(k, { id: k, key: k, name: B.name, wild: !!B.wild, parents: (TREE_PARENTS[k] || []).slice() });
+  }
+  for (const x of NAMED_CROSSES) {
+    if (!x.dad || !group.kinds.includes(x.kind === "mule" ? "mule" : x.kind) || x.breed) continue;
+    nodes.set("x:" + x.name, { id: "x:" + x.name, cross: x, name: x.name, parents: [x.dad, x.mom] });
+  }
+  for (const n of nodes.values()) n.parents = n.parents.filter((p) => nodes.has(p));
+  return nodes;
+}
+const nodeOpen = (n) => n.wild || (n.cross ? !!game.crossesSeen[n.cross.name] : !!game.stickers[n.key]);
+// A pretend bird to draw for a tree node
+function nodeBird(n, sex) {
+  if (!n.cross) return portraitBird(n.key, n.wild && n.key === "junglefowl" ? "rooster" : sex);
+  const x = n.cross, kind = x.kind === "mule" ? "mule" : x.kind, s = sex || "hen";
+  if (!crossGenoCache[x.name + s] && kind !== "mule") {
+    const dadG = genesFor(kind, BREEDS[x.dad].genes, "rooster"), momG = genesFor(kind, BREEDS[x.mom].genes, "hen");
+    let G = inheritGenes(kind, momG, dadG, s);
+    if (x.name === "Sizzle" || x.name === "Showgirl") G.silkie = ["h", "h"];   // (it takes a second generation)
+    if (x.name === "Showgirl") G.naked = ["Na", "Na"];
+    crossGenoCache[x.name + s] = G;
+  }
+  const c = makeBird({ breed: kind === "mule" ? "mulard" : KINDS[kind].mix, geno: crossGenoCache[x.name + s] || null, cross: x.name, sex: s, growth: 1, name: "Tree" });
+  nextId--;
+  c.portrait = true;
+  return c;
+}
+function renderTree() {
+  const body = $("treeBody"), kindsEl = $("treeKinds");
+  kindsEl.textContent = "";
+  for (const gr of TREE_GROUPS) {
+    const b = el("button", "tree-kind" + (gr.id === treeGroup ? " on" : ""), `${gr.icon} ${gr.title}`);
+    b.type = "button";
+    b.addEventListener("click", () => { treeGroup = gr.id; treeSel = null; Sound.tick(); renderTree(); body.scrollTop = 0; });
+    kindsEl.append(b);
+  }
+  body.textContent = "";
+  const group = TREE_GROUPS.find((g) => g.id === treeGroup), nodes = treeNodes(group);
+  const all = [...nodes.values()].filter((n) => !n.wild), open = all.filter(nodeOpen).length;
+  bookCount.textContent = `${open} of ${all.length} colored in`;
+  if (treeSel && nodes.has(treeSel)) { renderTreeDetail(nodes.get(treeSel), nodes); return; }
+  // children hang under their first parent
+  const kids = new Map();
+  for (const n of nodes.values()) if (n.parents.length) { const p = n.parents[0]; if (!kids.has(p)) kids.set(p, []); kids.get(p).push(n); }
+  const byName = (a, b) => (!!a.cross - !!b.cross) || a.name.localeCompare(b.name);
+  const roots = [...nodes.values()].filter((n) => !n.parents.length).sort((a, b) => (b.wild - a.wild) || byName(a, b));
+  const branch = (list) => {
+    const ul = el("ul", "tree");
+    for (const n of list) {
+      const li = el("li");
+      const btn = el("button", "tree-node" + (nodeOpen(n) ? "" : " locked") + (n.wild ? " wild" : "") + (n.cross ? " cross" : ""));
+      btn.type = "button";
+      const cv = el("canvas", "tree-pic");
+      drawPortrait(cv, nodeBird(n), 64, 52);
+      const text = el("span", "tree-text");
+      const sub = n.cross ? `${BREEDS[n.cross.dad].name} × ${BREEDS[n.cross.mom].name}` : n.wild ? "Wild ancestor" : n.parents.length > 1 ? `with ${n.parents.slice(1).map((p) => nodes.get(p).name).join(" & ")}` : ORIGINS[n.key] || "";
+      text.append(el("b", null, n.name), el("small", null, sub));
+      btn.append(cv, text);
+      btn.addEventListener("click", () => { treeScroll = body.scrollTop; treeSel = n.id; Sound.tick(); renderTree(); body.scrollTop = 0; });
+      li.append(btn);
+      const ch = (kids.get(n.id) || []).sort(byName);
+      if (ch.length) li.append(branch(ch));
+      ul.append(li);
+    }
+    return ul;
+  };
+  body.append(branch(roots));
+  requestAnimationFrame(() => { body.scrollTop = treeScroll; });
+}
+function renderTreeDetail(n, nodes) {
+  const body = $("treeBody"), open = nodeOpen(n);
+  const back = el("button", "tree-back", "‹ Back to the tree");
+  back.type = "button";
+  back.addEventListener("click", () => { treeSel = null; Sound.tick(); renderTree(); });
+  const card = el("div", "tree-card" + (open ? "" : " locked"));
+  const cv = el("canvas", "tree-big");
+  drawPortrait(cv, nodeBird(n), 200, 160);
+  const info = el("div", "tree-info");
+  const tag = n.wild ? "Wild ancestor" : n.cross ? "Famous cross" : "Breed";
+  info.append(el("span", "tree-tag", tag), el("h3", null, n.name));
+  const where = n.cross ? "Made by hatching" : ORIGINS[n.key];
+  if (where) info.append(el("p", "tree-origin", `🌍 ${where}`));
+  info.append(el("p", "tree-fact", n.cross ? n.cross.fact : FACTS[n.key] || ""));
+  // the genes that make it special
+  const bird = nodeBird(n, "hen"), chips = el("div", "gene-row");
+  for (const ch of geneChips(bird)) chips.append(el("span", "gene-chip" + (ch.shows ? "" : " carried"), ch.text));
+  if (chips.childNodes.length) info.append(el("span", "field-label", "Special genes"), chips);
+  const egg = lookOf(bird).egg, eggRow = el("p", "tree-egg"), dot = el("i", "egg-dot");
+  dot.style.background = egg.color;
+  eggRow.append(dot, document.createTextNode(`Lays ${egg.name.toLowerCase()} eggs`));
+  if (!KINDS[kindOf(bird)].sterile) info.append(eggRow);
+  // family: parents and babies in the tree
+  const link = (id) => { const m = nodes.get(id), b = el("button", "tree-link" + (nodeOpen(m) ? "" : " locked"), m.name); b.type = "button"; b.addEventListener("click", () => { treeSel = id; Sound.tick(); renderTree(); }); return b; };
+  if (n.parents.length) { const row = el("div", "tree-links"); row.append(el("span", "field-label", n.cross ? "Dad × Mom" : "Comes from")); n.parents.forEach((p) => row.append(link(p))); info.append(row); }
+  const children = [...nodes.values()].filter((m) => m.parents.includes(n.id));
+  if (children.length) { const row = el("div", "tree-links"); row.append(el("span", "field-label", "Led to")); children.forEach((m) => row.append(link(m.id))); info.append(row); }
+  // how to get one
+  let how;
+  if (n.wild) how = "Wild birds can't be bought. Their great-great-grandchildren live on your farm!";
+  else if (n.cross) how = `Hatch one: a ${BREEDS[n.cross.dad].name} dad and a ${BREEDS[n.cross.mom].name} mom.`;
+  else {
+    const B = BREEDS[n.key], farm = FARMS[farmOfBreed(n.key)];
+    how = `Market: ${B.price} eggs at the ${farm.name}${B.tier > 1 ? ` (needs the ${COOP_TIERS[B.tier].name})` : ""}.`;
+  }
+  info.append(el("p", "tree-how", (open ? "" : "🔒 Raise one to color it in! ") + how));
+  card.append(cv, info);
+  body.append(back, card);
+}
+function setBookTab(tab) {
+  bookTab = tab;
+  $("tabStickers").classList.toggle("on", tab === "stickers");
+  $("tabTree").classList.toggle("on", tab === "tree");
+  $("tabStickers").setAttribute("aria-selected", String(tab === "stickers"));
+  $("tabTree").setAttribute("aria-selected", String(tab === "tree"));
+  bookGrid.hidden = tab !== "stickers";
+  $("treeView").hidden = tab !== "tree";
+  if (tab === "tree") renderTree(); else renderBook();
+}
+$("tabStickers").addEventListener("click", () => { Sound.tick(); setBookTab("stickers"); });
+$("tabTree").addEventListener("click", () => { Sound.tick(); setBookTab("tree"); });
+
+// ---------- Finding birds a new home ----------
+// Too many roosters? Want fresh birds? A friendly farm down the road will
+// take any bird, and they say thanks with a few eggs.
+function rehomeGift(c) {
+  if (c.growth < 1) return 1;
+  const B = BREEDS[c.breed];
+  return B.cross ? 3 * SP(c).eggValue : Math.max(2, Math.round(B.price * 0.4));
+}
+function rehomeBird(c) {
+  if (!F.birds.includes(c) || c.leaving) return;
+  const eggs = rehomeGift(c);
+  game.eggs += eggs;
+  game.stats.rehomed = (game.stats.rehomed || 0) + 1;
+  updateHud(); bumpBasket();
+  if (cardBird === c) hideSheet();
+  if (hatchMom === c) hatchMom = null;
+  if (hatchDad === c) hatchDad = null;
+  if (c.loc === "yard" && scene === "yard") {       // a little goodbye wave of hearts, then off they go
+    c.leaving = 1; c.state = "idle"; c.goal = null; c.t = 99; c.tagT = 0;
+    const sc = scaleAt(c.y);
+    hearts(c.x, c.y, c.z + (bodyH(c) + 20) * sc, sc);
+  } else F.birds = F.birds.filter((b) => b !== c);
+  Sound.chime();
+  toast(`${c.name} went to live on a friendly farm down the road. They gave you ${eggs} ${eggs === 1 ? "egg" : "eggs"} to say thanks! 💛`, 3800);
+  save();
+}
+function updateLeaving(dt) {
+  if (!F.birds.some((c) => c.leaving)) return;
+  for (const c of F.birds) if (c.leaving) { c.leaving = Math.max(0, c.leaving - dt * 0.9); c.alpha = c.leaving; }
+  F.birds = F.birds.filter((c) => !c.leaving || c.leaving > 0.01);
+}
+const rehomeBtn = $("rehomeBtn");
+let rehomeArm = false, rehomeTimer = 0;
+function resetRehome() {
+  rehomeArm = false;
+  clearTimeout(rehomeTimer);
+  rehomeBtn.classList.remove("arm");
+  rehomeBtn.textContent = "🏡 Find a new home";
+}
+rehomeBtn.addEventListener("click", () => {
+  const c = cardBird;
+  if (!c) return;
+  if (!rehomeArm) {                // tap once to ask, tap again to be sure
+    rehomeArm = true;
+    rehomeBtn.classList.add("arm");
+    rehomeBtn.textContent = `Tap again to say goodbye to ${c.name}`;
+    rehomeTimer = setTimeout(resetRehome, 3500);
+    Sound.tick();
+    return;
+  }
+  resetRehome();
+  rehomeBird(c);
+});
 
 
 /* ================================================================
@@ -7881,7 +8210,7 @@ function serializeFarm(id) {
   return {
     unlocked: st.unlocked, tier: st.tier, feeder: st.feeder, water: st.water, doorClosed: st.doorClosed,
     decor: st.decor.map((d) => ({ id: d.id, x: d.x, y: d.y })),
-    birds: st.birds.map((c) => ({
+    birds: st.birds.filter((c) => !c.leaving).map((c) => ({
       breed: c.breed, name: c.name, x: c.x, y: c.y, growth: c.growth, food: c.food, water: c.water,
       joy: c.joy, laid: c.laid, eggClock: c.eggClock, loc: c.loc === "yard" ? "yard" : "coop", needsSpot: c.needsSpot, hat: c.hat || null,
       sex: c.sex, known: c.sexKnown, geno: genoOf(c), cross: c.cross || undefined, mom: c.mom || undefined, dad: c.dad || undefined, kids: c.kids || undefined,
@@ -8063,6 +8392,7 @@ function update(dt) {
     updatePose(c, dt);
   }
   separate(dt);
+  updateLeaving(dt);
   // The farms you're not visiting tick along a few times a second
   awayT += dt;
   if (awayT >= 0.25) {
