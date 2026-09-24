@@ -842,11 +842,13 @@ const houseGeo = (id = game.farm) => (id === "backyard" ? COOP_GEO[farms.backyar
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const w = Math.max(1, window.innerWidth), h = Math.max(1, window.innerHeight);
+  const before = { W: view.W, H: view.H, hz: view.horizon, ready: view.w > 0 };
   view.w = w; view.h = h; view.dpr = dpr;
   view.s = Math.min(h / 768, w / 1000);
   view.W = w / view.s;
   view.H = h / view.s;
   view.horizon = view.H * 0.38;
+  if (before.ready && (before.W !== view.W || before.H !== view.H)) remapWorld(before);
   for (const cv of [skyCanvas, worldCanvas]) {
     cv.width = Math.round(w * dpr);
     cv.height = Math.round(h * dpr);
@@ -862,6 +864,30 @@ function resize() {
   buildRoomBg();
   for (const c of F.birds) if (c.loc === "yard") { c.x = clampX(c.x); c.y = clampY(c.y); }
   for (const e of F.yardEggs) { e.x = clampX(e.x); e.y = clampY(e.y); }
+}
+
+// When the screen turns (portrait <-> landscape) the farm changes shape.
+// Move every bird, egg and treat to the SAME spot relative to the ground,
+// so nothing ends up floating in the sky or lost below the screen.
+function remapWorld(o) {
+  const mx = (x) => (x / o.W) * view.W;
+  const my = (y) => view.horizon + ((y - o.hz) / (o.H - o.hz)) * (view.H - view.horizon);
+  for (const id of FARM_ORDER) {
+    const st = farms[id];
+    for (const c of st.birds) {
+      c.x = mx(c.x); c.y = my(c.y);
+      c.tx = mx(c.tx); c.ty = my(c.ty);
+      c.ex0 = mx(c.ex0); c.ey0 = my(c.ey0);
+    }
+    for (const e of st.yardEggs) { e.x = mx(e.x); e.y = my(e.y); }
+  }
+  for (const p of fx.grains) { p.x = mx(p.x); p.y = my(p.y); }
+  for (const cr of fx.crates) { cr.x = mx(cr.x); cr.y = my(cr.y); }
+  for (const b of fx.butterflies) { b.x = mx(b.x); b.y = my(b.y); }
+  fx.fireflies = [];
+  fx.particles = [];
+  // a bird you were carrying gets set down gently
+  for (const c of F.birds) if (c.state === "carried") { c.state = "fall"; c.vz = 0; }
 }
 
 // Where everything sits on each farm
@@ -4799,6 +4825,8 @@ let cardBird = null, cardTimer = 0;
 function openCard(c) {
   cardBird = c;
   nameInput.value = c.name;
+  nameClear.hidden = true;
+  nameDone.hidden = true;
   updateCardText();
   showSheet(cardSheet);
   Sound.tick();
@@ -4819,13 +4847,58 @@ function updateCardText() {
     growBar.hidden = true;
   }
 }
+// Renaming a bird. Tapping the name highlights it, so you can just type a
+// new one. The × clears it. If you leave it empty, the old name comes back.
+const nameClear = $("nameClear");
+const nameDone = $("nameDone");
+let nameBefore = "";
+const cleanName = (v) => v.replace(/\s+/g, " ").trim().slice(0, 16);
+nameInput.addEventListener("focus", () => {
+  nameBefore = cardBird ? cardBird.name : "";
+  cardSheet.classList.add("editing");
+  nameClear.hidden = !nameInput.value;
+  nameDone.hidden = false;
+  setTimeout(() => { try { nameInput.setSelectionRange(0, nameInput.value.length); } catch (e) { /* fine */ } }, 30);
+  followKeyboard();
+});
 nameInput.addEventListener("input", () => {
-  if (!cardBird) return;
-  const v = nameInput.value.replace(/\s+/g, " ").trim().slice(0, 16);
-  if (v) cardBird.name = v;
+  nameClear.hidden = !nameInput.value;
+  const v = cleanName(nameInput.value);
+  if (cardBird && v) cardBird.name = v;
 });
 nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") nameInput.blur(); });
-nameInput.addEventListener("blur", () => { if (cardBird) nameInput.value = cardBird.name; save(); });
+nameInput.addEventListener("blur", () => {
+  if (cardBird) {
+    cardBird.name = cleanName(nameInput.value) || nameBefore || cardBird.name;
+    nameInput.value = cardBird.name;
+    save();
+  }
+  cardSheet.classList.remove("editing");
+  cardSheet.style.bottom = "";
+  cardSheet.style.maxHeight = "";
+  nameClear.hidden = true;
+  nameDone.hidden = true;
+  window.scrollTo(0, 0);
+  if (resizePending) { resizePending = false; queueResize(); }
+});
+// pressing × shouldn't close the keyboard, so we stop the tap from stealing focus
+nameClear.addEventListener("pointerdown", (e) => e.preventDefault());
+nameClear.addEventListener("click", () => { nameInput.value = ""; nameClear.hidden = true; nameInput.focus(); });
+nameDone.addEventListener("pointerdown", (e) => e.preventDefault());
+nameDone.addEventListener("click", () => nameInput.blur());
+
+// Keep the name card sitting right on top of the on-screen keyboard
+function followKeyboard() {
+  const vv = window.visualViewport;
+  if (!vv || !cardSheet.classList.contains("editing")) return;
+  const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  cardSheet.style.bottom = `${covered}px`;
+  cardSheet.style.maxHeight = `${Math.max(150, vv.height - 12)}px`;
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", followKeyboard);
+  window.visualViewport.addEventListener("scroll", followKeyboard);
+}
 
 // ---------- Hints (coach marks) ----------
 let coach = null, coachTimer = 0;
@@ -5146,7 +5219,7 @@ function starterFlock() {
    so it runs the same speed on every device, then paint one picture.
 */
 const STEP = 1 / 60;
-let lastFrame = performance.now(), acc = 0, saveT = 4, awayT = 0, hudT = 0;
+let frameNo = 0, lastFrame = performance.now(), acc = 0, saveT = 4, awayT = 0, hudT = 0;
 
 function update(dt) {
   clock += dt;
@@ -5182,7 +5255,12 @@ function update(dt) {
   coachTimer -= dt;
   if (coachTimer <= 0) { coachTimer = 0.4; pickCoach(); }
   hudT -= dt;
-  if (hudT <= 0) { hudT = 0.5; updateFarmBtn(); }
+  if (hudT <= 0) {
+    hudT = 0.5;
+    updateFarmBtn();
+    // Safety net: if the screen changed size and we somehow missed it, fix it now
+    if (Math.round(view.w) !== window.innerWidth || Math.round(view.h) !== window.innerHeight) queueResize();
+  }
   if (cardBird) { cardTimer -= dt; if (cardTimer <= 0) { cardTimer = 0.5; updateCardText(); } }
   saveT -= dt;
   if (saveT <= 0) { saveT = 4; save(); }
@@ -5222,16 +5300,28 @@ function frame(now) {
   let steps = 0;
   while (acc >= STEP && steps < 6) { update(STEP); acc -= STEP; steps++; }
   if (steps === 6) acc = 0;
-  render();
+  frameNo++;
+  if (document.activeElement !== nameInput || frameNo % 3 === 0) render();
   requestAnimationFrame(frame);
 }
 
-let resizeQueued = false;
-window.addEventListener("resize", () => {
-  if (resizeQueued) return;
-  resizeQueued = true;
-  requestAnimationFrame(() => { resizeQueued = false; resize(); });
-});
+// Phones tell us their new size a moment AFTER turning, so we check again
+// shortly after. We also wait while you're typing a name, because the
+// keyboard popping up would otherwise make the whole farm redraw.
+let resizeQueued = false, resizeLater = 0, resizePending = false;
+function queueResize() {
+  if (document.activeElement === nameInput) { resizePending = true; return; }
+  if (!resizeQueued) {
+    resizeQueued = true;
+    requestAnimationFrame(() => { resizeQueued = false; resize(); });
+  }
+  clearTimeout(resizeLater);
+  resizeLater = setTimeout(() => {
+    if (Math.round(view.w) !== window.innerWidth || Math.round(view.h) !== window.innerHeight) resize();
+  }, 400);
+}
+window.addEventListener("resize", queueResize);
+window.addEventListener("orientationchange", queueResize);
 
 function start() {
   resize();
