@@ -1056,3 +1056,49 @@ button:focus-visible { outline: 3px solid var(--straw); outline-offset: 3px; }
 }
 .tree-kinds { scrollbar-width: none; }
 .tree-kinds::-webkit-scrollbar { display: none; }
+
+/* ---------- Market: small tiles, and a page for each bird ---------- */
+#marketGrid { grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 10px; }
+#marketGrid.detail { display: block; }
+.tile.mini { padding: 8px 6px 10px; gap: 2px; border-radius: 18px; cursor: pointer; }
+.tile.mini .tile-name { font-size: 14px; line-height: 1.15; min-height: 2.3em; display: flex; align-items: center; }
+.portrait-mini { width: 96px; height: 76px; }
+.price-pill {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; padding: 3px 10px; border-radius: 10px;
+  background: var(--barn); color: #FFFFFF; font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums;
+}
+.price-pill .egg-dot { width: 9px; height: 12px; background: #FFF6E6; }
+.tile.mini.locked .price-pill { background: var(--disabled); color: var(--ink-soft); }
+.tile.breed-only { background: #EEF5E4; justify-content: center; }
+.tile.breed-only .tile-emoji { font-size: 34px; }
+.tile-toy { width: 64px; height: 56px; }
+.shop-card { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.shop-pics { display: flex; gap: 8px; flex: none; }
+.shop-pics figure { margin: 0; text-align: center; font-size: 13px; font-weight: 900; color: var(--ink-soft); }
+.shop-pic { width: 150px; height: 120px; border-radius: 18px; background: var(--paper); display: block; }
+.shop-carries { margin: 10px 0 0; padding: 8px 12px; border-radius: 12px; background: #FFF3D6; font-size: 14px; font-weight: 800; line-height: 1.35; }
+.shop-flock { margin: 6px 0 0; font-size: 13px; font-weight: 800; color: var(--ink-soft); line-height: 1.35; }
+.shop-buys { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.buy.big { flex: 1 1 150px; width: auto; height: 50px; margin-top: 0; font-size: 16px; gap: 10px; }
+.buy-price { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9px; background: rgba(255, 255, 255, .22); }
+.buy-price .egg-dot { width: 9px; height: 12px; background: #FFF6E6; }
+.shop-locked { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--fill); font-size: 14px; font-weight: 800; }
+@media (max-width: 520px) {
+  #marketGrid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+  .portrait-mini { width: 84px; height: 66px; }
+  .shop-pic { width: 128px; height: 104px; }
+}
+/* Phones held sideways are short: fit more birds on the screen */
+@media (max-height: 560px) {
+  .sheet { max-height: 94%; }
+  .sheet-head h2 { font-size: 22px; }
+  #marketNote { display: none; }
+  #marketGrid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; }
+  .tile.mini { padding: 6px 4px 8px; border-radius: 14px; }
+  .portrait-mini { width: 70px; height: 54px; }
+  .tile.mini .tile-name { font-size: 12.5px; min-height: 2.2em; }
+  .price-pill { font-size: 12.5px; padding: 2px 8px; }
+  #marketGrid .grid-head { font-size: 16px; padding-top: 4px; }
+  .shop-pic { width: 112px; height: 90px; }
+  .tree-pic { width: 52px; height: 42px; }
+}

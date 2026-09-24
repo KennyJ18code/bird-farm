@@ -12,7 +12,7 @@
   If you change the game, bump the version number below.
   ================================================================
 */
-const VERSION = "bird-farm-v8-1";
+const VERSION = "bird-farm-v9-0";
 const FILES = [
   "./",
   "./index.html",
