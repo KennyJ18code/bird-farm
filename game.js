@@ -53,7 +53,8 @@
    1. SETTINGS — numbers you can change
    ================================================================ */
 const SETTINGS = {
-  dayLengthSeconds: 480,     // one whole day + night, in real seconds (8 minutes)
+  dayLengthSeconds: 1200,    // one whole day + night while you play, in real seconds (20 minutes)
+  awayHoursPerDay: 6,        // when the game is closed, one farm day takes this many real hours
   hungerSeconds: 150,        // a full tummy lasts about this long
   thirstSeconds: 120,        // a full drink lasts about this long
   feederMeals: 20,           // full meals in the smallest feeder
@@ -6059,8 +6060,9 @@ function onNewDay() {
    24. TIME KEEPS GOING WHILE YOU'RE AWAY
    ================================================================
    When you close the game (or switch to another app), the farms don't
-   stop. When you come back, we replay the time you were gone, a few
-   seconds at a time: the sun goes around, seasons change, birds eat
+   stop. They just go slower: one farm day takes 6 real hours (see
+   awayHoursPerDay in SETTINGS). When you come back, we replay the time
+   you were gone, a few seconds at a time: the sun goes around, seasons change, birds eat
    from the feeders, grow up, and lay eggs in their nests. Incubator
    eggs use the real clock, so they keep warming too.
 
@@ -6068,13 +6070,17 @@ function onNewDay() {
    empty and the nests fill up. Nothing bad happens to the birds; they
    just stop laying until you fill the feeders again.
 */
-const MAX_REPLAY_SECONDS = 24 * 3600;   // replay up to one day; any more just moves the clock
+const MAX_REPLAY_DAYS = 10;   // replay up to 10 farm days; any more just moves the clock
 
 function catchUpWhileAway(awaySeconds) {
   const daysBefore = game.day, eggsBefore = game.totalEggs;
   const babies = [];
   for (const id of FARM_ORDER) for (const c of farms[id].birds) if (c.growth < 1) babies.push(c);
-  const replay = Math.min(awaySeconds, MAX_REPLAY_SECONDS);
+  // While you're away, time runs slower: one farm day takes awayHoursPerDay
+  // real hours instead of 20 minutes. So we squeeze the time you were gone
+  // into the same amount of farm time (6 hours away = 1 farm day).
+  const farmSeconds = awaySeconds * SETTINGS.dayLengthSeconds / (SETTINGS.awayHoursPerDay * 3600);
+  const replay = Math.min(farmSeconds, MAX_REPLAY_DAYS * SETTINGS.dayLengthSeconds);
   const tick = (dt) => {
     game.time += dt / SETTINGS.dayLengthSeconds;
     while (game.time >= 1) {
@@ -6088,7 +6094,7 @@ function catchUpWhileAway(awaySeconds) {
     tick(dt);
     for (const id of FARM_ORDER) if (farms[id].unlocked) simulateFarm(id, dt);
   }
-  if (awaySeconds > replay) tick(awaySeconds - replay);
+  if (farmSeconds > replay) tick(farmSeconds - replay);
   if (awaySeconds > 120) { weather.kind = "clear"; weather.left = 0; weather.amount = 0; weather.rainbow = 0; }
   if (seasonIndex(daysBefore) !== seasonIndex()) { buildBackground(); buildBlades(); }
 
