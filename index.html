@@ -81,6 +81,12 @@
     <span id="farmName">Backyard</span>
   </button>
 
+  <!-- Roosters and hens in the Backyard. The dot turns green when it's just right. -->
+  <button id="flockBtn" class="glass pill flock-btn" type="button" aria-label="Your flock" hidden>
+    <i id="flockDot" class="flock-dot" aria-hidden="true"></i>
+    <span id="flockText">🐓 0 : 0 🐔</span>
+  </button>
+
   <div class="hud-right">
     <button id="bookBtn" class="glass round book-btn" type="button" aria-label="Open your sticker book">
       <svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true">
@@ -190,6 +196,35 @@
     </button>
   </div>
   <div id="bookGrid" class="grid book-grid"></div>
+</section>
+
+<!-- ============ FLOCK SHEET: roosters and hens ============ -->
+<section id="flock" class="sheet" hidden aria-labelledby="flockTitle">
+  <div class="grabber" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <h2 id="flockTitle">Your Flock</h2>
+    <button class="close" type="button" data-close aria-label="Close">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="sheet-scroll">
+    <div id="flockCounts" class="flock-counts"></div>
+    <p id="flockStatus" class="flock-status"></p>
+    <!-- The gauge: how many hens there are for every rooster -->
+    <div class="gauge" aria-hidden="true">
+      <div class="gauge-bar">
+        <span class="zone red" style="flex: 3"></span>
+        <span class="zone amber" style="flex: 3"></span>
+        <span class="zone green" style="flex: 6"></span>
+        <span class="zone amber" style="flex: 4"></span>
+      </div>
+      <i id="gaugeMarker" class="gauge-marker"></i>
+      <div class="gauge-labels"><span>Too many roosters</span><span>Just right</span><span>Lots of hens</span></div>
+    </div>
+    <p id="flockSay" class="flock-say"></p>
+    <p class="sheet-note">Chicken keepers say about <b>1 rooster for every 10 hens</b> is best. Roosters are the dads, too: pick one in the incubator and see what the chicks look like!</p>
+    <button id="flockShop" class="slot-btn flock-shop" type="button">Get hens or roosters at the Market</button>
+  </div>
 </section>
 
 <!-- ============ CANDLING: shine a light through an egg to peek inside ============ -->

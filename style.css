@@ -872,3 +872,82 @@ button:focus-visible { outline: 3px solid var(--straw); outline-offset: 3px; }
 @media (max-height: 560px) {
   .card.editing .dress { display: none; }
 }
+
+/* ---------- Roosters & hens (the flock button and sheet) ---------- */
+.flock-btn { font-size: 17px; font-weight: 900; color: var(--ink); gap: 7px; padding: 0 16px 0 14px; }
+.flock-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #A9A39A;
+  box-shadow: 0 0 0 2px #FFFFFF;
+  flex: none;
+}
+.flock-counts { display: flex; gap: 10px; flex-wrap: wrap; }
+.flock-count {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 4px 12px rgba(70, 50, 20, .08);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+.flock-count b { font-size: 22px; font-weight: 900; color: var(--ink); }
+.flock-emoji { font-size: 22px; }
+.flock-status { margin: 16px 0 6px; font-size: 24px; font-weight: 900; letter-spacing: -.02em; }
+.flock-say { margin: 12px 0 0; font-size: 16px; font-weight: 700; line-height: 1.4; }
+.gauge { position: relative; padding-top: 6px; max-width: 560px; }
+.gauge-bar { display: flex; height: 16px; border-radius: 8px; overflow: hidden; gap: 2px; }
+.zone.red { background: #E0533D; }
+.zone.amber { background: #F2A33A; }
+.zone.green { background: #43A849; }
+.gauge-marker {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 28px;
+  margin-left: -4px;
+  border-radius: 4px;
+  background: var(--ink);
+  box-shadow: 0 0 0 2px #FFFFFF;
+  transition: left .5s var(--spring);
+}
+.gauge-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; font-weight: 800; color: var(--ink-soft); }
+.flock-shop { margin-top: 4px; }
+
+/* the Hens / Roosters switch in the Market */
+.sex-picker { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sex-note { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--ink-soft); flex: 1 1 240px; }
+
+/* picking the dad in the incubator */
+.dad-row { flex-basis: 100%; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dad-label { font-size: 15px; font-weight: 900; color: var(--ink-soft); margin-right: 2px; }
+.mom-label { flex-basis: 100%; }
+.dad-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 14px 0 10px;
+  border-radius: 20px;
+  background: var(--fill);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.dad-chip .egg-dot { width: 14px; height: 14px; border-radius: 50%; }
+.dad-chip.on { background: var(--paper); box-shadow: 0 0 0 3px var(--straw); }
+/* Small phones held sideways: squeeze the top buttons a little */
+@media (max-width: 720px) {
+  .hud { gap: 8px; }
+  .hud-right { gap: 8px; }
+  .flock-btn { font-size: 15px; padding: 0 12px 0 10px; gap: 5px; }
+  .market-btn span { display: none; }
+  .market-btn { padding: 0 14px; }
+  .farm-btn { max-width: 28vw; }
+}

@@ -264,6 +264,53 @@ const BREEDS = {
     egg: { name: "Cream", color: "#F3E6CC" }, pitch: 1.15,
   },
 
+  // ---------- Special crosses (you can only get these by hatching!) ----------
+  // "cross" breeds aren't sold at the Market. "boy" is how the boys look
+  // different from the girls. With "sex-link" chickens you can tell the
+  // boys from the girls the day they hatch, just by their color!
+  blackStar: {
+    species: "chicken", name: "Black Star", price: 0, cross: true, layBoost: 1.2,
+    body: "#26272D", shade: "#121317", light: "#4A4F4A", wing: "#1E1F24",
+    tail: "#16171B", tail2: "#2F3D3E", neck: "#B5652B", hackle: "#C9772E",
+    comb: "#E03A2F", beak: "#6E5A40", legs: "#5E5A50", chick: "#2C2C31",
+    egg: { name: "Brown", color: "#B98256", speckle: true }, pitch: 0.98,
+    boy: { pattern: "barred", body: "#E9E7E2", shade: "#9A978F", light: "#FFFFFF", wing: "#B9B6AE", tail: "#3A3A3E", tail2: "#5A5A5E",
+      neck: "#D6D3CB", hackle: "#E8E2D2", beak: "#E7C04A", legs: "#E7C04A", chickSpot: "#F4F1E6" },
+  },
+  goldenComet: {
+    species: "chicken", name: "Golden Comet", price: 0, cross: true, layBoost: 1.25,
+    body: "#C77A3A", shade: "#8E4E22", light: "#E8A866", wing: "#A8602C",
+    tail: "#F2EEE4", tail2: "#E0D8C8", neck: "#D08A48",
+    comb: "#E03A2F", beak: "#E8B84A", legs: "#E8C06A", chick: "#E3A860",
+    egg: { name: "Brown", color: "#BE8A5A" }, pitch: 1.02,
+    boy: { body: "#F6F2E8", shade: "#D8D0BE", light: "#FFFFFF", wing: "#E8E0D0", neck: "#F2E6D0", hackle: "#E8B878",
+      tail: "#EDEAE3", tail2: "#D9A060", chick: "#FFF1B0" },
+  },
+  cinnamonQueen: {
+    species: "chicken", name: "Cinnamon Queen", price: 0, cross: true, layBoost: 1.2,
+    body: "#9C4A26", shade: "#662C14", light: "#C9723E", wing: "#7C3818",
+    tail: "#F0E8DA", tail2: "#8E4A24", neck: "#E2C8A8", hackle: "#F0E2CC",
+    comb: "#E03A2F", beak: "#E8B84A", legs: "#E8C06A", chick: "#D39050",
+    egg: { name: "Brown", color: "#B27A4E" }, pitch: 1,
+    boy: { pattern: "laced", body: "#F3F1EC", shade: "#A9A69E", light: "#FFFFFF", wing: "#DAD7D0", neck: "#E6E3DC",
+      hackle: "#F4F2EE", tail: "#2A2A2F", tail2: "#C9723E", chick: "#FFF0B8" },
+  },
+  austraWhite: {
+    species: "chicken", name: "Austra White", price: 0, cross: true, layBoost: 1.25, pattern: "flecks", combType: "big",
+    body: "#F6F4EE", shade: "#D2CEC4", light: "#FFFFFF", wing: "#E4E0D6",
+    tail: "#EDEAE3", tail2: "#2A2B31", neck: "#F6F4EE",
+    comb: "#E8352C", beak: "#F2C94C", legs: "#E8D8A0", chick: "#F4F0DA", chickSpot: "#8E8E96",
+    egg: { name: "Cream", color: "#F1E4CC" }, pitch: 1.05,
+  },
+  mix: {
+    // Every Barnyard Mix has its own genes, so these colors are just a backup
+    species: "chicken", name: "Barnyard Mix", price: 0, cross: true,
+    body: "#B07A4A", shade: "#7A4E2A", light: "#D8A878", wing: "#8E5E36",
+    tail: "#2E2218", tail2: "#4A3424", neck: "#C08A56",
+    comb: "#E03A2F", beak: "#E8B84A", legs: "#E8C06A", chick: "#E9C27A",
+    egg: { name: "Brown", color: "#C1905F" }, pitch: 1,
+  },
+
   // ---------- Ducks, geese & swans (Duck Pond) ----------
   pekin: {
     species: "duck", name: "Pekin Duck", price: 14,
@@ -383,9 +430,9 @@ const farmOfBreed = (key) => SPECIES[BREEDS[key].species].farm;
 // Coops you can build in the Backyard. Bigger coops hold more chickens.
 const COOP_TIERS = [
   null,
-  { name: "Cozy Coop",      price: 0,  capacity: 4,  nestBoxes: 2, troughSize: 1 },
-  { name: "Farmhouse Coop", price: 25, capacity: 8,  nestBoxes: 3, troughSize: 2 },
-  { name: "Chicken Palace", price: 90, capacity: 14, nestBoxes: 4, troughSize: 3.5 },
+  { name: "Cozy Coop",      price: 0,  capacity: 10, nestBoxes: 3, troughSize: 1.5 },
+  { name: "Farmhouse Coop", price: 25, capacity: 20, nestBoxes: 4, troughSize: 3 },
+  { name: "Chicken Palace", price: 90, capacity: 50, nestBoxes: 6, troughSize: 7 },
 ];
 
 // Decorations for inside the Backyard coop. "tier" is the coop you need first.
@@ -670,7 +717,7 @@ const Sound = {
     const S = SP(c);
     if (c.growth < 0.55) { this.peep(pan, v * 0.9, S.bill === "flat" ? 0.8 : S.size < 0.8 ? 1.2 : 1); return; }
     switch (S.voice) {
-      case "cluck": this.cluck(BREEDS[c.breed].pitch || 1, pan, v); break;
+      case "cluck": this.cluck((lookOf(c).pitch || 1) * (roosterLook(c) > 0.5 ? 0.82 : 1), pan, v); break;
       case "quack": this.quack(pan, v); break;
       case "honk": this.honk(pan, v); break;
       case "quail": this.quail(pan, v); break;
@@ -949,7 +996,7 @@ function layoutInterior() {
   room.window = { x: W * 0.5 - 100, y: H * 0.12, w: 200, h: 136 };
   room.door = { x: W * 0.03, y: fy - 150, w: 108, h: 190 };
   const n = COOP_TIERS[tier].nestBoxes;
-  const bw = 100, bh = 84, gap = 16, startX = room.door.x + room.door.w + 34;
+  const bw = n > 4 ? 84 : 100, bh = 84, gap = n > 4 ? 12 : 16, startX = room.door.x + room.door.w + 34;
   room.boxes = [];
   for (let i = 0; i < n; i++) room.boxes.push({ x: startX + i * (bw + gap), y: fy - 40 - bh, w: bw, h: bh });
   const x1 = Math.max(startX + n * (bw + gap) + 30, W * 0.6), x2 = W - 30;
@@ -962,9 +1009,15 @@ function layoutInterior() {
       room.slots.push({ x: b.x1 + 30 + (count > 1 ? j * ((b.x2 - b.x1 - 60) / (count - 1)) : (b.x2 - b.x1 - 60) / 2), y: b.y });
     }
   }
-  const R = seeded(99);
-  while (room.slots.length < COOP_TIERS[tier].capacity + 2) {
-    room.slots.push({ x: lerp(W * 0.45, W * 0.9, R()), y: lerp(fy + 70, H - 40, R()) });
+  // Not enough room on the roosts? The rest snuggle down on the straw,
+  // spread out in rows across the floor.
+  const R = seeded(99), need = COOP_TIERS[tier].capacity + 2 - room.slots.length;
+  if (need > 0) {
+    const cols = Math.ceil(Math.sqrt(need * 2.4)), rows = Math.ceil(need / cols);
+    for (let i = 0; i < need; i++) {
+      const cx = (i % cols + 0.5) / cols, cy = rows > 1 ? Math.floor(i / cols) / (rows - 1) : 0.5;
+      room.slots.push({ x: lerp(W * 0.3, W * 0.95, cx) + (R() - 0.5) * 20, y: lerp(fy + 60, H - 34, cy) + (R() - 0.5) * 12 });
+    }
   }
   room.lantern = { x: W * 0.36, y: H * 0.26 };
 }
@@ -1096,7 +1149,7 @@ function makeBird(o = {}) {
   return {
     id: nextId++,
     breed: BREEDS[o.breed] ? o.breed : "rir",
-    name: o.name || freshName(),
+    name: o.name || (o.sex === "rooster" ? roosterName() : freshName()),
     x: o.x == null ? view.W * 0.5 : o.x,
     y: o.y == null ? view.horizon + (view.H - view.horizon) * 0.6 : o.y,
     z: 0, vz: 0,                       // height above the ground, and up/down speed
@@ -1120,12 +1173,18 @@ function makeBird(o = {}) {
     enterT: 0, ex0: 0, ey0: 0, pendingYardLay: false, needsSpot: false,
     pile: null, bfly: null, tagRect: null,
     hat: o.hat || null,               // dress-up: "bow", "tophat", "crown"...
+    sex: o.sex === "rooster" ? "rooster" : "hen",   // only hens lay eggs
+    sexKnown: o.sexKnown !== false,   // hatched chicks keep it a surprise until they grow up
+    genes: o.genes || null,           // a Barnyard Mix's very own look (see ROOSTERS & GENETICS)
+    mom: o.mom || null, dad: o.dad || null,   // the breeds of its parents, if it hatched here
+    kids: o.kids || 0,                // how many chicks this bird is the mom or dad of
+    crowT: rand(20, 70), crowed: false, rival: null,
   };
 }
 
 const isBaby = (c) => c.growth < 0.55;
 const growK = (c) => (isBaby(c) ? 0.6 : lerp(0.66, 1, (c.growth - 0.55) / 0.45));
-const smallK = (c) => BREEDS[c.breed].small || 1;
+const smallK = (c) => (BREEDS[c.breed].small || 1) * (1 + 0.1 * roosterLook(c));   // roosters are a bit bigger
 const bodyH = (c) => (isBaby(c) ? 16 : SP(c).body * growK(c)) * SP(c).size * smallK(c);
 const headH = (c) => (isBaby(c) ? 38 : SP(c).height * growK(c)) * SP(c).size * smallK(c);
 const sinkOf = (c) => (SP(c).sink || 10) * c.wet * SP(c).size * (isBaby(c) ? 0.5 : 1);
@@ -1135,7 +1194,7 @@ const rollGolden = () => Math.random() < SETTINGS.goldenEggChance;
 const eggInterval = () => SETTINGS.eggEverySeconds * rand(0.8, 1.25);
 const eggValueOf = (breed, golden) => (golden ? SETTINGS.goldenEggValue : SPECIES[BREEDS[breed].species].eggValue);
 const babyWord = (key) => BREEDS[key].baby || SPECIES[BREEDS[key].species].baby;
-const layBoostOf = (c) => (BREEDS[c.breed].layBoost || 1) * (SP(c).layBoost || 1);
+const layBoostOf = (c) => (lookOf(c).layBoost || 1) * (SP(c).layBoost || 1) * (isChicken(c) ? flockBoost() : 1);
 
 // How a bird feels, from 0 (grumpy) to 1 (very happy)
 function mood(c) {
@@ -1177,7 +1236,11 @@ function updateNeeds(c, dt) {
 }
 
 function grewUp(c) {
-  toast(`${c.name} is all grown up! ${SP(c).icon}`);
+  let msg = `${c.name} is all grown up! ${SP(c).icon}`;
+  // Nobody can tell a chick's a boy or a girl until it grows up. Surprise!
+  if (isChicken(c) && !c.sexKnown) msg = isRooster(c) ? `${c.name} grew up, and he's a rooster! 🐓` : `${c.name} grew up, and she's a hen! 🐔`;
+  c.sexKnown = true;
+  toast(msg, 3000);
   const sc = scaleAt(c.y);
   if (c.loc === "yard") sparkles(c.x, c.y, 50 * sc, 10, sc);
   Sound.sparkle();
@@ -1216,7 +1279,7 @@ function think(c) {
     walkTo(c, f.x + rand(-8, 8), f.y + rand(0, 10), speedOf(c) * 1.3);
     return;
   }
-  if (c.growth >= 1 && c.eggClock <= 0) { startLaying(c); return; }
+  if (c.growth >= 1 && c.eggClock <= 0 && !isRooster(c)) { startLaying(c); return; }
   // Most birds don't like rain, so they go stand under the house or the tree
   if (isRaining() && dislikesRain(c) && Math.random() < 0.75) {
     const s = shelterSpot(c);
@@ -1245,6 +1308,7 @@ function think(c) {
     case "swim":
     case "wade": { c.goal = "swim"; const p = waterSpot(); walkTo(c, p.x, p.y, speedOf(c)); break; }
     case "peck":
+      if (isRooster(c) && c.growth >= 1 && Math.random() < 0.2) { startTidbit(c, true); break; }   // "Ladies! A snack!"
       if (S.swim && c.wet > 0.5) { c.state = "dabble"; c.t = rand(1.5, 3); }   // bottoms up!
       else { c.state = "peck"; c.t = rand(1.2, 3); c.peckT = 0; }
       break;
@@ -1339,9 +1403,20 @@ function arrive(c) {
       return;
     }
     case "treat":
-      if (c.pile && c.pile.bites > 0) { c.state = "treatPeck"; c.peckT = 0; c.biteT = rand(0, 0.3); c.dir = c.pile.x >= c.x ? 1 : -1; }
-      else think(c);
+      if (c.pile && c.pile.bites > 0) {
+        c.state = "treatPeck"; c.peckT = 0; c.biteT = rand(0, 0.3); c.dir = c.pile.x >= c.x ? 1 : -1;
+        if (isRooster(c) && c.growth >= 1 && Math.random() < 0.7) startTidbit(c, false);   // he calls the hens first
+      } else think(c);
       return;
+    case "squabble": {
+      const r = c.rival;
+      c.rival = null;
+      if (r && r.loc === "yard" && Math.hypot(r.x - c.x, r.y - c.y) < 90 * scaleAt(c.y) && (r.state === "idle" || canShow(r))) {
+        puffUp(c, r); puffUp(r, c);
+        Sound.squawk(panX(c.x));
+      } else think(c);
+      return;
+    }
     case "lay":
       if (!F.doorClosed) startEnter(c);
       else { c.goal = "layYard"; c.state = "layYard"; c.t = rand(4, 6); }
@@ -1400,7 +1475,7 @@ function layEggInYard(c) {
   const sc = scaleAt(c.y);
   if (F.yardEggs.length < SETTINGS.maxYardEggs) {
     const [x, y] = avoidSpots(c.x - c.dir * 16 * sc, c.y + 2, false);
-    F.yardEggs.push({ id: nextId++, x, y, breed: c.breed, golden: rollGolden(), glint: rand(0, 3) });
+    F.yardEggs.push({ id: nextId++, x, y, breed: c.breed, egg: c.genes ? c.genes.egg : undefined, golden: rollGolden(), glint: rand(0, 3) });
   }
   finishLaying(c);
   c.state = "song"; c.t = 1.6;
@@ -1408,7 +1483,7 @@ function layEggInYard(c) {
   notes(c.x, c.y, headH(c) * sc, 4, sc);
 }
 function layEggInNest(c) {
-  F.nestEggs.push({ id: nextId++, box: c.nestBox, breed: c.breed, golden: rollGolden() });
+  F.nestEggs.push({ id: nextId++, box: c.nestBox, breed: c.breed, egg: c.genes ? c.genes.egg : undefined, golden: rollGolden() });
   finishLaying(c);
   c.state = "nestSong"; c.t = 1.6;
   if (scene === "coop") {
@@ -1507,7 +1582,7 @@ function updateYardBird(c, dt) {
   if (inW && !canWater(c) && INTERRUPTIBLE.has(c.state) && c.goal !== "shore") think(c);
 
   // The egg clock: happy grown-ups get ready to lay
-  if (c.growth >= 1 && !bedtime && c.goal !== "lay" && c.goal !== "layYard" && c.state !== "carried") {
+  if (c.growth >= 1 && !isRooster(c) && !bedtime && c.goal !== "lay" && c.goal !== "layYard" && c.state !== "carried") {
     const m = mood(c);
     if (m > 0.35) c.eggClock -= dt * (0.6 + 0.8 * m) * layBoostOf(c);
     if (c.eggClock <= 0 && INTERRUPTIBLE.has(c.state) && c.goal !== "bed" && c.goal !== "shore") startLaying(c);
@@ -1515,7 +1590,7 @@ function updateYardBird(c, dt) {
   // Sunset: time to head for the house
   if (bedtime && c.goal !== "bed" && c.goal !== "shore" && INTERRUPTIBLE.has(c.state)) think(c);
 
-  switch (c.state) {
+  if (!updateRoosterState(c, dt)) switch (c.state) {
     case "idle":
       c.t -= dt;
       c.lookT -= dt;
@@ -1671,6 +1746,10 @@ function updatePose(c, dt) {
     kick = x < 0.18 ? x / 0.18 : x < 0.34 ? 1 - (x - 0.18) / 0.16 : 0;
     hd = x > 0.45 && x < 0.8 ? 0.6 : 0;
   } else if (s === "song" || s === "nestSong") hu = 0.8;
+  else if (s === "crow") hu = c.peckT < 0.45 ? 0.3 : 1;
+  else if (s === "guard") hu = 0.9;
+  else if (s === "tidbit") hd = 0.45 + 0.45 * Math.sin(c.peckT * 15);
+  else if (s === "puff") hd = 0.4;
   else if (s === "chase") hu = 0.35;
   // Flamingos feed with their heads upside-down in the water — slowly
   if (SP(c).wade && s === "peck") hd = 0.85 + Math.sin(c.peckT * 3) * 0.15;
@@ -1686,7 +1765,8 @@ function updatePose(c, dt) {
   c.oneLeg += ((restLeg ? 1 : 0) - c.oneLeg) * Math.min(1, dt * 3);
 
   if (c.beakOpenT > 0) c.beakOpenT -= dt;
-  c.beakOpen = s === "song" || s === "nestSong" ? 0.5 + 0.5 * Math.sin(clock * 18) : c.beakOpenT > 0 ? 0.8 : 0;
+  c.beakOpen = s === "song" || s === "nestSong" ? 0.5 + 0.5 * Math.sin(clock * 18)
+    : s === "crow" && c.peckT > 0.45 && c.peckT < 1.9 ? 0.85 : c.beakOpenT > 0 ? 0.8 : 0;
 
   const wantSit = s === "nesting" || s === "nestSong" || s === "dust" || s === "roost" || s === "layYard" ? 1 : 0;
   c.sit += (wantSit - c.sit) * Math.min(1, dt * 5);
@@ -1744,6 +1824,7 @@ function landed(c) {
 */
 function simulateFarm(id, dt) {
   const st = farms[id], natural = naturalWater(id), bed = isBedtime();
+  if (id === "backyard") flockCache = null;
   for (const c of st.birds) {
     c.food = clamp(c.food - (dt / SETTINGS.hungerSeconds) * 0.6);
     if (c.food < 0.5 && st.feeder > 0) {
@@ -1762,29 +1843,30 @@ function simulateFarm(id, dt) {
     }
     if (c.growth < 1 && c.food > 0.15 && c.water > 0.15) c.growth = Math.min(1, c.growth + dt / SETTINGS.growUpSeconds);
     c.loc = bed ? "coop" : "yard";
-    if (c.growth >= 1 && !bed) {
+    if (c.growth >= 1 && !bed && !isRooster(c)) {
       const m = mood(c);
       if (m > 0.35) c.eggClock -= dt * (0.6 + 0.8 * m) * layBoostOf(c);
       if (c.eggClock <= 0) {
         c.eggClock = eggInterval();
         c.laid++;
         game.totalEggs++;
-        if (!addNestEggTo(id, c.breed, rollGolden())) addYardEggTo(id, c.breed, rollGolden());
+        const egg = c.genes ? c.genes.egg : undefined;
+        if (!addNestEggTo(id, c.breed, rollGolden(), egg)) addYardEggTo(id, c.breed, rollGolden(), egg);
       }
     }
   }
 }
-function addNestEggTo(id, breed, golden) {
+function addNestEggTo(id, breed, golden, egg) {
   const st = farms[id];
   for (let b = 0; b < nestCount(id); b++) {
     if (st.nestEggs.filter((e) => e.box === b).length < SETTINGS.nestBoxHolds) {
-      st.nestEggs.push({ id: nextId++, box: b, breed, golden });
+      st.nestEggs.push({ id: nextId++, box: b, breed, egg, golden });
       return true;
     }
   }
   return false;
 }
-function addYardEggTo(id, breed, golden) {
+function addYardEggTo(id, breed, golden, egg) {
   const st = farms[id], P = placesFor(id);
   if (st.yardEggs.length >= SETTINGS.maxYardEggs) return false;
   let x = 0, y = 0;
@@ -1793,14 +1875,14 @@ function addYardEggTo(id, breed, golden) {
     y = rand(groundTop() + 30, groundBottom() - 20);
     if (!inWaterPt(x, y, 1.15, P)) break;
   }
-  st.yardEggs.push({ id: nextId++, x, y, breed, golden, glint: rand(0, 3) });
+  st.yardEggs.push({ id: nextId++, x, y, breed, egg, golden, glint: rand(0, 3) });
   return true;
 }
 // Put a new bird on any farm (a chick you bought, or a welcome present)
-function addBirdToFarm(id, breed, growth) {
+function addBirdToFarm(id, breed, growth, sex) {
   const st = farms[id], P = placesFor(id), sc = scaleAt(P.coop.y), geo = houseGeo(id);
   const c = makeBird({
-    breed, growth, food: 0.9, water: 0.9, joy: 0.8,
+    breed, growth, sex, food: 0.9, water: 0.9, joy: 0.8,
     x: clampX(P.coop.x + (geo.halfW + rand(20, 120)) * sc), y: clampY(P.coop.y + rand(40, 100) * sc),
   });
   c.loc = isBedtime() ? "coop" : "yard";
@@ -1828,7 +1910,7 @@ function hearts(x, y, z, sc) {
 }
 function feathers(c, n) {
   const sc = c.loc === "yard" ? scaleAt(c.y) : 1;
-  const col = isBaby(c) ? BREEDS[c.breed].chick : BREEDS[c.breed].body;
+  const col = isBaby(c) ? lookOf(c).chick : lookOf(c).body;
   for (let i = 0; i < n; i++) emit("feather", c.x + rand(-10, 10) * sc, c.y, c.z + 30 * sc, { vz: rand(20, 60) * sc, vx: rand(-40, 40) * sc, life: 1.6, rot: rand(TAU), vr: rand(-4, 4), size: 6 * sc, color: col });
 }
 function sparkles(x, y, z, n, sc, color) {
@@ -1949,7 +2031,7 @@ function updateCrates(dt) {
     if (!cr.opened && cr.t >= 1.1) {
       cr.opened = true;
       const sc = scaleAt(cr.y);
-      const c = makeBird({ breed: cr.breed, x: cr.x + 18 * sc, y: cr.y + 6, growth: 0.12, food: 0.9, water: 0.9, joy: 0.8 });
+      const c = makeBird({ breed: cr.breed, sex: cr.sex, x: cr.x + 18 * sc, y: cr.y + 6, growth: 0.12, food: 0.9, water: 0.9, joy: 0.8 });
       c.vz = 190 * sc; c.tagT = 3.5; c.state = "idle"; c.t = 1;
       F.birds.push(c);
       Sound.call(c, panX(cr.x));
@@ -2025,12 +2107,15 @@ function timeEvents(prev, t) {
   if (B.doorClosed && !isBedtime(t)) {
     B.doorClosed = false;
     if (game.farm === "backyard") Sound.thunk();
-    const hens = B.birds.filter((c) => c.growth >= 1);
-    if (hens.length && addNestEggTo("backyard", pick(hens).breed, false)) {
+    const hens = B.birds.filter((c) => c.growth >= 1 && !isRooster(c));
+    const hen = hens.length ? pick(hens) : null;
+    if (game.farm === "backyard") dawnChorus();
+    if (hen && addNestEggTo("backyard", hen.breed, false, hen.genes ? hen.genes.egg : undefined)) {
       if (started) toast("Good morning! 🌅 A thank-you egg is waiting in the coop.", 3200);
     } else if (started) toast("Good morning! 🌅");
   } else if (prev < 0.03 && t >= 0.03 && started) {
     toast("Good morning! 🌅");
+    dawnChorus();
   }
   if (prev < 0.7 && t >= 0.7 && started) toast("🌇 The sun is setting. The birds will head to bed soon.", 3200);
 }
@@ -2964,8 +3049,8 @@ function eggPath(g, rx, ry) {
   g.closePath();
 }
 // Every species lays its own size of egg. k makes it bigger or smaller.
-function drawEgg(g, breed, golden, k = 1) {
-  const E = BREEDS[breed].egg, sz = SPECIES[BREEDS[breed].species].egg;
+function drawEgg(g, breed, golden, k = 1, look) {
+  const E = look || BREEDS[breed].egg, sz = SPECIES[BREEDS[breed].species].egg;
   const rx = sz[0] * k, ry = sz[1] * k;
   const col = golden ? "#F4C542" : E.color;
   const gr = g.createRadialGradient(-rx * 0.35, -ry * 1.35, 1, 0, -ry * 0.9, ry * 1.3);
@@ -2990,7 +3075,7 @@ function drawYardEgg(g, e) {
   g.save();
   g.translate(e.x, e.y);
   g.scale(sc, sc);
-  drawEgg(g, e.breed, e.golden);
+  drawEgg(g, e.breed, e.golden, 1, e.egg);
   // a few blades of grass in front, like it's hiding
   g.strokeStyle = "#6FA84A"; g.lineWidth = 2; g.lineCap = "round";
   g.beginPath();
@@ -3078,9 +3163,10 @@ function drawLegPair(g, c, now, o) {
 
 // ---------- Chickens ----------
 function drawHen(g, c, now) {
-  const B = BREEDS[c.breed];
+  const B = lookOf(c);
   const grow = clamp((c.growth - 0.55) / 0.45);
-  const k = lerp(0.66, 1, grow), combK = lerp(0.2, 1, grow);
+  const R = roosterLook(c);                 // 0 for hens, up to 1 for a grown-up rooster
+  const k = lerp(0.66, 1, grow) * (1 + 0.1 * R), combK = lerp(0.2, 1, grow) * (1 + 0.45 * R);
   g.save();
   g.scale(c.dir * k, k);
   const sy = c.sit * 15;
@@ -3096,10 +3182,11 @@ function drawHen(g, c, now) {
   g.translate(-21 - fluff * 6, by - 6);
   g.rotate(Math.sin(now * 1.6 + c.id) * 0.05 + (c.moving ? Math.sin(c.walkPhase * 2) * 0.07 : 0) - c.headDown * 0.12 + (c.dance ? Math.sin(now * 11.7) * 0.15 : 0));
   drawTail(g, B);
+  if (R > 0.05 && !B.silkie) drawSickles(g, B, R, now, c);   // a rooster's long, curvy tail
   g.restore();
 
-  // body
-  const rx = 27 + fluff * 16, ry = 20.5 + fluff * 8;
+  // body (a rooster puffs out his chest)
+  const rx = 27 + fluff * 16 + 2 * R, ry = 20.5 + fluff * 8 + R;
   const bodyGrad = g.createRadialGradient(6, by - 12, 3, -2, by, rx + 8);
   bodyGrad.addColorStop(0, B.light);
   bodyGrad.addColorStop(0.55, B.body);
@@ -3133,7 +3220,7 @@ function drawHen(g, c, now) {
 
   // neck and head (the head moves: pecking, drinking, singing, sleeping)
   const thrust = c.moving ? Math.sin(c.walkPhase * 2 + 1) * 2.6 : 0;
-  let hx = 17 + thrust + (c.look || 0) * 1.5, hy = by - 21;
+  let hx = 17 + thrust + (c.look || 0) * 1.5, hy = by - 21 - 5 * R;   // roosters stand tall
   if (c.sleep > 0.01) { hx = lerp(hx, 11, c.sleep); hy = lerp(hy, by - 13, c.sleep); }
   hx = lerp(hx, 29, c.headDown);
   hy = lerp(hy, -9 + sy * 0.4, c.headDown);
@@ -3142,6 +3229,7 @@ function drawHen(g, c, now) {
   g.strokeStyle = B.neck || B.body; g.lineCap = "round"; g.lineWidth = 15;
   g.beginPath(); g.moveTo(7, by - 8); g.lineTo(hx - 3, hy + 4); g.stroke();
   if (B.silkie) { g.fillStyle = B.body; circle(g, (7 + hx) / 2, (by - 8 + hy) / 2, 10); g.fill(); }
+  if (R > 0.05 && !B.silkie) drawHackles(g, B, R, hx, hy, by, c.state === "puff" ? 1 : 0);
 
   g.save();
   g.translate(hx, hy);
@@ -3212,6 +3300,13 @@ function drawPattern(g, B, by, seed) {
       const y = by - 20 + row * 6.5;
       for (let x = -30 + (row % 2) * 4; x < 28; x += 8) { g.beginPath(); g.arc(x, y, 4.2, 0.1 * Math.PI, 0.9 * Math.PI); g.stroke(); }
     }
+  } else if (B.pattern === "flecks") {   // a few little black flecks
+    const R = seeded(seed * 53 + 11);
+    g.fillStyle = "rgba(30,30,36,.7)";
+    for (let i = 0; i < 14; i++) {
+      const a = R() * TAU, dd = Math.sqrt(R());
+      ellipse(g, -2 + Math.cos(a) * dd * 24, by + Math.sin(a) * dd * 17, 2.2, 1.1, -0.3); g.fill();
+    }
   } else if (B.pattern === "dots") {     // speckled: a white dot on every feather
     const R = seeded(seed * 31 + 7);
     for (let i = 0; i < 34; i++) {
@@ -3231,6 +3326,10 @@ function drawLegs(g, c, B, by, now) {
     if (ph === 0 && c.legKick > 0.01) { fx -= c.legKick * 14; fy -= c.legKick * 5; }
     g.lineWidth = 3.4; g.beginPath(); g.moveTo(hx, hipY); g.lineTo(fx, fy); g.stroke();
     g.lineWidth = 2.3; g.beginPath(); g.moveTo(fx - 3.5, fy); g.lineTo(fx + 7, fy + 0.4); g.stroke();
+    if (roosterLook(c) > 0.6) {        // a rooster's spur, on the back of each leg
+      const sx = lerp(fx, hx, 0.3), sy = lerp(fy, hipY, 0.3);
+      g.lineWidth = 2; g.beginPath(); g.moveTo(sx, sy); g.lineTo(sx - 5, sy - 1.5); g.stroke();
+    }
     if (B.silkie || B.featherFeet) {   // fluffy feathered feet
       g.fillStyle = B.silkie ? B.body : B.shade;
       circle(g, hx + (fx - hx) * 0.6, hipY + (fy - hipY) * 0.6, 3.2); g.fill();
@@ -3270,7 +3369,7 @@ function drawEye(g, c, x, y, s) {
 
 // ---------- Babies: chicks, ducklings, keets, poults, peachicks... ----------
 function drawBaby(g, c, now) {
-  const B = BREEDS[c.breed], S = SP(c), flat = S.bill === "flat";
+  const B = lookOf(c), S = SP(c), flat = S.bill === "flat";
   const k = lerp(0.8, 1.15, clamp(c.growth / 0.55));
   g.save();
   g.scale(c.dir * k, k);
@@ -3827,7 +3926,7 @@ function drawYardUI(g) {
     roundRect(g, p.x - w / 2, p.y - h, w, h, h / 2); g.fill();
     g.beginPath(); g.moveTo(p.x - 7, p.y); g.lineTo(p.x, p.y + 8); g.lineTo(p.x + 7, p.y); g.fill();
     const last = F.nestEggs[F.nestEggs.length - 1], esz = SPECIES[BREEDS[last.breed].species].egg[1];
-    g.save(); g.translate(p.x - w / 2 + 19, p.y - 7); drawEgg(g, last.breed, F.nestEggs.some((e) => e.golden), 10 / esz); g.restore();
+    g.save(); g.translate(p.x - w / 2 + 19, p.y - 7); drawEgg(g, last.breed, F.nestEggs.some((e) => e.golden), 10 / esz, last.egg); g.restore();
     g.fillStyle = "#2F2A24"; g.textAlign = "center"; g.textBaseline = "middle";
     g.fillText(label, p.x + 11, p.y - h / 2 + 1);
     badgeRect = { x: p.x - w / 2 - 8, y: p.y - h - 8, w: w + 16, h: h + 18 };
@@ -4086,7 +4185,7 @@ function drawNestBox(g, b) {
   for (const e of F.nestEggs) {
     if (e.box !== b) continue;
     const p = nestEggPos(e);
-    g.save(); g.translate(p.x, p.y); drawEgg(g, e.breed, e.golden, 1.25); g.restore();
+    g.save(); g.translate(p.x, p.y); drawEgg(g, e.breed, e.golden, 1.25, e.egg); g.restore();
   }
 }
 function drawInsideBird(g, c, p) {
@@ -4157,14 +4256,14 @@ function drawFlyers(g) {
     g.translate(x, y + 11 * s);
     g.scale(s, s);
     g.rotate(t * 6);
-    drawEgg(g, f.breed, f.golden, 11 / SPECIES[BREEDS[f.breed].species].egg[1]);
+    drawEgg(g, f.breed, f.golden, 11 / SPECIES[BREEDS[f.breed].species].egg[1], f.egg);
     g.restore();
   }
 }
 
 // ---------- Little pictures in the Market, the Map, and the name card ----------
-function portraitBird(breed) {
-  const c = makeBird({ breed, growth: 1 });
+function portraitBird(breed, sex) {
+  const c = makeBird({ breed, growth: 1, sex, name: "Portrait" });
   nextId--;
   c.id = 3; c.dir = 1; c.state = "idle";
   if (SPECIES[BREEDS[breed].species].acts.display) c.fan = 1;   // show off that tail!
@@ -4513,7 +4612,7 @@ function collectHouseEggs() {
     return;
   }
   const p = badgePos(), from = w2s(p.x, p.y - 18);
-  F.nestEggs.forEach((e, i) => sendEggToBasket(from, e.breed, e.golden, -i * 0.09, p.x, p.y - 30));
+  F.nestEggs.forEach((e, i) => sendEggToBasket(from, e.breed, e.golden, -i * 0.09, p.x, p.y - 30, e.egg));
   F.nestEggs = [];
   save();
 }
@@ -4521,22 +4620,22 @@ function collectYardEgg(e) {
   F.yardEggs = F.yardEggs.filter((x) => x !== e);
   const sc = scaleAt(e.y);
   sparkles(e.x, e.y, 14 * sc, 6, sc, e.golden ? "#FFE58A" : "#FFFFFF");
-  sendEggToBasket(w2s(e.x, e.y - 12 * sc), e.breed, e.golden, 0, e.x, e.y);
+  sendEggToBasket(w2s(e.x, e.y - 12 * sc), e.breed, e.golden, 0, e.x, e.y, e.egg);
 }
 function collectNestEgg(e) {
   const p = nestEggPos(e);
   F.nestEggs = F.nestEggs.filter((x) => x !== e);
   sparkles(p.x, p.y, 14, 6, 1, e.golden ? "#FFE58A" : "#FFFFFF");
-  sendEggToBasket(w2s(p.x, p.y - 14), e.breed, e.golden, 0, p.x, p.y);
+  sendEggToBasket(w2s(p.x, p.y - 14), e.breed, e.golden, 0, p.x, p.y, e.egg);
   dismissCoach("collect");
 }
-function sendEggToBasket(from, breed, golden, delay = 0, wx, wy) {
+function sendEggToBasket(from, breed, golden, delay = 0, wx, wy, egg) {
   const r = basketEgg.getBoundingClientRect();
   const value = eggValueOf(breed, golden);
   game.eggs += value;
   game.stats.collected++;
   if (golden) game.stats.golden++;
-  fx.flyers.push({ sx: from.x, sy: from.y, ex: r.left + r.width / 2, ey: r.top + r.height / 2, t: delay, dur: 0.72, breed, golden, value, done: false });
+  fx.flyers.push({ sx: from.x, sy: from.y, ex: r.left + r.width / 2, ey: r.top + r.height / 2, t: delay, dur: 0.72, breed, egg, golden, value, done: false });
   Sound.pop(-delay);
   if (value > 1 && wx != null) {
     const sc = scene === "yard" ? scaleAt(wy) : 1;
@@ -4700,30 +4799,33 @@ function renderMarket() {
   tabCoop.setAttribute("aria-selected", String(!onBirds));
   marketGrid.textContent = "";
   if (onBirds) {
-    marketNote.textContent = "New birds arrive as babies at their own farm and grow up in a few minutes. Fancier birds lay eggs worth more!";
+    marketNote.textContent = "New birds arrive as babies at their own farm and grow up in a few minutes. Fancier birds lay eggs worth more! Chickens come as hens or roosters.";
     const order = [game.farm, ...FARM_ORDER.filter((id) => id !== game.farm)];
     for (const id of order) {
       const st = farms[id], cap = capacityOf(id), n = birdCount(id), full = n >= cap;
       const head = el("div", "grid-head", FARMS[id].name);
       head.append(el("span", null, st.unlocked ? (full ? `Full · ${n} of ${cap}` : `${n} of ${cap} spots`) : `Unlock for ${FARMS[id].price} eggs`));
       marketGrid.append(head);
+      if (id === "backyard") marketGrid.append(sexPicker());
       for (const key of Object.keys(BREEDS)) {
-        if (farmOfBreed(key) !== id) continue;
+        if (farmOfBreed(key) !== id || BREEDS[key].cross) continue;
+        const sex = id === "backyard" ? marketSex : "hen";
         const B = BREEDS[key], S = SPECIES[B.species], t = el("div", "tile" + (st.unlocked ? "" : " locked"));
         const cv = el("canvas", "portrait-sm");
-        drawPortrait(cv, portraitBird(key), 120, 96);
+        drawPortrait(cv, portraitBird(key, sex), 120, 96);
         const sub = el("div", "tile-sub");
         const dot = el("i", "egg-dot");
         dot.style.background = B.egg.color;
         sub.append(dot, document.createTextNode(S.eggValue > 1 ? `${B.egg.name} eggs · worth ${S.eggValue}` : `${B.egg.name} eggs`));
-        t.append(cv, el("div", "tile-name", B.name), sub);
+        if (sex === "rooster") { sub.textContent = ""; sub.append(document.createTextNode(`Dad of ${B.egg.name.toLowerCase()}-egg chicks`)); }
+        t.append(cv, el("div", "tile-name", sex === "rooster" ? `${B.name} rooster` : B.name), sub);
         if (!st.unlocked) {
           const b = el("button", "buy unlock", "See the map");
           b.type = "button";
           b.addEventListener("click", openMap);
           t.append(b);
         } else {
-          t.append(priceButton(B.price, `Buy a ${B.name} ${babyWord(key)} for ${B.price} eggs`, !full && game.eggs >= B.price, () => buyBird(key)));
+          t.append(priceButton(B.price, `Buy a ${B.name} ${sex === "rooster" ? "rooster chick" : babyWord(key)} for ${B.price} eggs`, !full && game.eggs >= B.price, () => buyBird(key, sex)));
         }
         marketGrid.append(t);
       }
@@ -4762,19 +4864,38 @@ tabBirds.addEventListener("click", () => { marketTab = "birds"; renderMarket(); 
 tabCoop.addEventListener("click", () => { marketTab = "coop"; renderMarket(); marketGrid.scrollTop = 0; Sound.tick(); });
 
 function spend(n) { game.eggs -= n; updateHud(); }
-function buyBird(key) {
+// The Hens / Roosters switch for the Backyard's chickens
+let marketSex = "hen";
+function sexPicker() {
+  const wrap = el("div", "sex-picker");
+  const seg = el("div", "segmented small");
+  for (const [sex, label] of [["hen", "🐔 Hens"], ["rooster", "🐓 Roosters"]]) {
+    const b = el("button", "seg" + (marketSex === sex ? " on" : ""), label);
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(marketSex === sex));
+    b.addEventListener("click", () => { marketSex = sex; Sound.tick(); const y = marketGrid.scrollTop; renderMarket(); marketGrid.scrollTop = y; });
+    seg.append(b);
+  }
+  const f = flockInfo(true), note = el("div", "sex-note");
+  const dot = el("i", "flock-dot");
+  dot.style.background = f.color;
+  note.append(dot, document.createTextNode(`${f.roosters} ${f.roosters === 1 ? "rooster" : "roosters"}, ${f.hens} ${f.hens === 1 ? "hen" : "hens"}: ${f.label} About 1 rooster for every 10 hens is best.`));
+  wrap.append(seg, note);
+  return wrap;
+}
+function buyBird(key, sex = "hen") {
   const B = BREEDS[key], id = farmOfBreed(key), st = farms[id];
   if (!st.unlocked || game.eggs < B.price || birdCount(id) >= capacityOf(id)) return;
   spend(B.price);
   Sound.sparkle();
-  const word = babyWord(key);
+  const word = sex === "rooster" ? "rooster chick" : babyWord(key);
   if (id === game.farm) {
     const c = places.coop, sc = scaleAt(c.y), geo = houseGeo();
-    fx.crates.push({ x: clampX(c.x + (geo.halfW + 40 + rand(0, 50)) * sc), y: clampY(c.y + rand(46, 90) * sc), t: 0, breed: key, opened: false });
+    fx.crates.push({ x: clampX(c.x + (geo.halfW + 40 + rand(0, 50)) * sc), y: clampY(c.y + rand(46, 90) * sc), t: 0, breed: key, sex, opened: false });
     hideSheet();
     toast(scene === "yard" ? `A ${B.name} ${word} is here! ${SPECIES[B.species].icon}` : `A ${B.name} ${word} is waiting in the yard!`);
   } else {
-    const c = addBirdToFarm(id, key, 0.12);
+    const c = addBirdToFarm(id, key, 0.12, sex);
     c.needsSpot = true;
     renderMarket();
     toast(`A ${B.name} ${word} is waiting at the ${FARMS[id].name}! Tap the map to visit`, 3200);
@@ -4877,7 +4998,7 @@ function leaveFarm() {
     c.loc = isBedtime() ? "coop" : "yard";
     c.state = "idle"; c.t = rand(0.3, 1.5);
   }
-  for (const cr of fx.crates) if (!cr.opened) addBirdToFarm(game.farm, cr.breed, 0.12).needsSpot = true;
+  for (const cr of fx.crates) if (!cr.opened) addBirdToFarm(game.farm, cr.breed, 0.12, cr.sex).needsSpot = true;
   fx.crates = []; fx.grains = []; fx.butterflies = []; fx.fireflies = []; fx.particles = []; fx.weather = [];
   visitor = null; hawk = null; fx.flyers.forEach((f) => { f.t = f.dur; });
   Music.radioOn = false; Music.discoOn = false;
@@ -4915,8 +5036,9 @@ function openCard(c) {
 function updateCardText() {
   const c = cardBird;
   if (!c) return;
-  const B = BREEDS[c.breed], S = SP(c);
-  cardBreed.textContent = `${B.name} · lays ${B.egg.name.toLowerCase()} eggs`;
+  const B = lookOf(c), S = SP(c), grown = c.growth >= 1;
+  if (isRooster(c) && (grown || c.sexKnown)) cardBreed.textContent = grown ? `${B.name} rooster · dad of the flock` : `${B.name} · a little rooster`;
+  else cardBreed.textContent = `${B.name}${isChicken(c) && grown ? " hen" : ""} · lays ${B.egg.name.toLowerCase()} eggs`;
   const [mt, me] = moodText(c);
   cardMood.textContent = `${me} ${mt}`;
   if (c.growth < 1) {
@@ -4924,9 +5046,14 @@ function updateCardText() {
     growBar.hidden = false;
     growFill.style.width = `${Math.round(c.growth * 100)}%`;
   } else {
-    cardStats.textContent = c.laid ? `Has laid ${c.laid} ${c.laid === 1 ? "egg" : "eggs"} on your farm` : "Hasn't laid an egg here yet";
+    if (isRooster(c)) {
+      const f = flockInfo(), per = f.roosters ? Math.round(f.hens / f.roosters) : 0;
+      cardStats.textContent = `Crows every morning and keeps watch over ${per} ${per === 1 ? "hen" : "hens"}`;
+    } else cardStats.textContent = c.laid ? `Has laid ${c.laid} ${c.laid === 1 ? "egg" : "eggs"} on your farm` : "Hasn't laid an egg here yet";
+    if (c.kids) cardStats.textContent += `. ${isRooster(c) ? "Dad" : "Mom"} of ${c.kids} ${c.kids === 1 ? "chick" : "chicks"}!`;
     growBar.hidden = true;
   }
+  if (c.mom && c.dad) cardStats.textContent += ` (Mom: ${c.mom} · Dad: ${c.dad})`;
 }
 // Renaming a bird. Tapping the name highlights it, so you can just type a
 // new one. The × clears it. If you leave it empty, the old name comes back.
@@ -5189,7 +5316,7 @@ function openIncubator() {
   Sound.tick();
 }
 function renderHatch() {
-  const kinds = [...new Set(F.birds.filter((c) => c.growth >= 1).map((c) => c.breed))];
+  const kinds = [...new Set(F.birds.filter((c) => c.growth >= 1 && !isRooster(c)).map((c) => c.breed))];
   // e.g. "Chicks take 21 days and ducklings take 28" (just like on a real farm)
   const seen = new Set(), parts = [];
   for (const k of kinds) {
@@ -5198,7 +5325,7 @@ function renderHatch() {
   }
   const list = parts.slice(0, 3);
   const said = list.length > 1 ? `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}` : list[0] || "";
-  hatchNote.textContent = `Eggs have to stay warm until they hatch.${said ? " " + said.charAt(0).toUpperCase() + said.slice(1) + "." : ""} Each day goes by in just a few seconds here.`;
+  hatchNote.textContent = `Eggs have to stay warm until they hatch.${said ? " " + said.charAt(0).toUpperCase() + said.slice(1) + "." : ""} Each day goes by in just a few seconds here.${game.farm === "backyard" ? " Chicks get a little from Mom and a little from Dad!" : ""}`;
   hatchSlotsEl.textContent = "";
   slotViews = [];
   for (let i = 0; i < INCUBATOR_SLOTS; i++) {
@@ -5236,33 +5363,68 @@ function updateSlotText() {
     v.row.hidden = !!ready;
   }
 }
+// Hens you could hatch an egg from, grouped by breed (and Barnyard Mixes by egg color)
+function momGroups() {
+  const groups = new Map();
+  for (const c of F.birds) {
+    if (c.growth < 1 || isRooster(c)) continue;
+    const key = c.genes ? "mix:" + c.genes.egg.name : c.breed;
+    if (!groups.has(key)) groups.set(key, { key, breed: c.breed, hens: [], egg: eggLookOf(c), name: c.genes ? `Barnyard Mix (${c.genes.egg.name.toLowerCase()} eggs)` : BREEDS[c.breed].name });
+    groups.get(key).hens.push(c);
+  }
+  return [...groups.values()];
+}
+let hatchDad = null;   // the rooster you picked to be the dad
 function renderPick() {
   hatchPickEl.textContent = "";
   const free = F.incubator.length < INCUBATOR_SLOTS, room = roomToHatch();
-  const kinds = [...new Set(F.birds.filter((c) => c.growth >= 1).map((c) => c.breed))];
+  const groups = momGroups(), needsDad = game.farm === "backyard";
   hatchPickEl.append(el("div", "pick-head", free ? "Choose an egg to keep warm" : "All three spots are full"));
-  if (!kinds.length) { hatchPickEl.append(el("p", "pick-empty", "When your birds grow up, you can hatch their eggs here.")); return; }
+  if (!groups.length) { hatchPickEl.append(el("p", "pick-empty", needsDad ? "When your hens grow up, you can hatch their eggs here." : "When your birds grow up, you can hatch their eggs here.")); return; }
+  const dads = needsDad ? F.birds.filter((c) => isRooster(c) && c.growth >= 1) : [];
+  if (needsDad && !dads.length) {
+    hatchPickEl.append(el("p", "pick-empty", "Chicken eggs need a rooster in the flock to hatch into chicks. Get a rooster at the Market! 🐓"));
+  } else if (needsDad) {
+    if (!dads.includes(hatchDad)) hatchDad = dads[0];
+    const row = el("div", "dad-row");
+    row.append(el("span", "dad-label", "Dad"));
+    for (const r of dads) {
+      const b = el("button", "dad-chip" + (r === hatchDad ? " on" : ""));
+      b.type = "button";
+      const dot = el("i", "egg-dot");
+      dot.style.background = lookOf(r).body;
+      b.append(dot, document.createTextNode(r.name));
+      b.setAttribute("aria-pressed", String(r === hatchDad));
+      b.setAttribute("aria-label", `${r.name} the ${lookOf(r).name} rooster`);
+      b.addEventListener("click", () => { hatchDad = r; Sound.tick(); renderPick(); });
+      row.append(b);
+    }
+    hatchPickEl.append(row);
+    hatchPickEl.append(el("div", "dad-label mom-label", "Mom"));
+  }
   if (room <= 0) hatchPickEl.append(el("p", "pick-empty", `There's no room in the ${houseName()} for another baby right now.`));
-  for (const k of kinds) {
-    const B = BREEDS[k], cost = eggValueOf(k, false);
+  for (const gp of groups) {
+    const cost = eggValueOf(gp.breed, false);
     const b = el("button", "pick-egg");
     b.type = "button";
     const dot = el("i", "egg-dot");
-    dot.style.background = B.egg.color;
+    dot.style.background = gp.egg.color;
     const price = el("span", "pick-cost");
     price.append(el("i", "egg-dot"), document.createTextNode(String(cost)));
-    b.append(dot, el("span", "pick-name", B.name), price);
-    b.setAttribute("aria-label", `Put a ${B.name} egg in the incubator for ${cost} ${cost === 1 ? "egg" : "eggs"}`);
-    b.disabled = !free || room <= 0 || game.eggs < cost;
-    b.addEventListener("click", () => addToIncubator(k));
+    b.append(dot, el("span", "pick-name", gp.name), price);
+    b.setAttribute("aria-label", `Put a ${gp.name} egg in the incubator for ${cost} ${cost === 1 ? "egg" : "eggs"}`);
+    b.disabled = !free || room <= 0 || game.eggs < cost || (needsDad && !dads.length);
+    b.addEventListener("click", () => addToIncubator(gp));
     hatchPickEl.append(b);
   }
 }
-function addToIncubator(k) {
-  const cost = eggValueOf(k, false);
-  if (F.incubator.length >= INCUBATOR_SLOTS || roomToHatch() <= 0 || game.eggs < cost) return;
+function addToIncubator(gp) {
+  const cost = eggValueOf(gp.breed, false), needsDad = game.farm === "backyard";
+  const dad = needsDad ? hatchDad : null;
+  if (F.incubator.length >= INCUBATOR_SLOTS || roomToHatch() <= 0 || game.eggs < cost || (needsDad && !dad)) return;
+  const mom = pick(gp.hens);
   spend(cost);
-  F.incubator.push({ breed: k, startedAt: Date.now(), crack: 0, wobble: 0.8 });
+  F.incubator.push({ breed: mom.breed, mom: parentRec(mom), dad: dad ? parentRec(dad) : null, egg: mom.genes ? eggLookOf(mom) : undefined, startedAt: Date.now(), crack: 0, wobble: 0.8 });
   Sound.chime();
   renderHatch();
   save();
@@ -5278,8 +5440,18 @@ function tapSlotEgg(e) {
   updateSlotText();
 }
 function hatchBaby(e) {
-  const P = places.incubator, sc = scaleAt(P.y), B = BREEDS[e.breed];
-  const c = makeBird({ breed: e.breed, growth: 0.12, food: 0.95, water: 0.95, joy: 0.95, x: clampX(P.x + rand(40, 80) * sc), y: clampY(P.y + rand(16, 44) * sc) });
+  const P = places.incubator, sc = scaleAt(P.y);
+  // What did Mom and Dad make?
+  const chicken = BREEDS[e.breed].species === "chicken";
+  const res = e.mom ? hatchResult(e.mom, e.dad) : { breed: e.breed, genes: null, sex: "hen" };
+  const B = BREEDS[res.breed], sexLink = !!B.boy;
+  const c = makeBird({
+    breed: res.breed, genes: res.genes, sex: chicken ? res.sex : "hen", sexKnown: !chicken || sexLink,
+    mom: e.mom && e.dad ? recName(e.mom) : null, dad: e.mom && e.dad ? recName(e.dad) : null,
+    growth: 0.12, food: 0.95, water: 0.95, joy: 0.95, x: clampX(P.x + rand(40, 80) * sc), y: clampY(P.y + rand(16, 44) * sc),
+  });
+  for (const par of [e.mom, e.dad]) { const b = par && F.birds.find((x) => x.id === par.id); if (b) b.kids++; }
+  if (res.genes) game.stats.mixes = (game.stats.mixes || 0) + 1;
   c.tagT = 5; c.vz = 170 * sc; c.state = "idle"; c.t = 1.5;
   F.birds.push(c);
   e.baby = c;
@@ -5288,7 +5460,10 @@ function hatchBaby(e) {
   Sound.call(c, panX(P.x));
   Sound.fanfare();
   confetti(P.x, P.y, 50 * sc, 24, sc);
-  toast(`Welcome, ${c.name}! A brand-new ${B.name} ${babyWord(e.breed)} 🐣`, 3200);
+  let msg = `Welcome, ${c.name}! A brand-new ${lookOf(c).name} ${babyWord(res.breed)} 🐣`;
+  if (sexLink) msg += ` It's a ${isRooster(c) ? "boy" : "girl"}! You can tell by the color.`;
+  else if (c.mom && c.mom !== c.dad) msg = `Welcome, ${c.name}! 🐣 Mom is a ${c.mom} and Dad is a ${c.dad}.`;
+  toast(msg, 3800);
   save();
   const farm = F;   // remember which farm, in case you travel in the next second
   setTimeout(() => {
@@ -5324,7 +5499,7 @@ function drawSlotEgg(v) {
     g.save(); g.translate(75, 104);
     for (const side of [-1, 1]) {
       g.save(); g.translate(side * (8 + t * 60), -30 + t * t * 140); g.rotate(side * t * 3);
-      g.fillStyle = BREEDS[e.breed].egg.color;
+      g.fillStyle = (e.egg || BREEDS[e.breed].egg).color;
       g.beginPath(); g.moveTo(-sz[0] * k * 0.5 * side, 0); g.lineTo(sz[0] * k * side * 0.5, -6); g.lineTo(sz[0] * k * side * 0.5, 8); g.closePath(); g.fill();
       g.restore();
     }
@@ -5340,7 +5515,7 @@ function drawSlotEgg(v) {
   g.save();
   g.translate(75, 104);
   g.rotate(rock + wob);
-  drawEgg(g, e.breed, false, k);
+  drawEgg(g, e.breed, false, k, e.egg);
   const rx = sz[0] * k, ry = sz[1] * k;
   // cracks
   g.strokeStyle = "rgba(60,40,20,.8)"; g.lineWidth = 1.6; g.lineJoin = "round";
@@ -5428,7 +5603,7 @@ function drawIncubator(g) {
     const sz = SPECIES[BREEDS[e.breed].species].egg[1];
     g.save(); g.translate((i - 1) * 14, -18);
     g.rotate(eggReady(e) ? Math.sin(clock * 9 + i) * 0.12 : Math.sin(clock * 0.8 + i) * 0.06);
-    drawEgg(g, e.breed, false, 8 / sz); g.restore();
+    drawEgg(g, e.breed, false, 8 / sz, e.egg); g.restore();
   });
   // glass dome
   g.fillStyle = warm ? "rgba(255,214,150,.3)" : "rgba(220,238,250,.35)";
@@ -5543,7 +5718,7 @@ function renderBook() {
     bookGrid.append(t);
   }
   for (const id of FARM_ORDER) {
-    const breeds = keys.filter((k) => farmOfBreed(k) === id);
+    const breeds = keys.filter((k) => farmOfBreed(k) === id && !BREEDS[k].cross);
     head(`${FARMS[id].emoji} ${FARMS[id].name}`, `${breeds.filter((k) => game.stickers[k]).length} of ${breeds.length}`);
     for (const k of breeds) {
       const have = !!game.stickers[k];
@@ -5554,6 +5729,21 @@ function renderBook() {
       bookGrid.append(t);
     }
   }
+  // Chickens you can only get by hatching the right mom and dad
+  const crosses = keys.filter((k) => BREEDS[k].cross);
+  head("🧬 Special crosses", `${crosses.filter((k) => game.stickers[k]).length} of ${crosses.length}`);
+  for (const k of crosses) {
+    const have = !!game.stickers[k];
+    const t = el("div", "sticker" + (have ? "" : " missing"));
+    const cv = el("canvas", "portrait-sm");
+    drawPortrait(cv, portraitBird(k), 120, 96);
+    t.append(cv, el("div", "sticker-name", BREEDS[k].name), el("div", "sticker-fact", have ? FACTS[k] : crossHint(k)));
+    bookGrid.append(t);
+  }
+}
+function crossHint(k) {
+  const x = CROSSES.find((r) => r.kid === k);
+  return x ? `Hatch a chick with a ${BREEDS[x.dad].name} dad and a ${BREEDS[x.mom].name} mom` : "Hatch a chick from two different breeds";
 }
 bookBtn.addEventListener("click", () => { Sound.unlock(); if (!started) begin(); openBook(); });
 
@@ -5915,6 +6105,11 @@ function startHawk() {
   let called = false;
   for (const c of F.birds) {
     if (c.loc !== "yard" || !INTERRUPTIBLE.has(c.state) || c.goal === "lay" || c.goal === "bed") continue;
+    if (isRooster(c) && c.growth >= 1) {       // the rooster doesn't hide: he keeps watch!
+      c.state = "guard"; c.goal = null; c.t = hawk.dur + 0.6; c.lookT = 0.5; c.flapT = 0.5;
+      Sound.alarm(panX(c.x));
+      continue;
+    }
     const S = SP(c);
     if (S.swim || S.wade) { c.flapT = 0.6; continue; }   // ducks and flamingos just flap
     const s = shelterSpot(c);
@@ -6131,6 +6326,462 @@ function catchUpAfterBackground() {
 }
 
 /* ================================================================
+   25. ROOSTERS & GENETICS
+   ================================================================
+   Every chicken is a hen or a rooster. Roosters don't lay eggs, but
+   they're the dads! They crow at sunrise, call the hens over when they
+   find a snack (farmers call that "tidbitting"), and stand guard when
+   a hawk flies over.
+
+   A flock is happiest with about 1 rooster for every 10 hens. With
+   just the right number, the hens feel safe and lay more eggs. With
+   too many roosters, the roosters squabble and the hens get stressed.
+
+   When you hatch an egg, the chick gets a little from Mom and a little
+   from Dad: feather colors, patterns, combs, fluffy feet... and even
+   the color of the eggs she'll lay someday!
+*/
+const ROOSTER_NAMES = [
+  "Rocky", "Duke", "Captain", "Elvis", "Hank", "Rex", "Big Red", "Tex", "Gus", "Bruno",
+  "Kevin", "Admiral", "Sir Cluck", "Chief", "Ziggy", "Maverick", "Buster", "Cosmo", "Rusty", "Colonel",
+];
+function roosterName() {
+  const used = new Set();
+  for (const id of FARM_ORDER) for (const c of farms[id].birds) used.add(c.name);
+  const free = ROOSTER_NAMES.filter((n) => !used.has(n));
+  return free.length ? pick(free) : freshName();
+}
+
+const isRooster = (c) => c.sex === "rooster";
+const isChicken = (c) => BREEDS[c.breed].species === "chicken";
+// How much a young rooster looks like a grown-up rooster yet (0 to 1)
+const roosterLook = (c) => (isRooster(c) && !isBaby(c) ? clamp((c.growth - 0.55) / 0.45) : 0);
+
+// What a bird looks like. Most birds look like their breed. A Barnyard
+// Mix has its very own "genes" (the recipe for how it looks), and
+// sex-link boys look a little different from their sisters.
+function lookOf(c) {
+  if (c.genes) return c.genes;
+  const B = BREEDS[c.breed];
+  if (B.boy && c.sex === "rooster") return B._boy || (B._boy = Object.assign({}, B, B.boy));
+  return B;
+}
+const eggLookOf = (c) => lookOf(c).egg;
+
+// ---------- The flock gauge: roosters vs. hens ----------
+const FLOCK_STATUS = {
+  none:    { label: "No rooster yet",        color: "#A9A39A", boost: 1,    say: "A rooster protects the hens and is the dad of every chick. Chicken eggs need one to hatch!" },
+  crowded: { label: "Too many roosters!",    color: "#E0533D", boost: 0.85, say: "The roosters keep squabbling, and the hens are stressed. They lay a little slower. Add more hens!" },
+  fewHens: { label: "Needs more hens",       color: "#F2A33A", boost: 1.1,  say: "Each rooster wants a bigger family to look after. Add a few more hens." },
+  good:    { label: "Just right!",           color: "#43A849", boost: 1.25, say: "Your hens feel safe and happy, so they lay eggs 25% faster!" },
+  fewRoos: { label: "Needs another rooster", color: "#F2A33A", boost: 1.1,  say: "That's a lot of hens for one rooster to watch. Another rooster would help." },
+};
+let flockCache = null;
+function flockInfo(fresh) {
+  if (flockCache && !fresh) return flockCache;
+  let roosters = 0, hens = 0, chicks = 0;
+  for (const c of farms.backyard.birds) {
+    if (!isChicken(c)) continue;
+    if (c.growth < 1) chicks++;
+    else if (isRooster(c)) roosters++;
+    else hens++;
+  }
+  const ratio = roosters ? hens / roosters : 0;   // hens for every rooster
+  const key = !roosters ? "none" : ratio < 3 ? "crowded" : ratio < 6 ? "fewHens" : ratio <= 12 ? "good" : "fewRoos";
+  flockCache = Object.assign({ roosters, hens, chicks, ratio, key }, FLOCK_STATUS[key]);
+  return flockCache;
+}
+const flockBoost = () => flockInfo().boost;
+
+const flockBtn = $("flockBtn");
+const flockText = $("flockText");
+const flockDot = $("flockDot");
+const flockSheet = $("flock");
+function updateFlockBtn() {
+  const show = game.farm === "backyard";
+  flockBtn.hidden = !show;
+  if (!show) return;
+  const f = flockInfo(true);
+  flockText.textContent = `🐓 ${f.roosters} : ${f.hens} 🐔`;
+  flockDot.style.background = f.color;
+  flockBtn.setAttribute("aria-label", `Your flock: ${f.roosters} ${f.roosters === 1 ? "rooster" : "roosters"} and ${f.hens} ${f.hens === 1 ? "hen" : "hens"}. ${f.label}`);
+}
+function openFlock() {
+  renderFlock();
+  showSheet(flockSheet);
+  Sound.tick();
+}
+function renderFlock() {
+  const f = flockInfo(true);
+  $("flockCounts").textContent = "";
+  const count = (emoji, n, one, many) => {
+    const d = el("div", "flock-count");
+    d.append(el("span", "flock-emoji", emoji), el("b", null, String(n)), el("span", null, n === 1 ? one : many));
+    $("flockCounts").append(d);
+  };
+  count("🐓", f.roosters, "rooster", "roosters");
+  count("🐔", f.hens, "hen", "hens");
+  count("🐣", f.chicks, "chick", "chicks");
+  const status = $("flockStatus");
+  status.textContent = f.label;
+  status.style.color = f.color;
+  $("flockSay").textContent = f.say;
+  // The marker slides along the bar: hens for every rooster, from 0 to 16
+  const marker = $("gaugeMarker");
+  marker.hidden = !f.roosters;
+  marker.style.left = `${(Math.min(f.ratio, 16) / 16) * 100}%`;
+}
+flockBtn.addEventListener("click", () => { Sound.unlock(); if (!started) begin(); openFlock(); });
+$("flockShop").addEventListener("click", () => { marketTab = "birds"; openMarket(); });
+
+// ---------- Genetics: what will the chick look like? ----------
+// Some crosses are famous! These real chicken "recipes" always make
+// the same kind of chick.
+const CROSSES = [
+  { dad: "rir", mom: "barred", kid: "blackStar" },
+  { dad: "rir", mom: "leghorn", kid: "goldenComet" },
+  { dad: "rir", mom: "wyandotte", kid: "cinnamonQueen" },
+  { dad: "australorp", mom: "leghorn", kid: "austraWhite" },
+  { dad: "easter", mom: "marans", kid: "olive" },
+  { dad: "marans", mom: "easter", kid: "olive" },
+];
+
+// A parent, remembered on its egg: its breed, genes, and name
+function parentRec(c) {
+  return { breed: c.breed, genes: c.genes || null, sex: c.sex, name: c.name, id: c.id };
+}
+function recLook(p) {
+  if (p.genes) return p.genes;
+  const B = BREEDS[p.breed];
+  return B.boy && p.sex === "rooster" ? Object.assign({}, B, B.boy) : B;
+}
+const recName = (p) => recLook(p).name;
+
+// Mom + Dad = baby! Returns the chick's breed (and its genes, if it's a mix)
+function hatchResult(mom, dad) {
+  const sex = Math.random() < 0.5 ? "rooster" : "hen";
+  if (!dad) return { breed: mom.breed, genes: mom.genes, sex };
+  if (!mom.genes && !dad.genes) {
+    if (mom.breed === dad.breed && !BREEDS[mom.breed].cross) return { breed: mom.breed, genes: null, sex };   // purebred
+    const x = CROSSES.find((r) => r.dad === dad.breed && r.mom === mom.breed);
+    if (x) return { breed: x.kid, genes: null, sex };
+  }
+  return { breed: "mix", genes: mixGenes(recLook(dad), recLook(mom)), sex };
+}
+
+// Egg colors: how brown the shell is (0 = white, 3 = chocolate), and
+// whether the blue-egg gene is there. Blue + brown = green!
+const EGG_GENES = {
+  White: [0, 0], Cream: [0.5, 0], Tan: [1, 0], "Light brown": [1, 0], Brown: [2, 0], Chocolate: [3, 0], "Dark brown": [3, 0],
+  Blue: [0, 1], Mint: [1, 1], Green: [1.7, 1], Olive: [2.6, 1],
+};
+const EGG_RESULTS = [
+  [{ name: "White", color: "#F8F4EA" }, { name: "Tan", color: "#E2C497" }, { name: "Brown", color: "#C1905F" }, { name: "Dark brown", color: "#7A4A2C" }],
+  [{ name: "Blue", color: "#9FD3CE" }, { name: "Mint", color: "#BFE0C4" }, { name: "Green", color: "#A9BF7E" }, { name: "Olive", color: "#8E9A5C" }],
+];
+function mixEgg(a, b) {
+  const [la, ba] = EGG_GENES[a.name] || [1.5, 0], [lb, bb] = EGG_GENES[b.name] || [1.5, 0];
+  const blue = (ba || bb) && Math.random() < (ba && bb ? 0.85 : 0.5) ? 1 : 0;
+  const lv = clamp(Math.round((la + lb) / 2 + rand(-0.6, 0.6)), 0, 3);
+  const e = Object.assign({}, EGG_RESULTS[blue][lv]);
+  if ((a.speckle || b.speckle) && Math.random() < 0.5) e.speckle = true;
+  return e;
+}
+
+// The colors a chicken is painted with
+const PALETTE = ["body", "shade", "light", "wing", "neck", "tail", "tail2", "hackle"];
+function colorOf(L, k) {
+  if (L[k]) return L[k];
+  if (k === "neck") return L.body;
+  if (k === "hackle") return L.neck || L.body;
+  if (k === "tail2") return L.tail || L.shade;
+  return L.shade || L.body;   // wing, tail
+}
+// A brand-new one-of-a-kind chicken, a bit like Dad and a bit like Mom
+function mixGenes(D, M) {
+  const coin = (p = 0.5) => Math.random() < p;
+  const either = (k) => (coin() ? D : M)[k];
+  const base = coin() ? D : M, other = base === D ? M : D;
+  const blend = coin(0.35);               // sometimes the colors melt together
+  const g = { name: "Barnyard Mix", species: "chicken" };
+  for (const k of PALETTE) g[k] = blend ? mixHex(colorOf(base, k), colorOf(other, k), 0.5) : colorOf(base, k);
+  // A patchwork chicken: wings or tail from the other parent
+  if (!blend && coin(0.3)) g.wing = colorOf(other, "wing");
+  if (!blend && coin(0.3)) { g.tail = colorOf(other, "tail"); g.tail2 = colorOf(other, "tail2"); }
+  // Stripes ("barring") are a strong gene: they show up a lot
+  const barred = (L) => L.pattern === "barred" || L.pattern === "cuckoo";
+  if (barred(D) || barred(M)) { if (coin(barred(D) && barred(M) ? 0.9 : 0.6)) g.pattern = (barred(D) ? D : M).pattern; }
+  else { const p = either("pattern"); if (p && coin(0.7)) g.pattern = p; }
+  // Silkie fluff is a hidden (recessive) gene, so mixes come out only a little fluffy
+  const silk = !!(D.silkie || M.silkie);
+  if (D.silkie && M.silkie) { g.silkie = true; g.face = D.face || M.face; }
+  g.fluffy = Math.max(D.fluffy || 0, M.fluffy || 0) * rand(0.4, 0.9) + (silk ? 0.15 : 0);
+  if ((D.featherFeet || M.featherFeet || silk) && coin(0.65)) g.featherFeet = true;
+  if ((D.crest || M.crest || silk) && coin(0.5)) g.crest = D.crest || M.crest || g.light;
+  // Pea combs and rose combs are strong genes too
+  const has = (t) => D.combType === t || M.combType === t;
+  if (has("pea") && coin(0.75)) g.combType = "pea";
+  else if (has("rose") && coin(0.75)) g.combType = "rose";
+  else if (silk && coin(0.5)) g.combType = "rose";
+  else { const t = either("combType"); if (t === "big" || t === "tiny") g.combType = t; }
+  g.comb = D.silkie && !M.silkie ? M.comb : M.silkie && !D.silkie ? D.comb : either("comb");
+  if ((D.muffs || M.muffs) && coin(0.6)) g.muffs = D.muffs || M.muffs;
+  const lobe = either("earlobe");
+  if (lobe) g.earlobe = lobe;
+  g.beak = either("beak");
+  g.legs = either("legs");
+  g.tailK = ((D.tailK || 1) + (M.tailK || 1)) / 2;
+  g.chick = blend ? mixHex(D.chick, M.chick, 0.5) : base.chick;
+  const stripe = base.chickStripe || (coin() ? other.chickStripe : null);
+  const spot = base.chickSpot || (coin(0.3) ? other.chickSpot : null);
+  if (stripe) g.chickStripe = stripe; else if (spot) g.chickSpot = spot;
+  g.pitch = ((D.pitch || 1) + (M.pitch || 1)) / 2;
+  g.layBoost = (((D.layBoost || 1) + (M.layBoost || 1)) / 2) * 1.05;   // mixed chickens are often extra healthy
+  g.egg = mixEgg(D.egg, M.egg);
+  return g;
+}
+
+// Checking genes loaded from a save, so a broken save can't break the game
+const HEX6 = /^#[0-9a-fA-F]{6}$/;
+const GENE_COLORS = [...PALETTE, "comb", "beak", "legs", "chick", "chickStripe", "chickSpot", "crest", "muffs", "earlobe", "face"];
+function cleanEgg(e) {
+  if (!e || typeof e !== "object" || typeof e.color !== "string" || !HEX6.test(e.color)) return null;
+  return { name: typeof e.name === "string" ? e.name.slice(0, 20) : "Brown", color: e.color, speckle: e.speckle === true };
+}
+function cleanGenes(g) {
+  if (!g || typeof g !== "object") return null;
+  const out = { name: "Barnyard Mix", species: "chicken" };
+  for (const k of GENE_COLORS) if (typeof g[k] === "string" && HEX6.test(g[k])) out[k] = g[k];
+  if (!out.body) return null;
+  for (const k of PALETTE) if (!out[k]) out[k] = out.body;
+  out.chick = out.chick || "#F4D98A";
+  out.comb = out.comb || "#E03A2F";
+  out.beak = out.beak || "#E8B84A";
+  out.legs = out.legs || "#E8C06A";
+  if (["barred", "cuckoo", "speckle", "laced", "dots", "flecks"].includes(g.pattern)) out.pattern = g.pattern;
+  if (["pea", "rose", "big", "tiny"].includes(g.combType)) out.combType = g.combType;
+  out.fluffy = num(g.fluffy, 0, 0, 0.5);
+  out.tailK = num(g.tailK, 1, 0.4, 1.4);
+  out.pitch = num(g.pitch, 1, 0.7, 1.3);
+  out.layBoost = num(g.layBoost, 1, 0.5, 1.5);
+  if (g.silkie === true) out.silkie = true;
+  if (g.featherFeet === true) out.featherFeet = true;
+  out.egg = cleanEgg(g.egg) || { name: "Brown", color: "#C1905F" };
+  return out;
+}
+function cleanRec(p) {
+  if (!p || typeof p !== "object" || !BREEDS[p.breed]) return null;
+  return {
+    breed: p.breed, genes: cleanGenes(p.genes), sex: p.sex === "rooster" ? "rooster" : "hen",
+    name: typeof p.name === "string" ? p.name.slice(0, 16) : "", id: num(p.id, -1),
+  };
+}
+
+// ---------- Rooster sounds ----------
+Object.assign(Sound, {
+  crow(pitch = 1, pan = 0, v = 1) {   // "cock-a-doodle-DOOOO!"
+    const syl = (t, f0, f1, dur, gain) => {
+      this.tone({ type: "sawtooth", t, f0: f0 * pitch, f1: f1 * pitch, dur, gain: gain * v, filter: "bandpass", ff: 1500 * pitch, q: 2, pan });
+      this.noise({ t, dur: dur * 0.6, gain: 0.04 * v, type: "bandpass", f: 2400, q: 1.5, pan });
+    };
+    syl(0, 480, 560, 0.12, 0.16);
+    syl(0.16, 560, 620, 0.1, 0.15);
+    syl(0.3, 620, 700, 0.12, 0.16);
+    syl(0.48, 700, 880, 0.28, 0.18);
+    syl(0.76, 880, 560, 0.55, 0.17);
+  },
+  tidbit(pan = 0, v = 1) {             // "tuk-tuk-tuk! Ladies, I found a snack!"
+    for (let i = 0; i < 5; i++) this.bawk(i * 0.1, 300 + (i % 2) * 20, 0.06, 0.12 * v, pan);
+  },
+  alarm(pan = 0) {                     // "bawk bawk BAWK! Hawk!"
+    this.bawk(0, 420, 0.1, 0.18, pan);
+    this.bawk(0.14, 420, 0.1, 0.18, pan);
+    this.tone({ type: "sawtooth", t: 0.3, f0: 640, f1: 980, dur: 0.22, gain: 0.2, filter: "bandpass", ff: 1700, q: 1.8, pan });
+  },
+});
+const crowPitch = (c) => (lookOf(c).pitch || 1) * 0.9;
+
+// ---------- Rooster personality ----------
+const SHOW_OK = new Set(["idle", "walk", "peck", "scratch", "preen"]);
+const canShow = (c) => c.loc === "yard" && SHOW_OK.has(c.state) && (!c.goal || c.goal === "wander");
+let crowQuiet = 0, squabbleT = rand(25, 45);
+
+function updateRoosters(dt) {
+  crowQuiet -= dt;
+  if (!F.birds.some(isRooster)) return;
+  const bed = isBedtime();
+  const roosters = F.birds.filter((c) => isRooster(c) && c.growth >= 1 && c.loc === "yard");
+  for (const c of roosters) {
+    c.crowT -= dt;
+    if (c.crowT > 0 || bed) continue;
+    if (crowQuiet <= 0 && canShow(c)) startCrow(c);
+    else c.crowT = rand(2, 6);   // someone else is crowing; wait a moment
+  }
+  // Too many roosters? Now and then two of them puff up at each other
+  if (game.farm === "backyard" && !bed && flockInfo().key === "crowded" && roosters.length >= 2) {
+    squabbleT -= dt;
+    if (squabbleT <= 0) { squabbleT = rand(25, 50); startSquabble(roosters); }
+  }
+}
+function startCrow(c) {
+  c.state = "crow"; c.goal = null; c.t = 2.2; c.peckT = 0; c.crowed = false;
+  c.flapT = 0.45;                      // roosters flap their wings before they crow
+  c.crowT = rand(55, 120);
+  crowQuiet = 5;
+}
+// The sun is up! Every rooster crows soon after leaving the coop.
+function dawnChorus() {
+  for (const c of F.birds) if (isRooster(c) && c.growth >= 1) c.crowT = rand(1, 8);
+}
+// "I found a snack!" The rooster bobs his head and calls the hens over.
+function startTidbit(c, callHens) {
+  c.state = "tidbit"; c.t = 1.5; c.peckT = 0;
+  Sound.tidbit(panX(c.x), 0.8);
+  if (!callHens) return;
+  const sc = scaleAt(c.y);
+  const hens = F.birds.filter((h) => h !== c && !isRooster(h) && isChicken(h) && h.growth >= 1 && canShow(h))
+    .sort((a, b) => Math.hypot(a.x - c.x, a.y - c.y) - Math.hypot(b.x - c.x, b.y - c.y)).slice(0, 2);
+  for (const h of hens) {
+    if (Math.hypot(h.x - c.x, h.y - c.y) > 360 * sc) continue;
+    h.goal = "wander";
+    walkTo(h, c.x + c.dir * rand(22, 40) * sc, c.y + rand(-10, 10), SETTINGS.runSpeed * 0.7, false);
+  }
+}
+// Two roosters walk up, puff out their neck feathers, and hop at each other
+function startSquabble(roosters) {
+  let a = null, b = null, bd = 1e9;
+  for (const x of roosters) for (const y of roosters) {
+    if (x === y || !canShow(x) || !canShow(y)) continue;
+    const d = Math.hypot(x.x - y.x, x.y - y.y);
+    if (d < bd) { bd = d; a = x; b = y; }
+  }
+  if (!a || bd > 420 * scaleAt(a.y)) return;
+  const sc = scaleAt(b.y), side = a.x < b.x ? -1 : 1;
+  a.goal = "squabble"; a.rival = b;
+  walkTo(a, b.x + side * 34 * sc, b.y, SETTINGS.runSpeed * 0.8, false);
+  b.state = "idle"; b.goal = null; b.t = 4; b.dir = -side;
+}
+function puffUp(c, rival) {
+  c.state = "puff"; c.t = 1.7; c.peckT = 0; c.goal = null;
+  c.dir = rival.x > c.x ? 1 : -1;
+  c.vz = 150 * scaleAt(c.y); c.flapT = 0.6;
+  feathers(c, 2);
+}
+// What roosters do in each of their special states (called from the bird brain)
+function updateRoosterState(c, dt) {
+  switch (c.state) {
+    case "crow":
+      c.t -= dt; c.peckT += dt;
+      if (!c.crowed && c.peckT > 0.45) {
+        c.crowed = true;
+        Sound.crow(crowPitch(c), panX(c.x), scene === "yard" ? 0.9 : 0.4);
+        const sc = scaleAt(c.y);
+        notes(c.x + c.dir * 16 * sc, c.y, headH(c) * sc + 6, 3, sc);
+      }
+      if (c.t <= 0) think(c);
+      return true;
+    case "tidbit":
+      c.t -= dt; c.peckT += dt;
+      if (c.t <= 0) {
+        if (c.pile && c.pile.bites > 0) { c.state = "treatPeck"; c.biteT = 0; c.peckT = 0; }
+        else { c.state = "peck"; c.t = rand(1, 2); c.peckT = 0; }
+      }
+      return true;
+    case "guard":               // head up, watching the sky
+      c.t -= dt;
+      c.lookT -= dt;
+      if (c.lookT <= 0) { c.lookT = rand(0.5, 1.2); c.dir *= -1; }
+      if (c.t <= 0) { startCrow(c); c.crowT = rand(55, 120); }   // "All clear!"
+      return true;
+    case "puff":
+      c.t -= dt; c.peckT += dt;
+      if (c.peckT > 0.8 && c.peckT - dt <= 0.8) { c.vz = 130 * scaleAt(c.y); feathers(c, 1); }
+      if (c.t <= 0) { c.goal = "wander"; wanderNear(c); }   // walk it off
+      return true;
+  }
+  return false;
+}
+
+// ---------- Drawing a rooster's fancy feathers ----------
+function isDark(hex) { const [r, g, b] = rgb(hex); return 0.3 * r + 0.59 * g + 0.11 * b < 80; }
+// Long curved "sickle" tail feathers (drawn where the tail starts)
+function drawSickles(g, B, R, now, c) {
+  const L = lerp(0.45, 1, R) * (B.tailK ? 0.6 + 0.4 * B.tailK : 1);
+  const sheen = B.sheen || (isDark(B.tail) ? "#3F8F72" : B.light);
+  g.save();
+  g.rotate(Math.sin(now * 1.3 + c.id) * 0.04);
+  const feather = (rot, len, col) => {
+    g.save(); g.rotate(rot); g.scale(len * L, len * L);
+    g.beginPath();
+    g.moveTo(3, -1);
+    g.quadraticCurveTo(-8, -64, -50, -16);         // up and over...
+    g.quadraticCurveTo(-18, -44, -4, 4);           // ...and back down
+    g.closePath();
+    g.fillStyle = col; g.fill();
+    g.strokeStyle = rgba(sheen, 0.55); g.lineWidth = 1.6 / (len * L);
+    g.beginPath(); g.moveTo(2, -3); g.quadraticCurveTo(-8, -60, -46, -17); g.stroke();
+    g.restore();
+  };
+  feather(0.28, 0.72, B.tail2 || B.tail);
+  feather(0.05, 0.9, B.tail);
+  feather(-0.18, 1, B.tail2 || B.tail);
+  g.restore();
+}
+// Pointed, shiny neck feathers ("hackles") and back feathers ("saddle")
+function drawHackles(g, B, R, headX, headY, by, flare) {
+  const col = B.hackle || B.neck || B.body;
+  g.save();
+  g.globalAlpha = R;
+  g.fillStyle = col;
+  for (let i = 0; i < 6; i++) {
+    const t = i / 5, px = lerp(headX - 3, 6, t), py = lerp(headY + 5, by - 10, t);
+    const tx = px - 11 - 7 * t - flare * 8, ty = py + 10 + 4 * t - flare * 6;
+    g.beginPath();
+    g.moveTo(px + 5, py - 3);
+    g.quadraticCurveTo(px - 3, py + 3, tx, ty);
+    g.quadraticCurveTo(px + 2, py + 8, px + 6, py + 3);
+    g.closePath(); g.fill();
+  }
+  for (let i = 0; i < 4; i++) {        // saddle feathers, flowing toward the tail
+    const x = -6 - i * 5, y = by - 17 + i * 1.5;
+    g.beginPath();
+    g.moveTo(x + 5, y);
+    g.quadraticCurveTo(x - 6, y + 2, x - 16, y + 12);
+    g.quadraticCurveTo(x - 3, y + 7, x + 4, y + 5);
+    g.closePath(); g.fill();
+  }
+  g.restore();
+}
+
+// ---------- Getting a rooster ----------
+// Older farms get one free rooster, so they can hatch chicks right away
+function giftRooster() {
+  if (game.roosterGift) return "";
+  const BY = farms.backyard;
+  const hens = BY.birds.filter((c) => isChicken(c) && c.growth >= 1);
+  game.roosterGift = true;
+  if (!hens.length || BY.birds.some(isRooster) || BY.birds.length >= capacityOf("backyard")) return "";
+  const c = addBirdToFarm("backyard", pick(hens).breed, 1, "rooster");
+  c.needsSpot = true;
+  c.crowT = rand(4, 10);
+  return `Meet ${c.name}, your new rooster! 🐓 Tap the rooster button to see how your flock is doing.`;
+}
+
+// ---------- Stickers for roosters and crosses ----------
+Object.assign(FACTS, {
+  blackStar: "Black Stars are \"sex-links\": boy chicks hatch with a white spot on their heads, so you can tell boys from girls right away!",
+  goldenComet: "Golden Comet girls hatch red and the boys hatch yellow. The hens are some of the best egg layers around!",
+  cinnamonQueen: "Cinnamon Queens are friendly cinnamon-red hens. Their brothers grow up white with silver lace!",
+  austraWhite: "Austra Whites are half Australorp and half Leghorn: white with little black flecks, and they lay tons of eggs.",
+  mix: "Every Barnyard Mix is one of a kind! Chicks get some things from Mom and some from Dad, even the color of the eggs they'll lay.",
+});
+SPECIAL_STICKERS.push(
+  { id: "rooster", emoji: "🐓", name: "Cock-a-doodle-doo!", how: "Get a rooster for your flock", done: () => flockInfo(true).roosters >= 1 },
+  { id: "perfectFlock", emoji: "💚", name: "Perfect Flock", how: "Have about 1 rooster for every 10 hens", done: () => flockInfo(true).key === "good" },
+);
+
+
+/* ================================================================
    17. SAVING & LOADING
    ================================================================
    Your farms are saved on this device (in the browser's storage), so
@@ -6148,18 +6799,19 @@ function serializeFarm(id) {
     birds: st.birds.map((c) => ({
       breed: c.breed, name: c.name, x: c.x, y: c.y, growth: c.growth, food: c.food, water: c.water,
       joy: c.joy, laid: c.laid, eggClock: c.eggClock, loc: c.loc === "yard" ? "yard" : "coop", needsSpot: c.needsSpot, hat: c.hat || null,
+      sex: c.sex, known: c.sexKnown, genes: c.genes || undefined, mom: c.mom || undefined, dad: c.dad || undefined, kids: c.kids || undefined,
     })),
-    yardEggs: st.yardEggs.map((e) => ({ x: e.x, y: e.y, breed: e.breed, golden: e.golden })),
-    nestEggs: st.nestEggs.map((e) => ({ box: e.box, breed: e.breed, golden: e.golden })),
-    crates: id === game.farm ? fx.crates.filter((cr) => !cr.opened).map((cr) => cr.breed) : [],
-    incubator: st.incubator.filter((e) => !e.baby).map((e) => ({ breed: e.breed, startedAt: e.startedAt, crack: e.crack || 0 })),
+    yardEggs: st.yardEggs.map((e) => ({ x: e.x, y: e.y, breed: e.breed, egg: e.egg, golden: e.golden })),
+    nestEggs: st.nestEggs.map((e) => ({ box: e.box, breed: e.breed, egg: e.egg, golden: e.golden })),
+    crates: id === game.farm ? fx.crates.filter((cr) => !cr.opened).map((cr) => ({ breed: cr.breed, sex: cr.sex })) : [],
+    incubator: st.incubator.filter((e) => !e.baby).map((e) => ({ breed: e.breed, mom: e.mom, dad: e.dad, egg: e.egg, startedAt: e.startedAt, crack: e.crack || 0 })),
   };
 }
 function serialize() {
   const out = {
     v: 5, savedAt: Date.now(), eggs: game.eggs, farm: game.farm, time: game.time, day: game.day,
     totalEggs: game.totalEggs, hints: game.hints, muted: game.muted, farms: {},
-    stickers: game.stickers, special: game.special, stats: game.stats, bookNew: game.bookNew,
+    stickers: game.stickers, special: game.special, stats: game.stats, bookNew: game.bookNew, roosterGift: game.roosterGift,
     weather: { kind: weather.kind, left: weather.left, next: weather.next },
   };
   for (const id of FARM_ORDER) out.farms[id] = serializeFarm(id);
@@ -6216,25 +6868,32 @@ function applyFarm(id, s) {
       x: clampX(num(b.x, view.W * 0.5)), y: clampY(num(b.y, view.H * 0.7)),
       growth: num(b.growth, 1, 0.1, 1), food: num(b.food, 0.8, 0, 1), water: num(b.water, 0.8, 0, 1),
       joy: num(b.joy, 0.5, 0, 1), laid: Math.floor(num(b.laid, 0, 0, 1e6)), eggClock: num(b.eggClock, 30, 0, 600),
+      sex: b.sex, sexKnown: b.known !== false, genes: b.breed === "mix" ? cleanGenes(b.genes) : null,
+      mom: typeof b.mom === "string" ? b.mom.slice(0, 30) : null, dad: typeof b.dad === "string" ? b.dad.slice(0, 30) : null,
+      kids: Math.floor(num(b.kids, 0, 0, 1e5)),
     });
     c.needsSpot = !!b.needsSpot;
     c.hat = HATS.some((h) => h.id && h.id === b.hat) ? b.hat : null;
     c.loc = b.loc === "coop" && isBedtime() ? "coop" : "yard";
     st.birds.push(c);
   }
-  for (const breed of arr(s.crates)) {
+  for (const cr of arr(s.crates)) {
+    const breed = typeof cr === "string" ? cr : cr && cr.breed;   // older saves kept just the breed
     if (BREEDS[breed] && farmOfBreed(breed) === id && st.birds.length < capacityOf(id)) {
-      const c = addBirdToFarm(id, breed, 0.12);
+      const c = addBirdToFarm(id, breed, 0.12, cr && cr.sex);
       c.needsSpot = true;
     }
   }
   const boxes = nestCount(id);
   st.yardEggs = arr(s.yardEggs).filter((e) => e && BREEDS[e.breed]).slice(0, SETTINGS.maxYardEggs)
-    .map((e) => ({ id: nextId++, x: clampX(num(e.x, view.W / 2)), y: clampY(num(e.y, view.H * 0.7)), breed: e.breed, golden: !!e.golden, glint: rand(0, 3) }));
+    .map((e) => ({ id: nextId++, x: clampX(num(e.x, view.W / 2)), y: clampY(num(e.y, view.H * 0.7)), breed: e.breed, egg: cleanEgg(e.egg) || undefined, golden: !!e.golden, glint: rand(0, 3) }));
   st.incubator = arr(s.incubator).filter((e) => e && BREEDS[e.breed] && farmOfBreed(e.breed) === id).slice(0, INCUBATOR_SLOTS)
-    .map((e) => ({ breed: e.breed, startedAt: num(e.startedAt, Date.now(), 0, Date.now()), crack: Math.floor(num(e.crack, 0, 0, 2)), wobble: 0 }));
+    .map((e) => ({
+      breed: e.breed, mom: cleanRec(e.mom), dad: cleanRec(e.dad), egg: cleanEgg(e.egg) || undefined,
+      startedAt: num(e.startedAt, Date.now(), 0, Date.now()), crack: Math.floor(num(e.crack, 0, 0, 2)), wobble: 0,
+    }));
   st.nestEggs = arr(s.nestEggs).filter((e) => e && BREEDS[e.breed] && e.box >= 0 && e.box < boxes).slice(0, boxes * SETTINGS.nestBoxHolds)
-    .map((e) => ({ id: nextId++, box: Math.floor(e.box), breed: e.breed, golden: !!e.golden }));
+    .map((e) => ({ id: nextId++, box: Math.floor(e.box), breed: e.breed, egg: cleanEgg(e.egg) || undefined, golden: !!e.golden }));
 }
 
 function applySave(d) {
@@ -6250,6 +6909,7 @@ function applySave(d) {
   game.stats = Object.assign(freshStats(), obj(d.stats));
   game.stats.seasons = obj(game.stats.seasons);
   game.bookNew = !!d.bookNew;
+  game.roosterGift = !!d.roosterGift;
   if (d.weather && (d.weather.kind === "rain" || d.weather.kind === "snow" || d.weather.kind === "clear")) {
     weather.kind = d.weather.kind;
     weather.left = num(d.weather.left, 0, 0, 200);
@@ -6266,21 +6926,25 @@ function applySave(d) {
   buildBackground();
   buildRoomBg();
   if (!farms.backyard.birds.length && game.farm === "backyard") starterFlock();
+  const gift = giftRooster();
 
   // While you were away, time kept going on every farm
   const away = (Date.now() - num(d.savedAt, Date.now())) / 1000;
   if (away > 5) welcomeMsg = catchUpWhileAway(away);
+  if (gift) welcomeMsg = gift;
   arriveFarm();
 }
 function starterFlock() {
   const c = places.coop, sc = scaleAt(c.y), g = view.H - view.horizon;
-  ["rir", "buff", "barred"].forEach((breed, i) => {
-    const ch = makeBird({ breed, x: c.x + (150 + i * 95) * sc, y: c.y + (46 + i * 34) * sc, growth: 1, eggClock: rand(20, 45) });
+  // Three hens and a rooster to start
+  ["rir", "buff", "barred", "rir"].forEach((breed, i) => {
+    const ch = makeBird({ breed, sex: i === 3 ? "rooster" : "hen", x: c.x + (150 + i * 85) * sc, y: c.y + (46 + i * 30) * sc, growth: 1, eggClock: rand(20, 45) });
     ch.t = rand(0.3, 1.5);
     farms.backyard.birds.push(ch);
   });
   // A surprise egg hidden by the tree, so there's something to find right away
   farms.backyard.yardEggs.push({ id: nextId++, x: clampX(places.tree.x - 70 * scaleAt(places.tree.y)), y: clampY(view.horizon + g * 0.3), breed: "buff", golden: false, glint: 0 });
+  game.roosterGift = true;
 }
 
 
@@ -6295,6 +6959,7 @@ let frameNo = 0, lastFrame = performance.now(), acc = 0, saveT = 4, awayT = 0, h
 
 function update(dt) {
   clock += dt;
+  flockCache = null;          // recount roosters and hens this frame
   const prev = game.time;
   game.time += dt / SETTINGS.dayLengthSeconds;
   if (game.time >= 1) { game.time -= 1; game.day++; onNewDay(); }
@@ -6324,6 +6989,7 @@ function update(dt) {
   updateIncubators(dt);
   updateWeather(dt);
   updateVisitors(dt);
+  updateRoosters(dt);
   updateSceneFx(dt);
   updateAmbient(dt);
   Music.update();
@@ -6340,6 +7006,7 @@ function update(dt) {
   if (hudT <= 0) {
     hudT = 0.5;
     updateFarmBtn();
+    updateFlockBtn();
     // Safety net: if the screen changed size and we somehow missed it, fix it now
     if (Math.round(view.w) !== window.innerWidth || Math.round(view.h) !== window.innerHeight) queueResize();
   }
